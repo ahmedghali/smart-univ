@@ -1,0 +1,675 @@
+{% extends 'enseignant/base_Ens.html' %}
+{% load static %}
+
+{% block extra_css_ens %}
+<style>
+/* Table des absences - Style ameliore */
+.compact-absence-table {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    width: 100%;
+}
+
+.compact-absence-table .compact-th,
+.compact-absence-table .compact-td {
+    padding: 0.5rem 0.6rem !important;
+    vertical-align: middle;
+    border: 1px solid #dee2e6;
+}
+
+.compact-header-row {
+    height: 50px !important;
+}
+
+/* En-tetes de colonnes - Style fonce et lisible */
+.compact-th {
+    font-size: 0.95rem;
+    font-weight: 700;
+    white-space: nowrap;
+    background: linear-gradient(135deg, #2c3e50, #34495e) !important;
+    color: #ffffff !important;
+    text-align: center;
+    border: 1px solid #1a252f !important;
+}
+
+.compact-row {
+    height: auto;
+    min-height: 40px;
+}
+
+/* Etats des lignes */
+.row-present {
+    background-color: #d1edff !important;
+    border-left: 3px solid #28a745;
+}
+
+.row-justified {
+    background-color: #fff3cd !important;
+    border-left: 3px solid #ffc107;
+}
+
+.row-absent {
+    background-color: #f8d7da !important;
+    border-left: 3px solid #dc3545;
+}
+
+/* Inputs ameliores */
+.compact-input {
+    height: 32px !important;
+    font-size: 0.85rem !important;
+    padding: 0.4rem 0.5rem !important;
+    line-height: 1.4 !important;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+.compact-input:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.15rem rgba(40, 167, 69, 0.2);
+}
+
+.compact-input:disabled {
+    background-color: #e9ecef;
+    opacity: 0.6;
+}
+
+/* Points inputs speciaux */
+.points-input {
+    width: 65px !important;
+    text-align: center;
+}
+
+.obs-input {
+    width: 150px !important;
+}
+
+/* Checkboxes compactes */
+.checkbox-compact {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.form-check-input {
+    margin: 0 !important;
+    transform: scale(0.9);
+}
+
+/* Controles */
+.ctrl-checkbox {
+    font-size: 0.85rem !important;
+    margin-right: 12px !important;
+    margin-bottom: 0 !important;
+    cursor: pointer;
+    white-space: nowrap;
+    padding: 4px 8px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+.ctrl-checkbox:hover {
+    background: #e9ecef;
+}
+
+.ctrl-checkbox input[type="checkbox"] {
+    margin-right: 5px;
+    transform: scale(1);
+}
+
+/* En-tetes compacts */
+.header-compact h5 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.header-compact h6 {
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+/* Statistiques compactes */
+.stats-compact {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+.stat-label {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5) !important;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    font-size: 1rem;
+    font-weight: bold;
+    padding: 0.3rem 0.6rem;
+    border-radius: 0.25rem;
+    color: white;
+    min-width: 35px;
+    text-align: center;
+}
+
+/* Actions rapides */
+.quick-actions {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.quick-actions .btn-sm {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* En-tetes sticky */
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Style du thead */
+.table-secondary {
+    background: linear-gradient(135deg, #2c3e50, #34495e) !important;
+}
+
+/* Hover optimise */
+.compact-absence-table tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.1) !important;
+}
+
+/* Style general compact */
+.grey_zone {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+}
+
+.oneBorder {
+    border-left: 3px solid #dc3545;
+    padding-left: 8px;
+}
+
+/* Sortable cursors */
+.sortable:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+}
+
+.sort-indicator {
+    font-size: 0.8rem;
+    color: #007bff;
+}
+
+/* Actions de formulaire */
+.form-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.final-summary {
+    text-align: right;
+}
+
+/* Info card */
+.info-header-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    padding: 1rem;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .compact-absence-table {
+        font-size: 0.8rem;
+    }
+
+    .compact-th,
+    .compact-td {
+        padding: 0.3rem 0.4rem !important;
+    }
+
+    .compact-th {
+        font-size: 0.8rem;
+    }
+
+    .compact-input {
+        height: 28px !important;
+        font-size: 0.75rem !important;
+        padding: 0.2rem 0.3rem !important;
+    }
+
+    .points-input {
+        width: 55px !important;
+    }
+
+    .obs-input {
+        width: 100px !important;
+    }
+
+    .stats-compact {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .ctrl-checkbox {
+        font-size: 0.75rem !important;
+        margin-right: 8px !important;
+        padding: 3px 6px;
+    }
+}
+
+/* Row numbers styling */
+.row-number {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+/* Cellules de donnees */
+.compact-td {
+    font-size: 0.9rem;
+    color: #212529;
+}
+
+.compact-td small {
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %}
+
+{% block content_ens %}
+<div class="container-fluid p-3">
+    <!-- En-tete avec informations -->
+    <div class="info-header-card">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="mb-1">
+                    <i class="fas fa-user-check me-2"></i>
+                    قائمة الغيابات - {{ mySeance.classe.matiere.nom_ar }}
+                </h5>
+                <p class="mb-0">
+                    <small>
+                        <i class="fas fa-calendar me-1"></i>
+                        {{ mySeance.date|date:"Y/m/d" }} |
+                        <i class="fas fa-clock me-1"></i>
+                        {{ mySeance.get_temps_display }} |
+                        <i class="fas fa-layer-group me-1"></i>
+                        {{ mySeance.classe.niv_spe_dep_sg }}
+                    </small>
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <!-- Compteurs en temps reel -->
+                <div class="stats-compact justify-content-end">
+                    <div class="stat-item">
+                        <span class="stat-label" style="color: #fff !important;">حضور:</span>
+                        <span id="present-count" class="stat-value bg-success">{{ present_count }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label" style="color: #fff !important;">مبرر:</span>
+                        <span id="justifiee-count" class="stat-value bg-warning">{{ justified_count }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label" style="color: #fff !important;">غياب:</span>
+                        <span id="absent-count" class="stat-value bg-danger">{{ absent_count }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controles compacts -->
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <div class="d-flex flex-wrap align-items-center justify-content-between">
+                <div>
+                    <small class="fw-bold me-2">إظهار:</small>
+                    <label class="ctrl-checkbox"><input type="checkbox" id="toggle-nom_fr" checked> Nom</label>
+                    <label class="ctrl-checkbox"><input type="checkbox" id="toggle-prenom_fr" checked> Prénom</label>
+                    <label class="ctrl-checkbox"><input type="checkbox" id="toggle-nom_ar" checked> اللقب</label>
+                    <label class="ctrl-checkbox"><input type="checkbox" id="toggle-prenom_ar" checked> الاسم</label>
+                    <label class="ctrl-checkbox"><input type="checkbox" id="toggle-present" checked> حضور</label>
+                    <label class="ctrl-checkbox"><input type="checkbox" id="toggle-participation" checked> مشاركة</label>
+                    <label class="ctrl-checkbox"><input type="checkbox" id="toggle-justifiee" checked> مبرر</label>
+                    <label class="ctrl-checkbox"><input type="checkbox" id="toggle-points_seance" checked> +نقطة</label>
+                    <label class="ctrl-checkbox"><input type="checkbox" id="toggle-obs" checked> ملاحظة</label>
+                </div>
+
+                <!-- Actions rapides -->
+                <div class="quick-actions">
+                    <button type="button" class="btn btn-sm btn-success" id="mark-all-present">
+                        <i class="fas fa-check-square"></i> الكل حاضر
+                    </button>
+                    <button type="button" class="btn btn-sm btn-warning" id="mark-all-absent">
+                        <i class="fas fa-times-square"></i> الكل غائب
+                    </button>
+                    <button type="button" class="btn btn-sm btn-info" id="reset-all">
+                        <i class="fas fa-undo"></i> إعادة تعيين
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" id="absence-form">
+        {% csrf_token %}
+
+        <!-- Table ultra-compacte -->
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-sm align-middle compact-absence-table mb-0" id="absence-table">
+                        <thead class="table-secondary sticky-header">
+                            <tr class="compact-header-row">
+                                <th class="compact-th sortable" data-sort="index">#</th>
+                                <th class="compact-th sortable toggle-col" data-col="nom_fr" data-sort="nom_fr">Nom</th>
+                                <th class="compact-th sortable toggle-col" data-col="prenom_fr" data-sort="prenom_fr">Prénom</th>
+                                <th class="compact-th sortable toggle-col" data-col="nom_ar" data-sort="nom_ar">اللقب</th>
+                                <th class="compact-th sortable toggle-col" data-col="prenom_ar" data-sort="prenom_ar">الاسم</th>
+                                <th class="compact-th text-center toggle-col" data-col="present">حضور</th>
+                                <th class="compact-th text-center toggle-col" data-col="participation">مشاركة</th>
+                                <th class="compact-th text-center toggle-col" data-col="justifiee">مبرر</th>
+                                <th class="compact-th text-center toggle-col" data-col="points_seance">+نقطة</th>
+                                <th class="compact-th toggle-col" data-col="obs">ملاحظة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for x in all_Abs_Etu %}
+                            <tr class="compact-row {% if x.present %}row-present{% elif x.justifiee %}row-justified{% else %}row-absent{% endif %}"
+                                data-index="{{ forloop.counter }}"
+                                data-nom_ar="{{ x.etudiant.nom_ar|default:'' }}"
+                                data-prenom_ar="{{ x.etudiant.prenom_ar|default:'' }}"
+                                data-nom_fr="{{ x.etudiant.nom_fr|default:'' }}"
+                                data-prenom_fr="{{ x.etudiant.prenom_fr|default:'' }}"
+                                data-abs-id="{{ x.id }}">
+
+                                <td class="compact-td">
+                                    <small class="row-number">{{ forloop.counter }}</small>
+                                </td>
+
+                                <td class="compact-td toggle-col" data-col="nom_fr">
+                                    <small>{{ x.etudiant.nom_fr|default:'-' }}</small>
+                                </td>
+
+                                <td class="compact-td toggle-col" data-col="prenom_fr">
+                                    <small>{{ x.etudiant.prenom_fr|default:'-' }}</small>
+                                </td>
+
+                                <td class="compact-td toggle-col" data-col="nom_ar">
+                                    <small>{{ x.etudiant.nom_ar|default:'-' }}</small>
+                                </td>
+
+                                <td class="compact-td toggle-col" data-col="prenom_ar">
+                                    <small>{{ x.etudiant.prenom_ar|default:'-' }}</small>
+                                </td>
+
+                                <!-- Presence -->
+                                <td class="compact-td text-center toggle-col" data-col="present">
+                                    <div class="checkbox-compact">
+                                        <input type="checkbox"
+                                               name="present_{{ x.id }}"
+                                               value="1"
+                                               {% if x.present %}checked{% endif %}
+                                               data-abs-id="{{ x.id }}"
+                                               class="form-check-input checkbox-present">
+                                    </div>
+                                </td>
+
+                                <!-- Participation -->
+                                <td class="compact-td text-center toggle-col" data-col="participation">
+                                    <div class="checkbox-compact">
+                                        <input type="checkbox"
+                                               name="participation_{{ x.id }}"
+                                               value="1"
+                                               {% if x.participation %}checked{% endif %}
+                                               data-abs-id="{{ x.id }}"
+                                               {% if not x.present %}disabled{% endif %}
+                                               class="form-check-input checkbox-participation">
+                                    </div>
+                                </td>
+
+                                <!-- Absence justifiee -->
+                                <td class="compact-td text-center toggle-col" data-col="justifiee">
+                                    <div class="checkbox-compact">
+                                        <input type="checkbox"
+                                               name="justifiee_{{ x.id }}"
+                                               value="1"
+                                               {% if x.justifiee %}checked{% endif %}
+                                               data-abs-id="{{ x.id }}"
+                                               class="form-check-input checkbox-justified">
+                                    </div>
+                                </td>
+
+                                <!-- Points seance -->
+                                <td class="compact-td text-center toggle-col" data-col="points_seance">
+                                    <input type="number"
+                                           name="points_sup_seance_{{ x.id }}"
+                                           value="{{ x.points_sup_seance|default:'0.0'|floatformat:1 }}"
+                                           min="0" max="2" step="0.1"
+                                           class="form-control form-control-sm compact-input points-input"
+                                           {% if not x.present %}disabled{% endif %}>
+                                </td>
+
+                                <!-- Observations -->
+                                <td class="compact-td toggle-col" data-col="obs">
+                                    <input type="text"
+                                           name="observation_{{ x.id }}"
+                                           value="{{ x.obs|default:'' }}"
+                                           class="form-control form-control-sm compact-input obs-input"
+                                           placeholder="ملاحظة...">
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="10" class="text-center p-3">
+                                    <i class="fas fa-info-circle fa-2x text-muted mb-2"></i>
+                                    <p class="text-muted mb-0">لا توجد بيانات للعرض</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions de soumission -->
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div class="form-actions">
+                <button class="btn btn-success" type="submit" name="btn_valide">
+                    <i class="fas fa-save me-1"></i> حفظ الغيابات
+                </button>
+                <a href="{% url 'ense:list_Abs_Etu_Classe' dep_id=my_Dep.id clas_id=mySeance.classe.id %}" class="btn btn-info">
+                    <i class="fas fa-table me-1"></i> ملخص الغيابات
+                </a>
+                <a href="{% url 'ense:list_Sea_Ens' dep_id=my_Dep.id clas_id=mySeance.classe.id %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> العودة
+                </a>
+            </div>
+
+            <!-- Resume final -->
+            <div class="final-summary">
+                <small class="text-muted">
+                    المجموع: <span id="total-students">{{ all_Abs_Etu|length }}</span> طالب
+                </small>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js_ens %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Variables globales pour les performances
+    const table = document.getElementById('absence-table');
+    const tbody = table.getElementsByTagName('tbody')[0];
+    const allRows = tbody.getElementsByTagName('tr');
+    let sortDirection = {};
+
+    // Mise a jour des compteurs - Version optimisee
+    function updateCounters() {
+        const presentCount = document.querySelectorAll('input[name^="present_"]:checked').length;
+        const justifiedCount = document.querySelectorAll('input[name^="justifiee_"]:checked').length;
+        const totalStudents = document.querySelectorAll('input[name^="present_"]').length;
+        const absentCount = totalStudents - presentCount - justifiedCount;
+
+        document.getElementById('present-count').textContent = presentCount;
+        document.getElementById('justifiee-count').textContent = justifiedCount;
+        document.getElementById('absent-count').textContent = Math.max(0, absentCount);
+    }
+
+    // Afficher/masquer les colonnes
+    const toggleCheckboxes = document.querySelectorAll('input[id^="toggle-"]');
+    toggleCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const col = this.id.replace('toggle-', '');
+            const elements = document.querySelectorAll(`.toggle-col[data-col="${col}"]`);
+            const display = this.checked ? '' : 'none';
+            elements.forEach(el => el.style.display = display);
+        });
+    });
+
+    // Tri de table
+    const sortableHeaders = document.querySelectorAll('.sortable');
+    sortableHeaders.forEach(th => {
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', function() {
+            const key = this.getAttribute('data-sort');
+            const rows = Array.from(allRows);
+            sortDirection[key] = !sortDirection[key];
+
+            document.querySelectorAll('.sort-indicator').forEach(ind => ind.remove());
+            const indicator = document.createElement('span');
+            indicator.className = 'sort-indicator';
+            indicator.textContent = sortDirection[key] ? ' ↓' : ' ↑';
+            this.appendChild(indicator);
+
+            rows.sort((a, b) => {
+                let aValue = a.getAttribute(`data-${key}`) || '';
+                let bValue = b.getAttribute(`data-${key}`) || '';
+
+                if (key === 'index') {
+                    aValue = parseInt(aValue) || 0;
+                    bValue = parseInt(bValue) || 0;
+                } else {
+                    aValue = aValue.toLowerCase();
+                    bValue = bValue.toLowerCase();
+                }
+
+                if (aValue < bValue) return sortDirection[key] ? -1 : 1;
+                if (aValue > bValue) return sortDirection[key] ? 1 : -1;
+                return 0;
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+        });
+    });
+
+    // Gestion des etats des etudiants
+    function setupStudentLogic(absId) {
+        const presentCheckbox = document.querySelector(`input[name="present_${absId}"]`);
+        const justifiedCheckbox = document.querySelector(`input[name="justifiee_${absId}"]`);
+        const participationCheckbox = document.querySelector(`input[name="participation_${absId}"]`);
+        const pointsInput = document.querySelector(`input[name="points_sup_seance_${absId}"]`);
+        const row = document.querySelector(`tr[data-abs-id="${absId}"]`);
+
+        if (!presentCheckbox || !justifiedCheckbox) return;
+
+        presentCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                justifiedCheckbox.checked = false;
+                enableInputs(true);
+                row.className = 'compact-row row-present';
+            } else {
+                enableInputs(false);
+                resetInputs();
+                row.className = 'compact-row row-absent';
+            }
+            updateCounters();
+        });
+
+        justifiedCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                presentCheckbox.checked = false;
+                enableInputs(false);
+                resetInputs();
+                row.className = 'compact-row row-justified';
+            } else {
+                if (!presentCheckbox.checked) {
+                    row.className = 'compact-row row-absent';
+                }
+            }
+            updateCounters();
+        });
+
+        function enableInputs(enable) {
+            if (participationCheckbox) participationCheckbox.disabled = !enable;
+            if (pointsInput) pointsInput.disabled = !enable;
+        }
+
+        function resetInputs() {
+            if (participationCheckbox) participationCheckbox.checked = false;
+            if (pointsInput) pointsInput.value = '0.0';
+        }
+
+        if (pointsInput) {
+            pointsInput.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                if (value > 2) this.value = '2.0';
+                if (value < 0) this.value = '0.0';
+            });
+        }
+    }
+
+    // Actions rapides
+    document.getElementById('mark-all-present').addEventListener('click', function() {
+        document.querySelectorAll('input[name^="present_"]').forEach(cb => {
+            cb.checked = true;
+            cb.dispatchEvent(new Event('change'));
+        });
+    });
+
+    document.getElementById('mark-all-absent').addEventListener('click', function() {
+        document.querySelectorAll('input[name^="present_"], input[name^="justifiee_"]').forEach(cb => {
+            cb.checked = false;
+            cb.dispatchEvent(new Event('change'));
+        });
+    });
+
+    document.getElementById('reset-all').addEventListener('click', function() {
+        if (confirm('هل أنت متأكد من إعادة تعيين جميع البيانات؟')) {
+            document.getElementById('absence-form').reset();
+            document.querySelectorAll('.compact-row').forEach(row => {
+                row.className = 'compact-row row-absent';
+            });
+            updateCounters();
+        }
+    });
+
+    // Initialisation pour chaque etudiant
+    {% for x in all_Abs_Etu %}
+        setupStudentLogic({{ x.id }});
+    {% endfor %}
+
+    // Initialiser les compteurs
+    updateCounters();
+});
+</script>
+{% endblock %}

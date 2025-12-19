@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{# ═══════════════════════════════════════════════════════════════════════════
+   BASE_PUBLIC.HTML - Template pour les pages publiques
+   Utilisé par: home, login, register, pages d'information publiques
+   ═══════════════════════════════════════════════════════════════════════════ #}
+
+{% block extra_css %}
+<style>
+    /* Navbar publique */
+    .navbar-public {
+        box-shadow: 0 2px 4px rgba(0,0,0,.1);
+    }
+
+    /* Main content */
+    .main-content {
+        min-height: calc(100vh - 180px);
+        padding: 20px 0;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       HERO BAND - Modern Style
+       ═══════════════════════════════════════════════════════════════════════════ */
+    .hero-band {
+        background: linear-gradient(135deg, #0d1b2a 0%, #1b3a4b 50%, #344D59 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        pointer-events: none;
+    }
+
+    .hero-logo {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto;
+        background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 32px rgba(255, 215, 0, 0.3);
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .hero-logo i {
+        font-size: 3rem;
+        color: #0d1b2a;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .hero-subtitle {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 1.25rem;
+    }
+
+    /* Hero Buttons */
+    .btn-hero-login {
+        background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+        color: #0d1b2a;
+        border: none;
+        border-radius: 30px;
+        font-weight: 700;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+        transition: all 0.3s ease;
+    }
+
+    .btn-hero-login:hover {
+        background: linear-gradient(135deg, #ffaa00 0%, #ff8c00 100%);
+        color: #0d1b2a;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.5);
+    }
+
+    .btn-hero-info {
+        background: transparent;
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        border-radius: 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-hero-info:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-color: white;
+        transform: translateY(-3px);
+    }
+
+    /* Navbar Login Button */
+    .btn-navbar-login {
+        background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%) !important;
+        color: #0d1b2a !important;
+        border: none !important;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-navbar-login:hover {
+        background: linear-gradient(135deg, #ffaa00 0%, #ff8c00 100%) !important;
+        color: #0d1b2a !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+    }
+
+    /* Feature cards */
+    .feature-card {
+        text-align: center;
+        padding: 30px 20px;
+    }
+
+    .feature-card i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        color: var(--primary-color);
+    }
+</style>
+{{ block.super }}
+{% endblock %}
+
+{% block body %}
+<!-- Navbar Public -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-public" style="background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'comm:home' %}">
+            <i class="fas fa-university me-2"></i>
+            نظام الجامعة الذكية
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarPublic">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarPublic">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'comm:home' %}">
+                        <i class="fas fa-home me-1"></i>الرئيسية
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-info-circle me-1"></i>عن النظام
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-envelope me-1"></i>اتصل بنا
+                    </a>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'auth:dashboard' %}">
+                        <i class="fas fa-tachometer-alt me-1"></i>لوحة التحكم
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'auth:logout' %}">
+                        <i class="fas fa-sign-out-alt me-1"></i>تسجيل الخروج
+                    </a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link btn btn-navbar-login btn-sm px-3" href="{% url 'auth:login' %}">
+                        <i class="fas fa-sign-in-alt me-1"></i>تسجيل الدخول
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Messages -->
+{% if messages %}
+<div class="container mt-3">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Hero Section (pour la page d'accueil) -->
+{% block hero_section %}{% endblock %}
+
+<!-- Main Content -->
+<main class="main-content">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- Footer -->
+<footer class="footer text-center" style="background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <h5><i class="fas fa-university me-2"></i>نظام الجامعة الذكية</h5>
+                <p style="color: rgba(255,255,255,0.7);">نظام إدارة شامل للجامعات والمؤسسات التعليمية</p>
+            </div>
+            <div class="col-md-4 mb-3">
+                <h5>روابط سريعة</h5>
+                <ul class="list-unstyled">
+                    <li><a href="#">عن النظام</a></li>
+                    <li><a href="#">الدعم الفني</a></li>
+                    <li><a href="#">اتصل بنا</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4 mb-3">
+                <h5>تابعنا</h5>
+                <div class="social-links">
+                    <a href="#" class="me-3"><i class="fab fa-facebook fa-2x"></i></a>
+                    <a href="#" class="me-3"><i class="fab fa-twitter fa-2x"></i></a>
+                    <a href="#" class="me-3"><i class="fab fa-linkedin fa-2x"></i></a>
+                </div>
+            </div>
+        </div>
+        <hr class="bg-white my-3">
+        <p class="mb-0">
+            <i class="fas fa-copyright me-1"></i>
+            <span id="currentYear"></span> نظام الجامعة الذكية. جميع الحقوق محفوظة.
+        </p>
+    </div>
+</footer>
+
+<script>
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+</script>
+{% endblock %}

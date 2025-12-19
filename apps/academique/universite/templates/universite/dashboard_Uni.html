@@ -1,0 +1,287 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - {{ my_Uni.nom_ar }}{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .stat-card {
+        background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card h3 {
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+
+    .uni-logo {
+        max-width: 150px;
+        max-height: 150px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,.1);
+    }
+
+    .info-section {
+        background-color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    }
+
+    .info-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .quick-action {
+        transition: all 0.3s ease;
+    }
+
+    .quick-action:hover {
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}
+
+{% block sidebar_menu %}
+<!-- Menu spécifique université -->
+<div class="nav-section">الإدارة</div>
+
+<div class="sub-menu">
+    <a class="nav-link">
+        <i class="fas fa-building"></i>
+        الكليات
+    </a>
+    <div class="sub-menu-items">
+        <a class="nav-link" href="#">
+            <i class="fas fa-list"></i>
+            قائمة الكليات
+        </a>
+        <a class="nav-link" href="#">
+            <i class="fas fa-plus"></i>
+            إضافة كلية
+        </a>
+    </div>
+</div>
+
+<div class="sub-menu">
+    <a class="nav-link">
+        <i class="fas fa-users"></i>
+        الأساتذة
+    </a>
+    <div class="sub-menu-items">
+        <a class="nav-link" href="#">
+            <i class="fas fa-list"></i>
+            قائمة الأساتذة
+        </a>
+    </div>
+</div>
+
+<div class="sub-menu">
+    <a class="nav-link">
+        <i class="fas fa-user-graduate"></i>
+        الطلبة
+    </a>
+    <div class="sub-menu-items">
+        <a class="nav-link" href="#">
+            <i class="fas fa-list"></i>
+            قوائم الطلبة
+        </a>
+    </div>
+</div>
+
+<a class="nav-link" href="#">
+    <i class="fas fa-chart-bar"></i>
+    الإحصائيات
+    <span class="badge bg-secondary ms-auto">قريباً</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Informations principales de l'université -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        {% if my_Uni.logo %}
+            <img src="{{ my_Uni.logo.url }}" alt="{{ my_Uni.nom_ar }}" class="img-fluid uni-logo">
+        {% else %}
+            <div class="uni-logo d-flex align-items-center justify-content-center bg-light">
+                <i class="fas fa-university fa-4x text-muted"></i>
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-9">
+        <div class="info-section">
+            <h2 class="mb-3">{{ my_Uni.nom_ar }}</h2>
+            {% if my_Uni.nom_fr %}
+                <h4 class="text-muted mb-3">{{ my_Uni.nom_fr }}</h4>
+            {% endif %}
+            <div class="info-item">
+                <span class="info-label">الرمز / Code:</span>
+                <span class="badge bg-primary ms-2">{{ my_Uni.code }}</span>
+            </div>
+            {% if my_Uni.sigle %}
+            <div class="info-item">
+                <span class="info-label">الاختصار / Sigle:</span>
+                <span class="ms-2">{{ my_Uni.sigle }}</span>
+            </div>
+            {% endif %}
+            {% if my_Uni.wilaya %}
+            <div class="info-item">
+                <span class="info-label">الولاية / Wilaya:</span>
+                <span class="ms-2">{{ my_Uni.wilaya }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h3 class="mb-3">
+            <i class="fas fa-bolt me-2"></i>
+            إجراءات سريعة / Actions rapides
+        </h3>
+    </div>
+    <div class="col-md-3">
+        <a href="{% url 'univ:profile_Uni' %}" class="text-decoration-none">
+            <div class="card quick-action">
+                <div class="card-body text-center">
+                    <i class="fas fa-id-card fa-3x text-primary mb-3"></i>
+                    <h5>صفحة التعريف</h5>
+                    <p class="text-muted">عرض المعلومات الكاملة</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a href="{% url 'univ:profileUpdate_Uni' %}" class="text-decoration-none">
+            <div class="card quick-action">
+                <div class="card-body text-center">
+                    <i class="fas fa-edit fa-3x text-success mb-3"></i>
+                    <h5>تعديل المعلومات</h5>
+                    <p class="text-muted">تحديث بيانات الجامعة</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <div class="card quick-action">
+            <div class="card-body text-center">
+                <i class="fas fa-building fa-3x text-info mb-3"></i>
+                <h5>الكليات</h5>
+                <p class="text-muted">إدارة الكليات</p>
+                <span class="badge bg-secondary">قريباً</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card quick-action">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-bar fa-3x text-warning mb-3"></i>
+                <h5>الإحصائيات</h5>
+                <p class="text-muted">تقارير ومؤشرات</p>
+                <span class="badge bg-secondary">قريباً</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Responsables -->
+{% if my_Uni.recteur or my_Uni.vice_rect_p or my_Uni.vice_rect_pg %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h3 class="mb-3">
+            <i class="fas fa-users me-2"></i>
+            المسؤولون / Responsables
+        </h3>
+    </div>
+    {% if my_Uni.recteur %}
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-user-tie me-2 text-primary"></i>
+                    المدير / Recteur
+                </h5>
+                <p class="card-text">{{ my_Uni.recteur }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if my_Uni.vice_rect_p %}
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-user-tie me-2 text-success"></i>
+                    نائب المدير للبيداغوجيا
+                </h5>
+                <p class="card-text">{{ my_Uni.vice_rect_p }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if my_Uni.vice_rect_pg %}
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-user-tie me-2 text-info"></i>
+                    نائب المدير للدراسات العليا
+                </h5>
+                <p class="card-text">{{ my_Uni.vice_rect_pg }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Domaines -->
+{% if my_Uni.domaines.all %}
+<div class="row">
+    <div class="col-12">
+        <h3 class="mb-3">
+            <i class="fas fa-book me-2"></i>
+            الميادين / Domaines
+        </h3>
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    {% for domaine in my_Uni.domaines.all %}
+                    <div class="col-md-3 mb-3">
+                        <div class="border rounded p-3 text-center">
+                            <span class="badge bg-primary mb-2">{{ domaine.code }}</span>
+                            <p class="mb-0">{{ domaine.nom_ar }}</p>
+                            {% if domaine.nom_fr %}
+                            <small class="text-muted">{{ domaine.nom_fr }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

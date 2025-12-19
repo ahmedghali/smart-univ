@@ -1,0 +1,103 @@
+/* Custom Styles for Smart-Univ */
+
+/* Color Variables */
+:root {
+    --primary-color: #344D59;
+    --primary-dark: #37463D;
+    --secondary-color: #5B696B;
+    --accent-color: #C5C5A9;
+    --dark-color: #000000;
+    --neutral-color: #535953;
+    --light-color: #F8FBF1;
+}
+
+/* General */
+body {
+    font-family: 'Cairo', sans-serif;
+}
+
+/* Smooth transitions */
+* {
+    transition: all 0.3s ease;
+}
+
+/* Navbar customization */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+/* Cards */
+.card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 16px rgba(0,0,0,.15);
+}
+
+/* Buttons */
+.btn {
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-weight: 600;
+}
+
+/* Footer */
+.footer {
+    background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 2rem;
+    }
+
+    .lead {
+        font-size: 1rem;
+    }
+}
+
+/* Arabic text optimization */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+}
+
+p, li, span {
+    line-height: 1.8;
+}
+
+/* Loading animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Form enhancements */
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(52, 77, 89, 0.25);
+}
+
+/* Status badges */
+.badge {
+    padding: 8px 16px;
+    font-weight: 600;
+}
+
+/* Hero section gradient */
+.bg-primary {
+    background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%) !important;
+}

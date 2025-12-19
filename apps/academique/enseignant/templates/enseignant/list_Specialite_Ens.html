@@ -1,0 +1,286 @@
+{% extends 'enseignant/base_Ens.html' %}
+{% load static %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# LISTE DES SPÉCIALITÉS                                                           #}
+{# Hérite de base_Ens.html - active_menu = 'specialites'                           #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+
+{% block extra_css_ens %}
+<style>
+/* Styles spécifiques pour la liste des spécialités */
+.specialite-card {
+    transition: all 0.3s ease;
+}
+
+.specialite-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.stat-card-spe {
+    border-radius: 6px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stat-card-spe:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.stat-card-spe h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.stat-card-spe small {
+    font-size: 0.85rem;
+}
+
+/* Colonnes du tableau */
+.col-number { width: 50px; text-align: center; }
+.col-specialite { min-width: 200px; }
+.col-code { width: 100px; text-align: center; }
+.col-reforme { width: 150px; }
+.col-identification { width: 150px; }
+.col-parcours { width: 150px; }
+
+/* Badge animations */
+.badge-reforme {
+    font-size: 0.8em;
+}
+
+.stat-card-small {
+    border-radius: 4px;
+    padding: 8px;
+    transition: all 0.3s ease;
+}
+
+.stat-card-small:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.stat-card-small strong {
+    font-size: 1.2rem;
+    display: block;
+    margin-bottom: 4px;
+}
+</style>
+{% endblock %}
+
+{% block content_ens %}
+<div class="grey_zone m-1 p-2">
+    <!-- EN-TÊTE PRINCIPAL -->
+    <div class="main-header d-flex justify-content-between align-items-center mb-3">
+        <h4 class="page-title border-bottom border-danger text-dark mb-0">
+            <i class="fas fa-graduation-cap"></i>
+            قائمة التخصصات - {{my_Dep.nom_ar}}
+        </h4>
+
+        <!-- Boutons d'action -->
+        <div class="btn-group" role="group">
+            <a href="{% url 'ense:timeTable_Ens' my_Dep.id %}" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-calendar"></i> استعمال الزمن
+            </a>
+            <a href="{% url 'ense:list_matieres_ens' my_Dep.id %}" class="btn btn-outline-info btn-sm">
+                <i class="fas fa-book"></i> المواد
+            </a>
+            <a href="{% url 'ense:list_enseignants_ens' my_Dep.id %}" class="btn btn-outline-success btn-sm">
+                <i class="fas fa-chalkboard-teacher"></i> الأساتذة
+            </a>
+        </div>
+    </div>
+
+    {% if total_count == 0 %}
+    <!-- Message si aucune spécialité -->
+    <div class="text-center m-5 p-5">
+        <div class="alert alert-warning">
+            <i class="fas fa-info-circle fa-3x mb-3"></i>
+            <h4>لا توجد تخصصات</h4>
+            <p class="text-muted">لا توجد تخصصات مسجلة في هذا القسم حاليا</p>
+        </div>
+    </div>
+    {% else %}
+
+    <!-- Statistiques -->
+    <div class="statistics-section mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> إحصائيات التخصصات</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card-spe bg-primary-subtle rounded">
+                            <h3 class="text-primary mb-0">{{total_count}}</h3>
+                            <small class="text-muted">إجمالي التخصصات</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card-spe bg-success-subtle rounded">
+                            <h3 class="text-success mb-0">{{count_with_reforme}}</h3>
+                            <small class="text-muted">مع إصلاح</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card-spe bg-info-subtle rounded">
+                            <h3 class="text-info mb-0">{{count_with_identification}}</h3>
+                            <small class="text-muted">مع تعريف</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card-spe bg-warning-subtle rounded">
+                            <h3 class="text-warning mb-0">{{reformes_count}}</h3>
+                            <small class="text-muted">عدد الإصلاحات</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Répartition par réforme -->
+                {% if reforme_stats %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6 class="text-muted mb-2"><i class="fas fa-layer-group"></i> توزيع التخصصات حسب الإصلاح:</h6>
+                        <div class="row">
+                            {% for stat in reforme_stats %}
+                            <div class="col-md-3 col-sm-6 mb-2">
+                                <div class="stat-card-small text-center p-2 bg-light rounded border">
+                                    <strong class="text-primary">{{stat.count}}</strong>
+                                    <small class="d-block text-muted">{{stat.reforme__nom_ar|default:"غير محدد"}}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau des spécialités -->
+    <div class="specialites-table-section">
+        <div class="card specialite-card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-list"></i>
+                    تفاصيل التخصصات ({{total_count}} تخصص)
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-sm align-middle mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="col-number">#</th>
+                                <th class="col-specialite"><i class="fas fa-graduation-cap"></i> التخصص</th>
+                                <th class="col-specialite"><i class="fas fa-book"></i> Spécialité</th>
+                                <th class="col-code"><i class="fas fa-hashtag"></i> الكود</th>
+                                <th class="col-reforme"><i class="fas fa-cog"></i> الإصلاح</th>
+                                <th class="col-identification"><i class="fas fa-id-card"></i> التعريف</th>
+                                <th class="col-parcours"><i class="fas fa-route"></i> المسار</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for spe in all_Specialite_Ens %}
+                            <tr>
+                                <td class="text-center">
+                                    <span class="badge bg-primary">{{forloop.counter}}</span>
+                                </td>
+                                <td>
+                                    <strong>{{spe.nom_ar|default:"-"}}</strong>
+                                </td>
+                                <td>
+                                    <em class="text-muted">{{spe.nom_fr|default:"-"}}</em>
+                                </td>
+                                <td class="text-center">
+                                    {% if spe.code and spe.code != '-' %}
+                                        <span class="badge bg-info">{{spe.code}}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if spe.reforme %}
+                                        <span class="badge bg-success badge-reforme">{{spe.reforme.nom_ar|default:spe.reforme.code}}</span>
+                                    {% else %}
+                                        <span class="text-muted">غير محدد</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if spe.identification %}
+                                        <small>{{spe.identification.nom_ar|default:spe.identification.code}}</small>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if spe.parcours %}
+                                        <small>{{spe.parcours.nom_ar|default:spe.parcours.code}}</small>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <i class="fas fa-info-circle fa-2x mb-2"></i>
+                                    <p>لا توجد تخصصات لعرضها</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Footer avec informations -->
+            <div class="card-footer bg-light">
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i>
+                            إجمالي {{total_count}} تخصص في قسم {{my_Dep.nom_ar}}
+                        </small>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <small class="text-muted">
+                            <i class="fas fa-university"></i>
+                            {{my_Fac.nom_ar}}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js_ens %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animation des statistiques
+    const statNumbers = document.querySelectorAll('.stat-card-spe h3');
+    statNumbers.forEach(function(el) {
+        const finalValue = parseInt(el.textContent) || 0;
+        if (finalValue > 0) {
+            let current = 0;
+            const increment = finalValue / 30;
+            const timer = setInterval(function() {
+                current += increment;
+                if (current >= finalValue) { current = finalValue; clearInterval(timer); }
+                el.textContent = Math.floor(current);
+            }, 16);
+        }
+    });
+});
+</script>
+{% endblock %}

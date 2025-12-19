@@ -1,0 +1,597 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .stat-card {
+        background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card h3 {
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+
+    .info-section {
+        background-color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    }
+
+    .info-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .quick-action {
+        transition: all 0.3s ease;
+    }
+
+    .quick-action:hover {
+        transform: scale(1.05);
+    }
+
+    /* Actions rapides grid */
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+    }
+
+    .action-link {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #495057;
+        transition: all 0.2s ease;
+        font-weight: 500;
+    }
+
+    .action-link:hover {
+        background: #e9ecef;
+        color: #343a40;
+        border-color: #ced4da;
+        text-decoration: none;
+    }
+
+    .action-link i {
+        font-size: 20px;
+        margin-left: 12px;
+        width: 24px;
+        text-align: center;
+        color: var(--primary-color);
+    }
+
+    /* Panneau alertes */
+    .alerts-panel {
+        background: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    }
+
+    .alerts-panel h5 {
+        color: #343a40;
+        margin-bottom: 20px;
+        font-weight: 600;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 10px;
+    }
+
+    .alert-item {
+        padding: 12px 0;
+        border-bottom: 1px solid #f1f3f4;
+        display: flex;
+        align-items: center;
+    }
+
+    .alert-item:last-child {
+        border-bottom: none;
+    }
+
+    .alert-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 15px;
+        color: white;
+    }
+
+    .alert-content {
+        flex: 1;
+    }
+
+    .alert-title {
+        font-weight: 600;
+        color: #343a40;
+        margin-bottom: 2px;
+        font-size: 14px;
+    }
+
+    .alert-subtitle {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    /* Quick info section */
+    .quick-info-section {
+        background: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    }
+
+    .quick-info-section h5 {
+        color: #343a40;
+        margin-bottom: 20px;
+        font-weight: 600;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 10px;
+    }
+
+    .oneBorder {
+        display: block;
+        padding: 8px 12px;
+        background: #f8f9fa;
+        border-radius: 5px;
+        border-right: 3px solid var(--primary-color);
+    }
+
+    /* Detailed stats */
+    .detailed-stats .stat-mini {
+        text-align: center;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .detailed-stats .stat-mini:hover {
+        background: #e9ecef;
+    }
+
+    .detailed-stats .stat-mini h4 {
+        margin-bottom: 5px;
+        font-weight: 700;
+    }
+
+    /* Dashboard grid layout */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 20px;
+    }
+
+    @media (max-width: 992px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block context_info %}
+{% if departement.faculte %}
+<div class="context-info">
+    <i class="fas fa-university"></i>
+    <span>الكلية: <strong>{{ departement.faculte.nom_ar }}</strong></span>
+    {% if departement.faculte.nom_fr %}
+        <span class="ms-2 opacity-75">- {{ departement.faculte.nom_fr }}</span>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block sidebar_menu %}
+<!-- Menu spécifique département -->
+<div class="nav-section">الإدارة</div>
+
+<div class="sub-menu">
+    <a class="nav-link">
+        <i class="fas fa-users"></i>
+        الأساتذة
+    </a>
+    <div class="sub-menu-items">
+        <a class="nav-link" href="{% url 'depa:list_enseignants_dep' 1 %}">
+            <i class="fas fa-list"></i>
+            قائمة الأساتذة
+        </a>
+        <a class="nav-link" href="{% url 'depa:new_Enseignant' %}">
+            <i class="fas fa-user-plus"></i>
+            إضافة أستاذ
+        </a>
+        <a class="nav-link" href="{% url 'depa:heures_enseignants_dep' 1 %}">
+            <i class="fas fa-clock"></i>
+            حصص الأساتذة
+        </a>
+    </div>
+</div>
+
+<div class="sub-menu">
+    <a class="nav-link">
+        <i class="fas fa-user-graduate"></i>
+        الطلبة
+    </a>
+    <div class="sub-menu-items">
+        <a class="nav-link" href="{% url 'depa:list_etudiants' %}">
+            <i class="fas fa-list"></i>
+            قوائم الطلبة
+        </a>
+        <a class="nav-link" href="{% url 'depa:import_etudiants' %}">
+            <i class="fas fa-file-import"></i>
+            استيراد الطلبة
+        </a>
+    </div>
+</div>
+
+<div class="sub-menu">
+    <a class="nav-link">
+        <i class="fas fa-book"></i>
+        المقاييس والتخصصات
+    </a>
+    <div class="sub-menu-items">
+        <a class="nav-link" href="{% url 'depa:list_Mat_Niv' %}">
+            <i class="fas fa-list"></i>
+            قائمة المقاييس
+        </a>
+        <a class="nav-link" href="{% url 'depa:list_Specialite_Dep' %}">
+            <i class="fas fa-graduation-cap"></i>
+            التخصصات
+        </a>
+    </div>
+</div>
+
+<div class="sub-menu">
+    <a class="nav-link">
+        <i class="fas fa-calendar-alt"></i>
+        التوقيت
+    </a>
+    <div class="sub-menu-items">
+        <a class="nav-link" href="{% url 'depa:import_emploi' %}">
+            <i class="fas fa-file-import"></i>
+            استيراد التوقيت
+        </a>
+    </div>
+</div>
+
+<a class="nav-link" href="{% url 'depa:profile_Dep' %}">
+    <i class="fas fa-id-card"></i>
+    الملف الشخصي
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Informations principales du département -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="info-section">
+            <h2 class="mb-3">
+                <i class="fas fa-building me-2"></i>
+                {{ departement.nom_ar }}
+            </h2>
+            {% if departement.nom_fr %}
+                <h4 class="text-muted mb-3">{{ departement.nom_fr }}</h4>
+            {% endif %}
+            <div class="info-item">
+                <span class="info-label">الرمز / Code:</span>
+                <span class="badge bg-primary ms-2">{{ departement.code }}</span>
+            </div>
+            {% if departement.sigle %}
+            <div class="info-item">
+                <span class="info-label">الاختصار / Sigle:</span>
+                <span class="ms-2">{{ departement.sigle }}</span>
+            </div>
+            {% endif %}
+            {% if departement.faculte %}
+            <div class="info-item">
+                <span class="info-label">الكلية / Faculté:</span>
+                <span class="ms-2">{{ departement.faculte.nom_ar }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Statistiques -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card text-center">
+            <i class="fas fa-users fa-3x mb-3"></i>
+            <h3>{{ total_teachers|default:"0" }}</h3>
+            <p>الأساتذة / Enseignants</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card text-center">
+            <i class="fas fa-user-graduate fa-3x mb-3"></i>
+            <h3>{{ total_students|default:"0" }}</h3>
+            <p>الطلاب / Étudiants</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card text-center">
+            <i class="fas fa-book fa-3x mb-3"></i>
+            <h3>{{ total_matieres|default:"0" }}</h3>
+            <p>المقاييس / Matières</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card text-center">
+            <i class="fas fa-graduation-cap fa-3x mb-3"></i>
+            <h3>{{ total_specialites|default:"0" }}</h3>
+            <p>التخصصات / Spécialités</p>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Grid Layout -->
+<div class="dashboard-grid mb-4">
+    <!-- Colonne principale -->
+    <div class="main-column">
+        <!-- الإجراءات السريعة - Actions rapides -->
+        <div class="quick-info-section">
+            <h5>
+                <i class="fas fa-bolt me-2"></i>
+                الإجراءات السريعة / Actions rapides
+            </h5>
+            <div class="actions-grid">
+                <a href="{% url 'depa:new_Enseignant' %}" class="action-link">
+                    <i class="fas fa-user-plus"></i>
+                    <span>إضافة أستاذ جديد</span>
+                </a>
+                <a href="{% url 'depa:import_etudiants' %}" class="action-link">
+                    <i class="fas fa-users"></i>
+                    <span>إضافة طلبة</span>
+                </a>
+                <a href="{% url 'depa:import_emploi' %}" class="action-link">
+                    <i class="fas fa-calendar-plus"></i>
+                    <span>إضافة حصص</span>
+                </a>
+                <a href="{% url 'depa:list_Mat_Niv' %}" class="action-link">
+                    <i class="fas fa-book-open"></i>
+                    <span>إدارة المواد</span>
+                </a>
+                <a href="{% url 'depa:list_Specialite_Dep' %}" class="action-link">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>إدارة التخصصات</span>
+                </a>
+                <a href="{% url 'depa:profile_Dep' %}" class="action-link">
+                    <i class="fas fa-id-card"></i>
+                    <span>الملف الشخصي</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- معلومات سريعة - Informations rapides -->
+        <div class="quick-info-section">
+            <h5>
+                <i class="fas fa-info-circle me-2"></i>
+                معلومات سريعة / Informations rapides
+            </h5>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <h6 class="fw-bold mb-2">السداسي الأول / Semestre 1</h6>
+                    <p class="text-muted">{{ enseignants_s1|default:"0" }} أستاذ</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold mb-2">السداسي الثاني / Semestre 2</h6>
+                    <p class="text-muted">{{ enseignants_s2|default:"0" }} أستاذ</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="oneBorder mb-2">
+                        عدد الأساتذة الدائمين : <mark class="text-primary fw-bold">{{ permanent_teachers|default:"0" }}</mark>
+                    </label>
+                    <label class="oneBorder mb-2">
+                        عدد الأساتذة المؤقتين : <span class="fw-bold">{{ temporary_teachers|default:"0" }}</span>
+                    </label>
+                </div>
+                <div class="col-md-6">
+                    <label class="oneBorder mb-2">
+                        التخصصات المتاحة : <span class="fw-bold">{{ total_specialites|default:"0" }}</span>
+                    </label>
+                    <label class="oneBorder mb-2">
+                        القاعات المتاحة : <span class="fw-bold">{{ total_rooms|default:"0" }}</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- إحصائيات مفصلة - Statistiques détaillées -->
+        <div class="quick-info-section detailed-stats">
+            <h5>
+                <i class="fas fa-chart-pie me-2"></i>
+                إحصائيات مفصلة / Statistiques détaillées
+            </h5>
+            <div class="row">
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="stat-mini">
+                        <h4 class="text-primary">{{ active_classes|default:"0" }}</h4>
+                        <small class="text-muted">الحصص النشطة</small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="stat-mini">
+                        <h4 class="text-success">{{ present_teachers|default:"0" }}</h4>
+                        <small class="text-muted">الأساتذة المسجلون</small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="stat-mini">
+                        <h4 class="text-warning">{{ pending_requests|default:"0" }}</h4>
+                        <small class="text-muted">الطلبات المعلقة</small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="stat-mini">
+                        <h4 class="text-info">{{ completed_tasks|default:"0" }}%</h4>
+                        <small class="text-muted">المهام المكتملة</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Colonne latérale - التنبيهات والأحداث -->
+    <div class="alerts-panel">
+        <h5>
+            <i class="fas fa-bell me-2"></i>
+            التنبيهات والأحداث
+        </h5>
+
+        <div class="alert-item">
+            <div class="alert-icon">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="alert-content">
+                <div class="alert-title">اجتماع مجلس القسم</div>
+                <div class="alert-subtitle">الأحد القادم - 10:00 صباحاً</div>
+            </div>
+        </div>
+
+        <div class="alert-item">
+            <div class="alert-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="alert-content">
+                <div class="alert-title">بداية الامتحانات</div>
+                <div class="alert-subtitle">قريباً</div>
+            </div>
+        </div>
+
+        <div class="alert-item">
+            <div class="alert-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="alert-content">
+                <div class="alert-title">أستاذ جديد منضم</div>
+                <div class="alert-subtitle">{{ total_teachers|default:"0" }} أستاذ في القسم</div>
+            </div>
+        </div>
+
+        <div class="alert-item">
+            <div class="alert-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="alert-content">
+                <div class="alert-title">آخر تحديث للنظام</div>
+                <div class="alert-subtitle">{{ annee_courante|default:"السنة الجارية" }}</div>
+            </div>
+        </div>
+
+        <!-- روابط سريعة - Liens rapides -->
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e9ecef;">
+            <h6 class="text-muted mb-3">
+                <i class="fas fa-link me-1"></i>
+                روابط سريعة
+            </h6>
+            <div class="d-grid gap-2">
+                <a href="{% url 'depa:list_enseignants_dep' 1 %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-list me-1"></i>
+                    قائمة أساتذة س1
+                </a>
+                <a href="{% url 'depa:list_enseignants_dep' 2 %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-list me-1"></i>
+                    قائمة أساتذة س2
+                </a>
+                <a href="{% url 'depa:heures_enseignants_dep' 1 %}" class="btn btn-outline-info btn-sm">
+                    <i class="fas fa-clock me-1"></i>
+                    ساعات عمل س1
+                </a>
+                <a href="{% url 'depa:heures_enseignants_dep' 2 %}" class="btn btn-outline-info btn-sm">
+                    <i class="fas fa-clock me-1"></i>
+                    ساعات عمل س2
+                </a>
+                <a href="{% url 'depa:list_etudiants' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-users me-1"></i>
+                    قائمة الطلبة
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Responsables -->
+{% if departement.chef or departement.chef_adj_p or departement.chef_adj_pg %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h3 class="mb-3">
+            <i class="fas fa-user-tie me-2"></i>
+            المسؤولون / Responsables
+        </h3>
+    </div>
+    {% if departement.chef %}
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-user-tie me-2 text-primary"></i>
+                    رئيس القسم / Chef de Département
+                </h5>
+                <p class="card-text">{{ departement.chef.nom_ar }} {{ departement.chef.prenom_ar }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if departement.chef_adj_p %}
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-user-tie me-2 text-success"></i>
+                    نائب رئيس القسم للبيداغوجيا
+                </h5>
+                <p class="card-text">{{ departement.chef_adj_p.nom_ar }} {{ departement.chef_adj_p.prenom_ar }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if departement.chef_adj_pg %}
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-user-tie me-2 text-info"></i>
+                    نائب رئيس القسم للدراسات العليا
+                </h5>
+                <p class="card-text">{{ departement.chef_adj_pg.nom_ar }} {{ departement.chef_adj_pg.prenom_ar }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

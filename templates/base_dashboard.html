@@ -1,0 +1,444 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{# ═══════════════════════════════════════════════════════════════════════════
+   BASE_DASHBOARD.HTML - Template pour les pages dashboard avec sidebar
+   Utilisé par: dashboard_Ens, dashboard_Dep, dashboard_Fac, dashboard_Uni, etc.
+   ═══════════════════════════════════════════════════════════════════════════ #}
+
+{% block extra_css %}
+<style>
+    /* ═══════════════════════════════════════════════════════════════════════
+       LAYOUT PRINCIPAL
+       ═══════════════════════════════════════════════════════════════════════ */
+    .dashboard-wrapper {
+        display: flex;
+        min-height: 100vh;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       SIDEBAR
+       ═══════════════════════════════════════════════════════════════════════ */
+    .sidebar {
+        width: 260px;
+        background: linear-gradient(180deg, var(--dark-color) 0%, var(--primary-color) 100%);
+        color: white;
+        position: fixed;
+        top: 0;
+        right: 0;
+        height: 100vh;
+        overflow-y: auto;
+        z-index: 1000;
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar-header {
+        padding: 20px;
+        text-align: center;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        background: rgba(0,0,0,0.1);
+    }
+
+    .sidebar-header .user-avatar {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: white;
+        margin: 0 auto 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: var(--primary-color);
+    }
+
+    .sidebar-header .user-name {
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 5px;
+    }
+
+    .sidebar-header .user-role {
+        font-size: 0.85rem;
+        opacity: 0.8;
+    }
+
+    /* Navigation latérale */
+    .sidebar-nav {
+        padding: 15px 0;
+    }
+
+    .sidebar-nav .nav-section {
+        padding: 10px 15px 5px;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.6;
+    }
+
+    .sidebar-nav .nav-link {
+        color: rgba(255,255,255,0.9);
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+        border-right: 3px solid transparent;
+    }
+
+    .sidebar-nav .nav-link:hover {
+        background: rgba(255,255,255,0.1);
+        color: white;
+        border-right-color: white;
+    }
+
+    .sidebar-nav .nav-link.active {
+        background: rgba(255,255,255,0.15);
+        border-right-color: var(--accent-color);
+    }
+
+    .sidebar-nav .nav-link i {
+        width: 25px;
+        margin-left: 10px;
+        font-size: 1.1rem;
+    }
+
+    /* Sous-menus */
+    .sidebar-nav .sub-menu > a {
+        cursor: pointer;
+    }
+
+    .sidebar-nav .sub-menu > a::after {
+        content: '\f107';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        margin-right: auto;
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar-nav .sub-menu.active > a::after {
+        transform: rotate(180deg);
+    }
+
+    .sidebar-nav .sub-menu-items {
+        display: none;
+        background: rgba(0,0,0,0.1);
+    }
+
+    .sidebar-nav .sub-menu.active .sub-menu-items {
+        display: block;
+    }
+
+    .sidebar-nav .sub-menu-items .nav-link {
+        padding-right: 50px;
+        font-size: 0.9rem;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       MAIN CONTENT
+       ═══════════════════════════════════════════════════════════════════════ */
+    .main-wrapper {
+        flex: 1;
+        margin-right: 260px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Top Navbar */
+    .top-navbar {
+        background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);
+        padding: 10px 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 999;
+    }
+
+    .top-navbar .breadcrumb-area {
+        display: flex;
+        align-items: center;
+    }
+
+    .top-navbar .breadcrumb-area .page-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: white;
+        margin: 0;
+    }
+
+    .top-navbar .user-menu {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .top-navbar .user-menu .dropdown-toggle::after {
+        display: none;
+    }
+
+    .sidebar-toggle {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: white;
+        cursor: pointer;
+    }
+
+    /* Context Info (Faculté > Département) */
+    .context-info {
+        background: linear-gradient(135deg, var(--secondary-color) 0%, var(--neutral-color) 100%);
+        color: white;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+    }
+
+    .context-info i {
+        margin-left: 10px;
+        font-size: 1.2rem;
+    }
+
+    /* Main Content Area */
+    .main-content {
+        flex: 1;
+        padding: 20px;
+        background-color: #e5e7e6;
+    }
+
+    /* Footer Dashboard */
+    .dashboard-footer {
+        background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);
+        color: white;
+        padding: 15px 20px;
+        text-align: center;
+        font-size: 0.9rem;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       OVERLAY MOBILE
+       ═══════════════════════════════════════════════════════════════════════ */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+    }
+
+    .sidebar-overlay.show {
+        display: block;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════════════════════════════ */
+    @media (max-width: 991.98px) {
+        .sidebar {
+            transform: translateX(100%);
+        }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
+
+        .main-wrapper {
+            margin-right: 0;
+        }
+
+        .sidebar-toggle {
+            display: block;
+        }
+
+        .top-navbar .breadcrumb-area .page-title {
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .sidebar {
+            width: 100%;
+        }
+
+        .main-content {
+            padding: 15px;
+        }
+    }
+</style>
+{{ block.super }}
+{% endblock %}
+
+{% block body %}
+<div class="dashboard-wrapper">
+    <!-- Overlay Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <!-- User Info -->
+        <div class="sidebar-header">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-name">{{ user.username }}</div>
+            <div class="user-role">
+                {% if request.session.current_role == 'chef_departement' %}
+                    <i class="fas fa-user-tie me-1"></i>رئيس القسم
+                {% elif request.session.current_role == 'chef_dep_adj_p' %}
+                    <i class="fas fa-user-tie me-1"></i>نائب رئيس القسم للبيداغوجيا
+                {% elif request.session.current_role == 'chef_dep_adj_pg' %}
+                    <i class="fas fa-user-tie me-1"></i>نائب رئيس القسم للدراسات العليا
+                {% elif request.session.current_role == 'doyen' %}
+                    <i class="fas fa-user-tie me-1"></i>العميد
+                {% elif request.session.current_role == 'recteur' %}
+                    <i class="fas fa-user-tie me-1"></i>المدير
+                {% elif request.session.current_role == 'enseignant' %}
+                    <i class="fas fa-chalkboard-teacher me-1"></i>أستاذ
+                {% elif request.session.current_role == 'etudiant' %}
+                    <i class="fas fa-user-graduate me-1"></i>طالب
+                {% else %}
+                    <i class="fas fa-user me-1"></i>مستخدم
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
+            <!-- Lien Dashboard uniquement -->
+            {% block sidebar_menu %}
+            <!-- Menu dynamique selon le rôle - à surcharger dans les templates enfants -->
+            {% endblock %}
+        </nav>
+    </aside>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+        <!-- Top Navbar -->
+        <header class="top-navbar">
+            <div class="breadcrumb-area">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title">
+                    {% block page_title %}لوحة التحكم{% endblock %}
+                </h1>
+            </div>
+            <div class="user-menu">
+                <div class="dropdown">
+                    <button class="btn btn-link dropdown-toggle text-white" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle fa-lg me-1"></i>
+                        <span class="d-none d-md-inline">{{ user.username }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        {# الملف الشخصي ou الملف التعريفي selon le rôle #}
+                        <li><a class="dropdown-item" href="{% url 'auth:profile' %}">
+                            <i class="fas fa-user me-2"></i>
+                            {% if request.session.current_role in 'chef_departement,chef_dep_adj_p,chef_dep_adj_pg,doyen,recteur' %}
+                                الملف التعريفي
+                            {% else %}
+                                الملف الشخصي
+                            {% endif %}
+                        </a></li>
+                        {# لوحة التحكم #}
+                        <li><a class="dropdown-item" href="{% url 'auth:dashboard' %}">
+                            <i class="fas fa-tachometer-alt me-2"></i>لوحة التحكم
+                        </a></li>
+                        {# اختر قسمك - seulement pour enseignant avec plusieurs départements #}
+                        {% if request.session.current_role == 'enseignant' and request.session.affectations_count > 1 %}
+                        <li><a class="dropdown-item" href="{% url 'auth:select_departement' %}">
+                            <i class="fas fa-building me-2"></i>اختر قسمك
+                        </a></li>
+                        {% endif %}
+                        {# اختر منصبك - seulement si plusieurs postes #}
+                        {% if request.session.roles_count > 1 %}
+                        <li><a class="dropdown-item" href="{% url 'auth:select_role' %}">
+                            <i class="fas fa-exchange-alt me-2"></i>اختر منصبك
+                        </a></li>
+                        {% endif %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="{% url 'auth:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>تسجيل الخروج
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Context Info -->
+        {% block context_info %}{% endblock %}
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="px-3 pt-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Main Content -->
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Footer -->
+        <footer class="dashboard-footer">
+            <i class="fas fa-copyright me-1"></i>
+            <span id="dashboardYear"></span> نظام الجامعة الذكية. جميع الحقوق محفوظة.
+        </footer>
+    </div>
+</div>
+
+<script>
+    // Sidebar toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+                overlay.classList.toggle('show');
+            });
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', function() {
+                sidebar.classList.remove('show');
+                overlay.classList.remove('show');
+            });
+        }
+
+        // Sub-menu toggle
+        document.querySelectorAll('.sub-menu > a').forEach(function(menuItem) {
+            menuItem.addEventListener('click', function(e) {
+                e.preventDefault();
+                const parent = this.closest('.sub-menu');
+
+                // Fermer les autres sous-menus
+                document.querySelectorAll('.sub-menu.active').forEach(function(menu) {
+                    if (menu !== parent) {
+                        menu.classList.remove('active');
+                    }
+                });
+
+                // Toggle le sous-menu actuel
+                parent.classList.toggle('active');
+            });
+        });
+
+        // Year
+        document.getElementById('dashboardYear').textContent = new Date().getFullYear();
+    });
+</script>
+{% endblock %}

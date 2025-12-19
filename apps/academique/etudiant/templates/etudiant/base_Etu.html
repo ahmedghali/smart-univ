@@ -1,0 +1,424 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# BASE TEMPLATE POUR L'ESPACE ETUDIANT                                            #}
+{# Hérite de base_dashboard.html et définit les éléments communs                   #}
+{# Variables de contexte attendues: my_Etu, my_Fac, my_Dep, active_menu            #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+
+{% block title %}{{ title }}{% if my_Etu %} - {{ my_Etu.nom_ar }} {{ my_Etu.prenom_ar }}{% endif %}{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# CONTEXT INFO - Affiche les informations du niveau/département/faculté           #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{% block context_info %}
+{% if my_Dep %}
+<div class="context-info">
+    <i class="fas fa-university"></i>
+    <span>الكلية: <strong>{{ my_Fac.nom_ar }}</strong></span>
+    <span class="ms-2">- القسم: <strong>{{ my_Dep.nom_ar }}</strong></span>
+    {% if my_Etu.niv_spe_dep_sg %}
+        <span class="ms-2 opacity-75">- {{ my_Etu.niv_spe_dep_sg.niv_spe_dep.niveau.nom_ar }}</span>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# SIDEBAR MENU - Menu latéral commun pour l'espace étudiant                       #}
+{# Utilise la variable 'active_menu' pour marquer l'élément actif                  #}
+{# Valeurs possibles: 'dashboard', 'timetable', 'absences', 'notes', 'profile'     #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{% block sidebar_menu %}
+
+<!-- لوحة التحكم -->
+<a class="nav-link {% if active_menu == 'dashboard' %}active{% endif %}" href="{% url 'etud:dashboard_Etu' %}">
+    <i class="fas fa-tachometer-alt"></i>
+    لوحة التحكم
+</a>
+
+<!-- إستعمال الزمن -->
+<a class="nav-link {% if active_menu == 'timetable' %}active{% endif %}" href="{% url 'etud:timeTable_Etu' %}">
+    <i class="fas fa-calendar-alt"></i>
+    إستعمال الزمن
+</a>
+
+{% block sidebar_menu_extra %}{% endblock %}
+{% endblock %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# CSS COMMUN - Styles partagés par tous les templates étudiant                    #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{% block extra_css %}
+{{ block.super }}
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* COULEURS THÈME ÉTUDIANT (Vert)                                                  */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+:root {
+    --etu-primary: #4CAF50;
+    --etu-primary-dark: #45a049;
+    --etu-primary-light: rgba(76, 175, 80, 0.1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* LAYOUT GÉNÉRAL                                                                   */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.grey_zone {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding: 15px;
+    margin: 8px;
+    direction: rtl;
+    text-align: right;
+}
+
+.main-header {
+    margin-bottom: 20px;
+    direction: rtl;
+    text-align: right;
+}
+
+.page-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding-bottom: 8px;
+    text-align: right;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* CARTES                                                                           */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 12px 15px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    direction: rtl;
+    text-align: right;
+}
+
+.card-body {
+    padding: 15px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* STATISTIQUES                                                                     */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.stat-card {
+    border-radius: 6px;
+    padding: 15px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.stat-card h3, .stat-card h4 {
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.stat-card small {
+    font-size: 0.85rem;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #343a40 !important;
+}
+
+.stat-label {
+    color: #6c757d !important;
+    font-size: 0.9rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* TABLEAUX - RTL (Right-to-Left pour l'arabe)                                     */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.table-responsive {
+    border-radius: 6px;
+    overflow-x: auto;
+    direction: rtl;
+}
+
+.table {
+    margin-bottom: 0;
+    font-size: 0.85rem;
+    direction: rtl;
+    text-align: right;
+}
+
+.table thead th {
+    border: none;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 10px 8px;
+    background-color: var(--etu-primary);
+    color: white;
+    white-space: nowrap;
+    text-align: right;
+}
+
+.table thead th.text-center {
+    text-align: center !important;
+}
+
+.table tbody tr {
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.table tbody tr:hover {
+    background-color: var(--etu-primary-light);
+}
+
+.table tbody td {
+    padding: 8px;
+    vertical-align: middle;
+    border-top: none;
+    text-align: right;
+}
+
+.table tbody td.text-center {
+    text-align: center !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* BADGES                                                                           */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.badge {
+    font-size: 0.75em;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* BOUTONS THÈME ÉTUDIANT                                                          */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn-sm {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+}
+
+.btn-primary {
+    background-color: var(--etu-primary);
+    border-color: var(--etu-primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--etu-primary-dark);
+    border-color: var(--etu-primary-dark);
+}
+
+.btn-outline-primary {
+    color: var(--etu-primary);
+    border-color: var(--etu-primary);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--etu-primary);
+    border-color: var(--etu-primary);
+    color: white;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* PROGRESS BARS                                                                    */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.progress {
+    border-radius: 8px;
+    background-color: #dee2e6;
+    height: 12px !important;
+}
+
+.progress-bar {
+    border-radius: 8px;
+    transition: width 0.6s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* COULEURS SUBTILES                                                                */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.bg-primary-subtle { background-color: var(--etu-primary-light) !important; }
+.bg-success-subtle { background-color: rgba(25, 135, 84, 0.1) !important; }
+.bg-warning-subtle { background-color: rgba(255, 193, 7, 0.1) !important; }
+.bg-info-subtle { background-color: rgba(13, 202, 240, 0.1) !important; }
+.bg-danger-subtle { background-color: #f8d7da !important; }
+.bg-secondary-subtle { background-color: #e9ecef !important; }
+
+.text-primary {
+    color: var(--etu-primary) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* ALERTS                                                                           */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.alert-info {
+    border-left: 4px solid #0dcaf0;
+}
+
+.alert-warning {
+    border-left: 4px solid #ffc107;
+}
+
+.alert-danger {
+    border-left: 4px solid #dc3545;
+}
+
+.alert-success {
+    border-left: 4px solid var(--etu-primary);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* FORMULAIRES                                                                      */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.form-section {
+    background-color: white;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+
+.form-section h4 {
+    border-bottom: 2px solid var(--etu-primary);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* ANIMATIONS                                                                       */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* RESPONSIVE                                                                       */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 992px) {
+    .main-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .table {
+        font-size: 0.75rem;
+    }
+
+    .stat-card h3 {
+        font-size: 1.5rem;
+    }
+
+    .stat-card h4 {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .grey_zone {
+        padding: 10px;
+        margin: 5px;
+    }
+
+    .table {
+        font-size: 0.7rem;
+    }
+
+    .badge {
+        font-size: 0.65em;
+        padding: 2px 4px;
+    }
+
+    .page-title {
+        font-size: 0.95rem;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-body {
+        padding: 1rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 0.5rem 0.25rem;
+    }
+
+    .btn-group {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-group .btn {
+        border-radius: 6px !important;
+        margin-bottom: 0.25rem;
+    }
+}
+</style>
+{% block extra_css_etu %}{% endblock %}
+{% endblock %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# CONTENT BLOCK - À définir par les templates enfants                             #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{% block content %}
+{% block content_etu %}{% endblock %}
+{% endblock %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# JAVASCRIPT BLOCK - Pour les scripts des templates enfants                       #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{% block extra_js %}
+{{ block.super }}
+{% block extra_js_etu %}{% endblock %}
+{% endblock %}

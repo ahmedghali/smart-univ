@@ -1,0 +1,128 @@
+{% extends 'enseignant/base_Ens.html' %}
+{% load static %}
+
+{% block content_ens %}
+<div class="grey_zone m-1 p-2">
+    <!-- En-tête -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-users me-2"></i>المجموعات الفرعية
+                </h4>
+                <a href="{% url 'ense:niveaux_enseigner' my_Dep.id %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>العودة
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <p class="mb-1"><strong>المستوى:</strong> {{ niv_spe_dep_sg.niv_spe_dep.niveau.nom_ar }} - {{ niv_spe_dep_sg.niv_spe_dep.specialite.nom_ar }}</p>
+            <p class="mb-0"><strong>المجموعة:</strong> {{ niv_spe_dep_sg.groupe.nom_ar|default:niv_spe_dep_sg.section.nom_ar }}</p>
+        </div>
+    </div>
+
+    <!-- Formulaire d'affectation -->
+    <form method="post" action="{% url 'ense:affecter_direct_sous_groupes' my_Dep.id niv_spe_dep_sg.id %}">
+        {% csrf_token %}
+
+        <div class="row">
+            {% for item in sous_groupes_avec_etudiants %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-users me-2"></i>{{ item.sous_groupe.nom }}
+                        </h5>
+                        <small>{{ item.etudiants|length }} طالب</small>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            {% for etudiant in item.etudiants %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ etudiant.nom_ar }} {{ etudiant.prenom_ar }}</strong>
+                                    <br><small class="text-muted">{{ etudiant.matricule }}</small>
+                                </div>
+                                <select name="etudiant_{{ etudiant.id }}" class="form-select form-select-sm" style="width: auto;">
+                                    {% for sg_item in sous_groupes_avec_etudiants %}
+                                    <option value="{{ sg_item.sous_groupe.id }}" {% if sg_item.sous_groupe.id == item.sous_groupe.id %}selected{% endif %}>
+                                        {{ sg_item.sous_groupe.nom }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </li>
+                            {% empty %}
+                            <li class="list-group-item text-center text-muted py-4">
+                                <i class="fas fa-info-circle"></i> لا يوجد طلاب
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle fa-2x mb-2"></i>
+                    <p>لا توجد مجموعات فرعية</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Étudiants non affectés -->
+        {% if etudiants_non_affectes %}
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>طلاب غير موزعين ({{ etudiants_non_affectes|length }})
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>اللقب</th>
+                                <th>الاسم</th>
+                                <th>رقم التسجيل</th>
+                                <th>التعيين</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for etudiant in etudiants_non_affectes %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td><strong>{{ etudiant.nom_ar }}</strong></td>
+                                <td><strong>{{ etudiant.prenom_ar }}</strong></td>
+                                <td><code>{{ etudiant.matricule }}</code></td>
+                                <td>
+                                    <select name="etudiant_{{ etudiant.id }}" class="form-select form-select-sm">
+                                        <option value="">-- اختر --</option>
+                                        {% for sg_item in sous_groupes_avec_etudiants %}
+                                        <option value="{{ sg_item.sous_groupe.id }}">{{ sg_item.sous_groupe.nom }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Boutons d'action -->
+        <div class="text-center">
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="fas fa-save me-2"></i>حفظ التغييرات
+            </button>
+            <a href="{% url 'ense:niveaux_enseigner' my_Dep.id %}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-times me-2"></i>إلغاء
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

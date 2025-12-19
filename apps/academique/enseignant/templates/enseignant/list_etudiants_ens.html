@@ -1,0 +1,477 @@
+{% extends 'enseignant/base_Ens.html' %}
+{% load static %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# LISTE DES ÉTUDIANTS                                                              #}
+{# Hérite de base_Ens.html - active_menu = 'etudiants'                             #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+
+{% block content_ens %}
+<div class="grey_zone m-1 p-2">
+    <!-- EN-TÊTE -->
+    <h4 class="border-bottom border-danger text-dark mb-3">
+        <i class="fas fa-user-graduate"></i>
+        قائمة الطلبة - {{my_Dep.nom_ar}}
+    </h4>
+
+    <!-- FORMULAIRE DE FILTRAGE -->
+    <div class="p-2 mb-2">
+        <form id="etudiants_form" method="POST" class="filter-form">
+            {% csrf_token %}
+
+            <div class="mb-2 d-flex align-items-center flex-wrap gap-2" id="div_refs">
+                <label class="myLabelList me-2">الإصلاح:</label>
+                <select id="refs" name="reforme" class="form-select w-auto">
+                    <option value="" disabled selected>-----إختر الإصلاح------</option>
+                </select>
+            </div>
+
+            <div class="mb-2 d-flex align-items-center flex-wrap gap-2" id="div_nivs">
+                <label class="myLabelList me-2">المستوى:</label>
+                <select id="nivs" name="niveau" class="form-select w-auto" disabled>
+                    <option value="" disabled selected>-----إختر المستوى-----</option>
+                </select>
+            </div>
+
+            <div class="mb-2 d-flex align-items-center flex-wrap gap-2" id="div_groupes">
+                <label class="myLabelList me-2">الفوج / المجموعة:</label>
+                <select id="groupes" name="niv_spe_dep_sg" class="form-select w-auto" disabled>
+                    <option value="" disabled selected>-----إختر الفوج-----</option>
+                </select>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="mt-3 d-flex gap-2 flex-wrap">
+                <button type="button" id="btn_afficher" class="btn btn-success" disabled>
+                    <i class="fas fa-list"></i> عرض الطلبة
+                </button>
+                <a href="{% url 'ense:timeTable_Ens' my_Dep.id %}" class="btn btn-secondary">
+                    <i class="fas fa-calendar"></i> العودة لإستعمال الزمن
+                </a>
+                <a href="{% url 'ense:list_matieres_ens' my_Dep.id %}" class="btn btn-outline-info">
+                    <i class="fas fa-book"></i> قائمة المواد
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Messages de statut -->
+    <div id="status_messages" class="mt-3"></div>
+
+    <!-- Loading spinner -->
+    <div id="loading_spinner" class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">جاري التحميل...</span>
+        </div>
+        <p class="mt-2 text-muted">جاري تحميل البيانات...</p>
+    </div>
+
+    <!-- Statistiques -->
+    <div id="stats_section" class="mt-3" style="display: none;">
+        <div class="row g-2 mb-3">
+            <div class="col-md-4">
+                <div class="card bg-primary text-white text-center p-2">
+                    <h4 id="total_count" class="mb-0">0</h4>
+                    <small>إجمالي الطلبة</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white text-center p-2">
+                    <h4 id="inscrit_count" class="mb-0">0</h4>
+                    <small>المسجلين</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-warning text-dark text-center p-2">
+                    <h4 id="non_inscrit_count" class="mb-0">0</h4>
+                    <small>غير المسجلين</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zone d'affichage du tableau des étudiants -->
+    <div id="etudiants_table" class="mt-3"></div>
+</div>
+{% endblock %}
+
+{% block extra_css_ens %}
+<style>
+    .sortable {
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.2s;
+    }
+    .sortable:hover {
+        background-color: #495057 !important;
+    }
+    .sortable i.fa-sort,
+    .sortable i.fa-sort-up,
+    .sortable i.fa-sort-down {
+        margin-left: 5px;
+        font-size: 0.85em;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js_ens %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Vérification des éléments requis
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (!csrfInput) {
+        console.error('CSRF token non trouvé');
+        return;
+    }
+
+    const etudiantsJsonUrl = "{% url 'ense:etudiants_json_ens' my_Dep.id %}";
+    const etudiantsListUrl = "{% url 'ense:list_etudiants_ens' my_Dep.id %}";
+    const csrfToken = csrfInput.value;
+
+    const refsSelect = document.getElementById('refs');
+    const nivsSelect = document.getElementById('nivs');
+    const groupesSelect = document.getElementById('groupes');
+    const btnAfficher = document.getElementById('btn_afficher');
+    const etudiantsTable = document.getElementById('etudiants_table');
+    const statusMessages = document.getElementById('status_messages');
+    const loadingSpinner = document.getElementById('loading_spinner');
+    const statsSection = document.getElementById('stats_section');
+
+    // Vérification que tous les éléments existent
+    if (!refsSelect || !nivsSelect || !groupesSelect) {
+        console.error('Éléments de formulaire non trouvés');
+        return;
+    }
+
+    // Charger les données initiales
+    loadReformes();
+
+    // Événement: changement de réforme
+    refsSelect.addEventListener('change', function() {
+        nivsSelect.disabled = !this.value;
+        groupesSelect.disabled = true;
+        btnAfficher.disabled = true;
+        resetSelect(nivsSelect, '-----إختر المستوى-----');
+        resetSelect(groupesSelect, '-----إختر الفوج-----');
+        hideResults();
+        if (this.value) loadNiveaux(this.value);
+    });
+
+    // Événement: changement de niveau
+    nivsSelect.addEventListener('change', function() {
+        groupesSelect.disabled = !this.value;
+        btnAfficher.disabled = true;
+        resetSelect(groupesSelect, '-----إختر الفوج-----');
+        hideResults();
+        if (this.value) loadGroupes(refsSelect.value, this.value);
+    });
+
+    // Événement: changement de groupe
+    groupesSelect.addEventListener('change', function() {
+        btnAfficher.disabled = !this.value;
+    });
+
+    // Événement: clic sur le bouton afficher
+    btnAfficher.addEventListener('click', loadEtudiants);
+
+    // ═══════════════════════════════════════════════════════════════
+    // FONCTIONS UTILITAIRES
+    // ═══════════════════════════════════════════════════════════════
+
+    function resetSelect(select, placeholder) {
+        select.innerHTML = `<option value="" disabled selected>${placeholder}</option>`;
+    }
+
+    function showLoading() { loadingSpinner.classList.add('show'); }
+    function hideLoading() { loadingSpinner.classList.remove('show'); }
+
+    function hideResults() {
+        etudiantsTable.innerHTML = '';
+        statsSection.style.display = 'none';
+    }
+
+    function showMessage(message, type = 'info') {
+        statusMessages.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                <i class="fas fa-${type === 'danger' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // CHARGEMENT DES RÉFORMES
+    // ═══════════════════════════════════════════════════════════════
+
+    function loadReformes() {
+        console.log('Chargement des réformes...');
+        fetch(etudiantsJsonUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrfToken },
+            body: 'action=get_reformes'
+        })
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        })
+        .then(data => {
+            console.log('Réformes reçues:', data);
+            if (data.data && data.data.length > 0) {
+                data.data.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.id;
+                    opt.textContent = item.nom_ar || item.nom_fr || item.code;
+                    refsSelect.appendChild(opt);
+                });
+            } else {
+                showMessage('لا توجد إصلاحات متاحة', 'warning');
+            }
+        })
+        .catch(err => { console.error('Erreur:', err); showMessage('خطأ في تحميل الإصلاحات', 'danger'); });
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // CHARGEMENT DES NIVEAUX
+    // ═══════════════════════════════════════════════════════════════
+
+    function loadNiveaux(reformeId) {
+        console.log('Chargement des niveaux pour réforme:', reformeId);
+        fetch(etudiantsJsonUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrfToken },
+            body: `action=get_niveaux&reforme=${reformeId}`
+        })
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        })
+        .then(data => {
+            console.log('Niveaux reçus:', data);
+            if (data.data && data.data.length > 0) {
+                data.data.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.id;
+                    opt.textContent = item.nom_ar || item.nom_fr || item.code;
+                    nivsSelect.appendChild(opt);
+                });
+            }
+        })
+        .catch(err => { console.error('Erreur:', err); showMessage('خطأ في تحميل المستويات', 'danger'); });
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // CHARGEMENT DES GROUPES
+    // ═══════════════════════════════════════════════════════════════
+
+    function loadGroupes(reformeId, niveauId) {
+        console.log('Chargement des groupes pour niveau:', niveauId);
+        fetch(etudiantsJsonUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrfToken },
+            body: `action=get_groupes&reforme=${reformeId}&niveau=${niveauId}`
+        })
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        })
+        .then(data => {
+            console.log('Groupes reçus:', data);
+            if (data.data && data.data.length > 0) {
+                // Option pour tous les étudiants du niveau
+                const optTous = document.createElement('option');
+                optTous.value = `tous_${niveauId}_${reformeId}`;
+                optTous.textContent = '📋 جميع طلبة هذا المستوى';
+                groupesSelect.appendChild(optTous);
+
+                // Grouper par section
+                const sections = {};
+                data.data.forEach(item => {
+                    const sectionName = item.section_nom || 'بدون قطاع';
+                    if (!sections[sectionName]) {
+                        sections[sectionName] = [];
+                    }
+                    sections[sectionName].push(item);
+                });
+
+                // Afficher les sections et groupes
+                Object.keys(sections).forEach(sectionName => {
+                    const groups = sections[sectionName];
+
+                    // Optgroup pour la section
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = `── ${sectionName} ──`;
+
+                    // Groupes individuels (incluant les section containers du backend)
+                    groups.forEach(item => {
+                        const opt = document.createElement('option');
+                        opt.value = item.id;
+                        const displayName = item.groupe_nom || item.section_nom || 'غير محدد';
+                        const studentCount = item.nbr_etudiants || 0;
+                        opt.textContent = `${displayName} (${studentCount} طالب)`;
+                        optgroup.appendChild(opt);
+                    });
+
+                    groupesSelect.appendChild(optgroup);
+                });
+            } else {
+                showMessage('لا توجد أفواج متاحة', 'warning');
+            }
+        })
+        .catch(err => { console.error('Erreur:', err); showMessage('خطأ في تحميل الأفواج', 'danger'); });
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // CHARGEMENT DES ÉTUDIANTS
+    // ═══════════════════════════════════════════════════════════════
+
+    function loadEtudiants() {
+        const groupeId = groupesSelect.value;
+        if (!groupeId) return;
+
+        showLoading();
+        statusMessages.innerHTML = '';
+        hideResults();
+
+        console.log('Chargement des étudiants pour groupe:', groupeId);
+        fetch(etudiantsListUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrfToken },
+            body: `niv_spe_dep_sg=${groupeId}`
+        })
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        })
+        .then(data => {
+            hideLoading();
+            console.log('Étudiants reçus:', data);
+            if (data.error) { showMessage(data.error, 'danger'); return; }
+            if (!data.data || data.data.length === 0) {
+                etudiantsTable.innerHTML = `<div class="alert alert-warning text-center"><i class="fas fa-exclamation-triangle fa-2x mb-2"></i><p>لا يوجد طلبة للعرض</p></div>`;
+                return;
+            }
+            renderEtudiantsTable(data.data);
+        })
+        .catch(err => { hideLoading(); console.error('Erreur:', err); showMessage('خطأ في تحميل الطلبة', 'danger'); });
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // AFFICHAGE DU TABLEAU
+    // ═══════════════════════════════════════════════════════════════
+
+    function renderEtudiantsTable(etudiants) {
+        // Calculer les statistiques
+        const totalCount = etudiants.length;
+        const inscritCount = etudiants.filter(e => e.est_inscrit === true).length;
+        const nonInscritCount = totalCount - inscritCount;
+
+        // Afficher les statistiques
+        document.getElementById('total_count').textContent = totalCount;
+        document.getElementById('inscrit_count').textContent = inscritCount;
+        document.getElementById('non_inscrit_count').textContent = nonInscritCount;
+        statsSection.style.display = 'block';
+
+        // Nom du groupe sélectionné
+        const selectedText = groupesSelect.options[groupesSelect.selectedIndex].textContent;
+
+        // Stocker les données pour le tri
+        window.currentEtudiants = etudiants;
+        window.currentSortField = null;
+        window.currentSortOrder = 'asc';
+
+        renderTable(etudiants, selectedText);
+    }
+
+    // Fonction de tri
+    function sortEtudiants(field) {
+        if (window.currentSortField === field) {
+            window.currentSortOrder = window.currentSortOrder === 'asc' ? 'desc' : 'asc';
+        } else {
+            window.currentSortField = field;
+            window.currentSortOrder = 'asc';
+        }
+
+        const sorted = [...window.currentEtudiants].sort((a, b) => {
+            const valA = (a[field] || '').toLowerCase();
+            const valB = (b[field] || '').toLowerCase();
+            if (valA < valB) return window.currentSortOrder === 'asc' ? -1 : 1;
+            if (valA > valB) return window.currentSortOrder === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        const selectedText = groupesSelect.options[groupesSelect.selectedIndex].textContent;
+        renderTable(sorted, selectedText);
+    }
+
+    // Rendre globale pour les onclick
+    window.sortEtudiants = sortEtudiants;
+
+    function getSortIcon(field) {
+        if (window.currentSortField !== field) return '<i class="fas fa-sort text-muted"></i>';
+        return window.currentSortOrder === 'asc'
+            ? '<i class="fas fa-sort-up"></i>'
+            : '<i class="fas fa-sort-down"></i>';
+    }
+
+    function renderTable(etudiants, selectedText) {
+        let html = `
+            <div class="card fade-in">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-users"></i> قائمة الطلبة - ${selectedText} (${etudiants.length} طالب)</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-sm align-middle mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="text-center" style="width: 50px;">#</th>
+                                    <th class="sortable" onclick="sortEtudiants('nom_fr')" style="cursor: pointer;">
+                                        Nom ${getSortIcon('nom_fr')}
+                                    </th>
+                                    <th class="sortable" onclick="sortEtudiants('prenom_fr')" style="cursor: pointer;">
+                                        Prénom ${getSortIcon('prenom_fr')}
+                                    </th>
+                                    <th class="sortable" onclick="sortEtudiants('nom_ar')" style="cursor: pointer;">
+                                        <i class="fas fa-user"></i> اللقب ${getSortIcon('nom_ar')}
+                                    </th>
+                                    <th class="sortable" onclick="sortEtudiants('prenom_ar')" style="cursor: pointer;">
+                                        الإسم ${getSortIcon('prenom_ar')}
+                                    </th>
+                                    <th class="text-center"><i class="fas fa-id-card"></i> رقم التسجيل</th>
+                                    <th class="text-center"><i class="fas fa-layer-group"></i> القطاع</th>
+                                    <th class="text-center"><i class="fas fa-users"></i> الفوج</th>
+                                    <th class="text-center"><i class="fas fa-phone"></i> الهاتف</th>
+                                    <th class="text-center"><i class="fas fa-envelope"></i> البريد المهني</th>
+                                    <th class="text-center"><i class="fas fa-calendar"></i> تاريخ الميلاد</th>
+                                    <th class="text-center"><i class="fas fa-check-circle"></i> الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+
+        etudiants.forEach((etudiant, i) => {
+            const inscritBadge = etudiant.est_inscrit
+                ? '<span class="badge bg-success"><i class="fas fa-check"></i> مسجل</span>'
+                : '<span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> غير مسجل</span>';
+
+            html += `
+                <tr>
+                    <td class="text-center"><span class="badge bg-primary">${i + 1}</span></td>
+                    <td>${etudiant.nom_fr || '-'}</td>
+                    <td>${etudiant.prenom_fr || '-'}</td>
+                    <td><strong>${etudiant.nom_ar || '-'}</strong></td>
+                    <td><strong>${etudiant.prenom_ar || '-'}</strong></td>
+                    <td class="text-center"><code>${etudiant.matricule || '-'}</code></td>
+                    <td class="text-center">${etudiant.section_nom || '-'}</td>
+                    <td class="text-center">${etudiant.groupe_nom || '-'}</td>
+                    <td class="text-center">${etudiant.tel_mobile1 || '-'}</td>
+                    <td class="text-center"><small>${etudiant.email_prof || '-'}</small></td>
+                    <td class="text-center">${etudiant.date_nais || '-'}</td>
+                    <td class="text-center">${inscritBadge}</td>
+                </tr>`;
+        });
+
+        html += `</tbody></table></div></div></div>`;
+        etudiantsTable.innerHTML = html;
+    }
+});
+</script>
+{% endblock %}

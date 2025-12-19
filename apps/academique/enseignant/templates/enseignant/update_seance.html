@@ -1,0 +1,516 @@
+{% extends 'enseignant/base_Ens.html' %}
+{% load crispy_forms_tags %}
+
+{% block extra_css_ens %}
+<style>
+/* Conteneur du formulaire */
+.form-container {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Informations du cours */
+.class-info-card {
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.class-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.class-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #495057;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.meta-item i {
+    color: #007bff;
+}
+
+/* Card d'information sur l'audience */
+.audience-info-card {
+    background: #e8f4f8;
+    border: 1px solid #bee5eb;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.audience-info-card i {
+    color: #17a2b8;
+}
+
+/* Formulaires */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-control, .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+/* Zone de texte */
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* Status items compacts et fonctionnels */
+.status-item {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.status-item:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* États actifs avec couleurs correctes */
+.status-item.active.active-success {
+    border-color: #28a745;
+    background: #f8fff9;
+}
+
+.status-item.active.active-warning {
+    border-color: #ffc107;
+    background: #fffbf0;
+}
+
+.status-item.active.active-danger {
+    border-color: #dc3545;
+    background: #fff5f5;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.5rem;
+}
+
+.form-check-input {
+    margin-left: 0.5rem;
+    margin-top: 0;
+    width: 2em;
+    height: 1em;
+}
+
+.form-check-label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #495057;
+    margin-right: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+/* Form switches avec couleurs correctes */
+.form-switch .form-check-input:checked {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.status-item.active.active-success .form-switch .form-check-input:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.status-item.active.active-warning .form-switch .form-check-input:checked {
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.status-item.active.active-danger .form-switch .form-check-input:checked {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+/* Boutons */
+.btn-custom {
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .class-meta {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .meta-item {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .form-container {
+        padding: 1rem;
+    }
+
+    .status-item {
+        margin-bottom: 1rem;
+    }
+
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .d-flex.justify-content-between .btn {
+        width: 100%;
+    }
+}
+
+/* Animation de chargement */
+.card {
+    transition: all 0.3s ease;
+}
+</style>
+{% endblock %}
+
+{% block content_ens %}
+<div class="container-fluid p-3" style="background-color: #f8f9fa;">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 col-xl-9">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>
+                        تعديل معلومات الحصة الدراسية
+                    </h4>
+                    <small class="text-light">تحديث تفاصيل الحصة والملاحظات</small>
+                </div>
+
+                <div class="card-body" style="background-color: #f8f9fa;">
+                    <!-- معلومات الفصل -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-muted mb-3 border-bottom pb-2">
+                                <i class="fas fa-chalkboard-teacher me-2"></i>
+                                معلومات الفصل
+                            </h5>
+                            <div class="class-info-card">
+                                <h6 class="class-title">{{ seance.classe.matiere.nom_ar }}</h6>
+                                <div class="class-meta">
+                                    <span class="meta-item">
+                                        <i class="fas fa-calendar ms-1"></i>
+                                        السداسي {{ seance.classe.semestre.numero|default:"غير محدد" }}
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="fas fa-map-marker-alt ms-1"></i>
+                                        {{ seance.classe.lieu|default:"غير محدد" }}
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="fas fa-tag ms-1"></i>
+                                        {{ seance.classe.type|default:"غير محدد" }}
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="fas fa-users ms-1"></i>
+                                        {{ seance.classe.niv_spe_dep_sg }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulaire de modification -->
+                    <form method="POST" id="seanceForm">
+                        {% csrf_token %}
+                        <!-- Champ caché pour contrôler la création de la liste des absences -->
+                        <input type="hidden" id="create_absence_list" name="create_absence_list" value="no">
+                        <!-- Type de la classe pour le JavaScript -->
+                        <input type="hidden" id="classe_type" value="{{ seance.classe.type|default:'' }}">
+
+                        <!-- Section: Date et Temps -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-muted mb-3 border-bottom pb-2">
+                                    <i class="fas fa-clock me-2"></i>
+                                    التوقيت والتاريخ
+                                </h5>
+                                <div class="form-container">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="date" class="form-label">تاريخ الحصة</label>
+                                                <input type="date" class="form-control" id="date" name="date"
+                                                       value="{{ seance.date|date:'Y-m-d' }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="temps" class="form-label">وقت الحصة</label>
+                                                <select class="form-select" id="temps" name="temps" required>
+                                                    <option value="08:00-09:30" {% if seance.temps == '08:00-09:30' %}selected{% endif %}>الحصة الأولى 08:00-09:30</option>
+                                                    <option value="09:40-11:10" {% if seance.temps == '09:40-11:10' %}selected{% endif %}>الحصة الثانية 09:40-11:10</option>
+                                                    <option value="11:20-12:50" {% if seance.temps == '11:20-12:50' %}selected{% endif %}>الحصة الثالثة 11:20-12:50</option>
+                                                    <option value="13:10-14:40" {% if seance.temps == '13:10-14:40' %}selected{% endif %}>الحصة الرابعة 13:10-14:40</option>
+                                                    <option value="14:50-16:20" {% if seance.temps == '14:50-16:20' %}selected{% endif %}>الحصة الخامسة 14:50-16:20</option>
+                                                    <option value="16:30-18:00" {% if seance.temps == '16:30-18:00' %}selected{% endif %}>الحصة السادسة 16:30-18:00</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section: عنوان الحصة -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-muted mb-3 border-bottom pb-2">
+                                    <i class="fas fa-heading me-2"></i>
+                                    تفاصيل الحصة
+                                </h5>
+                                <div class="form-container">
+                                    <div class="form-group">
+                                        <label for="intitule" class="form-label">عنوان الحصة</label>
+                                        <input type="text" class="form-control" id="intitule" name="intitule"
+                                               value="{{ seance.intitule|default:'' }}"
+                                               placeholder="أدخل عنوان أو موضوع الحصة">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section: حالة الحصة -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-muted mb-3 border-bottom pb-2">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    حالة الحصة
+                                </h5>
+                                <div class="form-container">
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <div class="status-item {% if seance.fait %}active active-success{% endif %}">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="fait" name="fait"
+                                                           {% if seance.fait %}checked{% endif %}>
+                                                    <label class="form-check-label" for="fait">
+                                                        <i class="fas fa-check me-1 text-success"></i>
+                                                        تمت الحصة
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="status-item {% if seance.remplacer %}active active-warning{% endif %}">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="remplacer" name="remplacer"
+                                                           {% if seance.remplacer %}checked{% endif %}>
+                                                    <label class="form-check-label" for="remplacer">
+                                                        <i class="fas fa-sync me-1 text-warning"></i>
+                                                        حصة تعويضية
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="status-item {% if seance.annuler %}active active-danger{% endif %}">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="annuler" name="annuler"
+                                                           {% if seance.annuler %}checked{% endif %}>
+                                                    <label class="form-check-label" for="annuler">
+                                                        <i class="fas fa-times me-1 text-danger"></i>
+                                                        الحصة ملغاة
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section: الملاحظات -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-muted mb-3 border-bottom pb-2">
+                                    <i class="fas fa-sticky-note me-2"></i>
+                                    الملاحظات
+                                </h5>
+                                <div class="form-container">
+                                    <div class="form-group">
+                                        <label for="obs" class="form-label">ملاحظات إضافية</label>
+                                        <textarea class="form-control" id="obs" name="obs" rows="3"
+                                                  placeholder="أدخل أي ملاحظات إضافية حول الحصة">{{ seance.obs|default:'' }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                            <a href="{% url 'ense:list_Sea_Ens' dep_id=my_Dep.id clas_id=seance.classe.id %}" class="btn btn-outline-secondary btn-custom">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                العودة إلى قائمة الحصص
+                            </a>
+
+                            <button type="submit" class="btn btn-success btn-lg btn-custom">
+                                <i class="fas fa-save me-2"></i>
+                                حفظ التغييرات
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js_ens %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animation lors du chargement
+    const card = document.querySelector('.card');
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+
+    setTimeout(() => {
+        card.style.transition = 'all 0.3s ease';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+    }, 100);
+
+    // Validation et feedback du formulaire avec confirmation pour Cours
+    const form = document.getElementById('seanceForm');
+    const faitCheckbox = document.querySelector('#fait');
+    const classeType = document.getElementById('classe_type').value;
+    const createAbsenceListField = document.getElementById('create_absence_list');
+    const listAlreadyGenerated = {{ seance.list_abs_etudiant_generee|yesno:"true,false" }};
+
+    form.addEventListener('submit', function(e) {
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        // Si "fait" est coché et la liste n'est pas encore générée
+        if (faitCheckbox && faitCheckbox.checked && !listAlreadyGenerated) {
+            // Pour les séances de type "Cours" : demander confirmation
+            if (classeType.toLowerCase() === 'cours') {
+                const userConfirmed = confirm('هل تريد إنشاء قائمة الحضور/الغياب المرتبطة بهذه الحصة؟\n\nنعم = إنشاء القائمة\nلا = حفظ بدون إنشاء القائمة');
+
+                if (userConfirmed) {
+                    createAbsenceListField.value = 'yes';
+                } else {
+                    createAbsenceListField.value = 'no';
+                }
+            } else {
+                // Pour TP, TD et autres types : création automatique
+                createAbsenceListField.value = 'yes';
+            }
+        }
+
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري الحفظ...';
+        submitBtn.disabled = true;
+    });
+
+    // Logique d'interdépendance des checkboxes avec couleurs
+    const remplacerCheckbox = document.querySelector('#remplacer');
+    const annulerCheckbox = document.querySelector('#annuler');
+
+    function updateStatusVisual() {
+        // Reset tous les états visuels
+        document.querySelectorAll('.status-item').forEach(item => {
+            item.classList.remove('active', 'active-success', 'active-warning', 'active-danger');
+        });
+
+        // Appliquer les couleurs selon l'état
+        if (faitCheckbox && faitCheckbox.checked) {
+            faitCheckbox.closest('.status-item').classList.add('active', 'active-success');
+        }
+
+        if (remplacerCheckbox && remplacerCheckbox.checked) {
+            remplacerCheckbox.closest('.status-item').classList.add('active', 'active-warning');
+        }
+
+        if (annulerCheckbox && annulerCheckbox.checked) {
+            annulerCheckbox.closest('.status-item').classList.add('active', 'active-danger');
+        }
+    }
+
+    // Si remplacer est coché, fait doit être coché automatiquement
+    if (remplacerCheckbox) {
+        remplacerCheckbox.addEventListener('change', function() {
+            if (this.checked && faitCheckbox) {
+                faitCheckbox.checked = true;
+            }
+            updateStatusVisual();
+        });
+    }
+
+    // Si annuler est coché, fait et remplacer ne peuvent pas être cochés
+    if (annulerCheckbox) {
+        annulerCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                if (faitCheckbox) faitCheckbox.checked = false;
+                if (remplacerCheckbox) remplacerCheckbox.checked = false;
+            }
+            updateStatusVisual();
+        });
+    }
+
+    // Si fait est décoché, remplacer doit être décoché
+    if (faitCheckbox) {
+        faitCheckbox.addEventListener('change', function() {
+            if (!this.checked && remplacerCheckbox) {
+                remplacerCheckbox.checked = false;
+            }
+            updateStatusVisual();
+        });
+    }
+
+    // Initialisation
+    updateStatusVisual();
+});
+</script>
+{% endblock %}

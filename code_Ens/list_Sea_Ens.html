@@ -1,0 +1,477 @@
+{% extends 'enseignant/base_Ens.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .seance-card {
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .seance-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .table th {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        border: none;
+        padding: 12px;
+        font-weight: 600;
+        text-align: center;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .table td {
+        vertical-align: middle;
+        padding: 10px;
+        border-bottom: 1px solid #e9ecef;
+        text-align: center;
+    }
+    
+    .table tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+    
+    .badge-status {
+        font-size: 0.85em;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    
+    .badge-fait {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .badge-remplace {
+        background-color: #ffc107;
+        color: #000;
+    }
+    
+    .badge-annule {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .badge-prevu {
+        background-color: #6c757d;
+        color: white;
+    }
+    
+    .badge-audience {
+        font-size: 0.8em;
+        padding: 4px 8px;
+        border-radius: 15px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .badge-groupe-complet {
+        background-color: #e3f2fd;
+        color: #1976d2;
+        border: 1px solid #bbdefb;
+    }
+    
+    .badge-sous-groupe {
+        background-color: #f3e5f5;
+        color: #7b1fa2;
+        border: 1px solid #e1bee7;
+    }
+    
+    .progress-bar-custom {
+        height: 8px;
+        border-radius: 4px;
+        background-color: #e9ecef;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+        transition: width 0.3s ease;
+        border-radius: 4px;
+    }
+    
+    .btn-action {
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 0.85em;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin: 2px;
+    }
+    
+    .btn-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    .stats-number {
+        font-size: 2rem;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .stats-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête avec informations de la classe -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="seance-card">
+                <div class="card-header bg-primary text-white">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h4 class="mb-0">
+                                <i class="fas fa-chalkboard-teacher me-2"></i>
+                                تفاصيل الحصص - {{ sea_name.matiere.nom_ar }}
+                            </h4>
+                            <p class="mb-0 mt-1">
+                                <small>
+                                    <i class="fas fa-layer-group me-1"></i>
+                                    {{ sea_name.niv_spe_dep_sg }} | 
+                                    <i class="fas fa-calendar me-1"></i>
+                                    السداسي {{ sea_name.semestre.numero }} |
+                                    <i class="fas fa-tag me-1"></i>
+                                    {{ sea_name.type }}
+                                </small>
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{% url 'ense:timeTable_Ens' dep_id=my_Dep.id %}" class="btn btn-light">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                العودة للجدول الزمني
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <span class="stats-number">{{ all_Seances.count }}</span>
+                <span class="stats-label">إجمالي الحصص</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                <span class="stats-number">{{ nbr_Sea_fait.count }}</span>
+                <span class="stats-label">حصص منجزة</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" style="background: linear-gradient(135deg, #dc3545, #fd7e14);">
+                <span class="stats-number">{{ nbr_Sea_annuler.count }}</span>
+                <span class="stats-label">حصص ملغاة</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" style="background: linear-gradient(135deg, #ffc107, #ff8f00);">
+                <span class="stats-number">{{ nbr_Sea_reste }}</span>
+                <span class="stats-label">حصص متبقية</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barre de progression -->
+    {% if taux_avancement > 0 %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">نسبة الإنجاز</h6>
+                        <span class="badge bg-primary">{{ taux_avancement }}%</span>
+                    </div>
+                    <div class="progress-bar-custom">
+                        <div class="progress-fill" style="width: {{ taux_avancement }}%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tableau des séances -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        قائمة جميع الحصص
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 60px;">#</th>
+                                    <th>التاريخ</th>
+                                    <th>الوقت</th>
+                                    <th>عنوان الحصة</th>
+                                    <th>الجمهور المستهدف</th> <!-- ✅ NOUVELLE COLONNE -->
+                                    <th>الحالة</th>
+                                    <th>نسبة التقدم</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for seance in all_Seances %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ forloop.counter }}</span>
+                                    </td>
+                                    <td>
+                                        <strong>{{ seance.date|date:"Y/m/d" }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ seance.date|date:"l" }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            {% if seance.temps == '09:30-08:00' %}
+                                                08:00-09:30
+                                            {% elif seance.temps == '11:10-09:40' %}
+                                                09:40-11:10
+                                            {% elif seance.temps == '12:50-11:20' %}
+                                                11:20-12:50
+                                            {% elif seance.temps == '14:40-13:10' %}
+                                                13:10-14:40
+                                            {% elif seance.temps == '16:20-14:50' %}
+                                                14:50-16:20
+                                            {% elif seance.temps == '18:00-16:30' %}
+                                                16:30-18:00
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if seance.intitule %}
+                                            {{ seance.intitule }}
+                                        {% else %}
+                                            <em class="text-muted">غير محدد</em>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <!-- ✅ NOUVELLE COLONNE POUR AFFICHER LE TYPE D'AUDIENCE -->
+                                        {% if seance.type_audience == 'groupe_complet' %}
+                                            {% if seance.classe.type == 'Cours' %}
+                                                <span class="badge badge-audience badge-groupe-complet">
+                                                    <i class="fas fa-users"></i>
+                                                    {{sea_name.niv_spe_dep_sg.section}}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-audience badge-groupe-complet">
+                                                    <i class="fas fa-users"></i>
+                                                    كامل الفوج
+                                                </span>
+                                            {% endif %}
+                                            
+                                            <br>
+                                            <small class="text-muted">
+                                                {% if seance.classe.niv_spe_dep_sg.nbr_etudiants_SG %}
+                                                    ({{ seance.classe.niv_spe_dep_sg.nbr_etudiants_SG }} طالب)
+                                                {% else %}
+                                                    (جميع الطلاب)
+                                                {% endif %}
+                                            </small>
+                                        {% elif seance.type_audience == 'sous_groupe' and seance.sous_groupe_unique %}
+                                            <span class="badge badge-audience badge-sous-groupe">
+                                                <i class="fas fa-user-friends"></i>
+                                                فوج فرعي {{ seance.sous_groupe_unique.nom }}
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">
+                                                ({{ seance.sous_groupe_unique.effectif }} طالب)
+                                            </small>
+                                        {% elif seance.type_audience == 'multi_sous_groupes' %}
+                                            <span class="badge badge-audience badge-sous-groupe">
+                                                <i class="fas fa-layer-group"></i>
+                                                عدة مجموعات فرعية
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">
+                                                {% with total_effectif=0 %}
+                                                    {% for sg in seance.sous_groupes_multiples.all %}
+                                                        {% with total_effectif=total_effectif|add:sg.effectif %}{% endwith %}
+                                                    {% endfor %}
+                                                    ({{ total_effectif }} طالب)
+                                                {% endwith %}
+                                            </small>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-question"></i>
+                                                غير محدد
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if seance.fait %}
+                                            <span class="badge badge-status badge-fait">
+                                                <i class="fas fa-check me-1"></i>
+                                                منجزة
+                                            </span>
+                                        {% elif seance.remplacer %}
+                                            <span class="badge badge-status badge-remplace">
+                                                <i class="fas fa-sync me-1"></i>
+                                                تعويضية
+                                            </span>
+                                        {% elif seance.annuler %}
+                                            <span class="badge badge-status badge-annule">
+                                                <i class="fas fa-times me-1"></i>
+                                                ملغاة
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-status badge-prevu">
+                                                <i class="fas fa-clock me-1"></i>
+                                                مبرمجة
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if seance.taux_avancement %}
+                                            <div class="progress-bar-custom">
+                                                <div class="progress-fill" style="width: {{ seance.taux_avancement }}%;"></div>
+                                            </div>
+                                            <small class="text-muted">{{ seance.taux_avancement }}%</small>
+                                        {% else %}
+                                            <span class="text-muted">0%</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <!-- Bouton Modifier -->
+                                            <a href="{% url 'ense:update_seance' dep_id=my_Dep.id sea_id=seance.id %}" 
+                                               class="btn btn-sm btn-outline-primary btn-action"
+                                               title="تعديل الحصة">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            
+                                            <!-- Bouton Liste des absences -->
+                                            {% if seance.list_abs_etudiant_generee %}
+                                                <a href="{% url 'ense:list_Abs_Etu' dep_id=my_Dep.id sea_id=seance.id %}" 
+                                                   class="btn btn-sm btn-outline-warning btn-action"
+                                                   title="قائمة الغيابات">
+                                                    <i class="fas fa-user-check"></i>
+                                                </a>
+                                            {% endif %}
+                                            
+                                            <!-- ✅ NOUVEAU - Bouton Supprimer -->
+                                            <a href="{% url 'ense:delete_seance' dep_id=my_Dep.id sea_id=seance.id %}" 
+                                               class="btn btn-sm btn-outline-danger btn-action"
+                                               title="حذف الحصة"
+                                               onclick="return confirm('هل أنت متأكد من حذف هذه الحصة؟ سيتم حذف جميع البيانات المرتبطة بها نهائياً.')">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                            
+                                            <!-- Bouton Notes/Observations -->
+                                            {% if seance.obs %}
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-outline-info btn-action"
+                                                        data-bs-toggle="tooltip" 
+                                                        data-bs-placement="top"
+                                                        title="{{ seance.obs }}">
+                                                    <i class="fas fa-sticky-note"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">
+                                        <i class="fas fa-info-circle fa-2x text-muted mb-2"></i>
+                                        <p class="text-muted mb-0">لا توجد حصص مسجلة لهذه المادة</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions supplémentaires -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="{% url 'ense:new_Sceance_Ens' dep_id=my_Dep.id clas_id=sea_name.id %}" 
+               class="btn btn-success btn-lg me-3">
+                <i class="fas fa-plus me-2"></i>
+                إنشاء حصص جديدة
+            </a>
+            <a href="{% url 'ense:timeTable_Ens' dep_id=my_Dep.id %}" 
+               class="btn btn-outline-secondary btn-lg">
+                <i class="fas fa-calendar me-2"></i>
+                عرض الجدول الزمني
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialiser les tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Animation des cartes au chargement
+    const cards = document.querySelectorAll('.seance-card, .stats-card, .card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Animation des barres de progression
+    setTimeout(() => {
+        const progressBars = document.querySelectorAll('.progress-fill');
+        progressBars.forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 500);
+        });
+    }, 1000);
+});
+</script>
+{% endblock %}

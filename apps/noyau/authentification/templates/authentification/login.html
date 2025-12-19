@@ -1,0 +1,86 @@
+{% extends "authentification/base.html" %}
+
+{% block title %}تسجيل الدخول - Smart-Univ{% endblock %}
+
+{% block content %}
+<div class="auth-card">
+    <div class="auth-header">
+        <div class="logo">
+            <i class="fas fa-university"></i>
+        </div>
+        <h1>Smart-Univ</h1>
+        <p>نظام إدارة الجامعة الذكي</p>
+    </div>
+
+    <div class="auth-body">
+        <h3 class="text-center mb-4">تسجيل الدخول</h3>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post" action="{% url 'auth:login' %}">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label for="{{ form.username.id_for_label }}" class="form-label">
+                    <i class="fas fa-user me-2"></i>اسم المستخدم
+                </label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.username.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                <label for="{{ form.password.id_for_label }}" class="form-label">
+                    <i class="fas fa-lock me-2"></i>كلمة المرور
+                </label>
+                {{ form.password }}
+                {% if form.password.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.password.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt me-2"></i>دخول
+            </button>
+        </form>
+
+        <div class="text-center mt-4">
+            <small class="text-muted">
+                هل نسيت كلمة المرور؟ <a href="#" class="text-primary">اضغط هنا</a>
+            </small>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="text-center">
+            <a href="{% url 'comm:home' %}" class="btn btn-outline-secondary w-100">
+                <i class="fas fa-home me-2"></i>العودة إلى الصفحة الرئيسية
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add form-control class to form fields
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('input[type="text"], input[type="password"]');
+        inputs.forEach(input => {
+            input.classList.add('form-control');
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,498 @@
+{% extends 'enseignant/base_Ens.html' %}
+{% load static %}
+
+{% block extra_css_ens %}
+<style>
+/* Style compact pour le tableau des absences par classe */
+.absence-class-table {
+    font-size: 0.85rem;
+    line-height: 1.3;
+}
+
+.absence-class-table th {
+    background: linear-gradient(135deg, #2c3e50, #34495e) !important;
+    color: #ffffff !important;
+    font-weight: 700;
+    white-space: nowrap;
+    padding: 0.5rem !important;
+    border: 1px solid #1a252f !important;
+}
+
+.absence-class-table td {
+    padding: 0.4rem !important;
+    vertical-align: middle;
+}
+
+/* Info card */
+.info-header-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    padding: 1rem;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+/* Stats compactes */
+.stats-compact {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+.stat-label {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+}
+
+.stat-value {
+    font-size: 1rem;
+    font-weight: bold;
+    padding: 0.3rem 0.6rem;
+    border-radius: 0.25rem;
+    color: white;
+    min-width: 35px;
+    text-align: center;
+}
+
+/* Progress bars - Custom implementation */
+.custom-progress {
+    height: 28px;
+    border-radius: 5px;
+    background-color: #e9ecef;
+    width: 100%;
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.custom-progress-bar {
+    height: 100%;
+    border-radius: 0 5px 5px 0;
+    transition: width 0.5s ease;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.custom-progress-bar.bg-success {
+    background: linear-gradient(90deg, #28a745, #34ce57);
+}
+
+.custom-progress-bar.bg-warning {
+    background: linear-gradient(90deg, #ffc107, #ffca2c);
+}
+
+.custom-progress-bar.bg-danger {
+    background: linear-gradient(90deg, #dc3545, #e4606d);
+}
+
+.custom-progress-text {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #000;
+    z-index: 2;
+    text-shadow: 0 0 2px rgba(255,255,255,0.8);
+}
+
+/* Cellule de pourcentage */
+.taux-cell {
+    padding: 2px 6px !important;
+    min-width: 200px;
+    width: 200px;
+    vertical-align: middle;
+}
+
+/* Badges de presence */
+.badge-present {
+    background-color: #28a745;
+}
+
+.badge-absent {
+    background-color: #dc3545;
+}
+
+.badge-justified {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+/* Row coloring based on attendance */
+.row-high-presence {
+    background-color: #d4edda !important;
+    border-left: 3px solid #28a745;
+}
+
+.row-medium-presence {
+    background-color: #fff3cd !important;
+    border-left: 3px solid #ffc107;
+}
+
+.row-low-presence {
+    background-color: #f8d7da !important;
+    border-left: 3px solid #dc3545;
+}
+
+/* Colonnes de séances */
+.seance-col {
+    min-width: 45px;
+    text-align: center;
+    padding: 0.3rem !important;
+}
+
+.seance-col-header {
+    padding: 0.5rem 0.3rem !important;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.seance-col-header a.seance-link {
+    display: inline-block;
+    padding: 4px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff !important;
+    text-decoration: none;
+    font-size: 0.7rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.seance-col-header a.seance-link:hover {
+    background: #3498db;
+    transform: scale(1.05);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.status-icon {
+    font-size: 0.9rem;
+}
+
+.status-present {
+    color: #28a745;
+}
+
+.status-absent {
+    color: #dc3545;
+}
+
+.status-justified {
+    color: #ffc107;
+}
+
+.status-none {
+    color: #6c757d;
+}
+
+/* Colonnes triables */
+.sortable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.sortable:hover {
+    background: linear-gradient(135deg, #3498db, #2980b9) !important;
+}
+
+.sort-asc .fa-sort::before {
+    content: "\f0de"; /* fa-sort-up */
+}
+
+.sort-desc .fa-sort::before {
+    content: "\f0dd"; /* fa-sort-down */
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .absence-class-table {
+        font-size: 0.75rem;
+    }
+
+    .absence-class-table th,
+    .absence-class-table td {
+        padding: 0.3rem !important;
+    }
+
+    .stats-compact {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .seance-col-header a.seance-link {
+        font-size: 0.6rem;
+        padding: 2px 4px;
+    }
+
+    .status-icon {
+        font-size: 0.75rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content_ens %}
+<div class="container-fluid p-3">
+    <!-- En-tete avec informations -->
+    <div class="info-header-card">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="mb-1">
+                    <i class="fas fa-user-times me-2"></i>
+                    ملخص الغيابات - {{ myClasse.matiere.nom_ar }}
+                </h5>
+                <p class="mb-0">
+                    <small>
+                        <i class="fas fa-layer-group me-1"></i>
+                        {{ myClasse.niv_spe_dep_sg.niv_spe_dep.niveau }}
+                        {{ myClasse.niv_spe_dep_sg.niv_spe_dep.specialite.nom_ar }} |
+                        <i class="fas fa-tag me-1"></i>
+                        {{ myClasse.type }} |
+                        <i class="fas fa-calendar me-1"></i>
+                        السداسي {{ myClasse.semestre.numero }}
+                    </small>
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="stats-compact justify-content-end flex-wrap">
+                    <div class="stat-item">
+                        <span class="stat-label">طلاب:</span>
+                        <span class="stat-value bg-primary">{{ total_etudiants }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">حصص:</span>
+                        <span class="stat-value bg-info">{{ total_seances }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">نسبة الحضور:</span>
+                        <span class="stat-value {% if avg_presence >= 80 %}bg-success{% elif avg_presence >= 50 %}bg-warning{% else %}bg-danger{% endif %}">
+                            {{ avg_presence }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if total_seances == 0 %}
+    <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle fa-2x mb-2"></i>
+        <h5>لا توجد حصص مكتملة لهذه المادة</h5>
+        <p class="mb-0">يرجى تسجيل الحصص كمكتملة لتتمكن من رؤية الغيابات</p>
+        <a href="{% url 'ense:list_Sea_Ens' dep_id=my_Dep.id clas_id=myClasse.id %}" class="btn btn-primary mt-3">
+            <i class="fas fa-calendar-alt me-1"></i> عرض الحصص
+        </a>
+    </div>
+    {% else %}
+
+    <!-- Légende -->
+    <div class="alert alert-light mb-3 py-2">
+        <small>
+            <strong>دليل الرموز:</strong>
+            <span class="ms-3"><i class="fas fa-check-circle status-present me-1"></i> حاضر</span>
+            <span class="ms-3"><i class="fas fa-times-circle status-absent me-1"></i> غائب</span>
+            <span class="ms-3"><i class="fas fa-exclamation-circle status-justified me-1"></i> مبرر</span>
+            <span class="ms-3"><i class="fas fa-minus-circle status-none me-1"></i> بدون بيانات</span>
+        </small>
+    </div>
+
+    <!-- Tableau des absences par étudiant -->
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    تفاصيل الغيابات حسب الطالب
+                </h5>
+                <div>
+                    <a href="{% url 'ense:list_Sea_Ens' dep_id=my_Dep.id clas_id=myClasse.id %}" class="btn btn-sm btn-outline-light">
+                        <i class="fas fa-calendar-alt me-1"></i> الحصص
+                    </a>
+                    <a href="{% url 'ense:list_Notes_Etu_Classe' dep_id=my_Dep.id clas_id=myClasse.id %}" class="btn btn-sm btn-outline-light">
+                        <i class="fas fa-graduation-cap me-1"></i> النقاط
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-sm absence-class-table mb-0">
+                    <thead>
+                        <tr>
+                            <th class="text-center sortable" data-sort="index" title="الترتيب"># <i class="fas fa-sort fa-xs text-light"></i></th>
+                            <th class="sortable" data-sort="nom_fr" title="اللقب بالفرنسية">Nom <i class="fas fa-sort fa-xs text-light"></i></th>
+                            <th class="sortable" data-sort="prenom_fr" title="الاسم بالفرنسية">Prénom <i class="fas fa-sort fa-xs text-light"></i></th>
+                            <th class="sortable" data-sort="nom_ar" title="اللقب بالعربية">اللقب <i class="fas fa-sort fa-xs text-light"></i></th>
+                            <th class="sortable" data-sort="prenom_ar" title="الاسم بالعربية">الاسم <i class="fas fa-sort fa-xs text-light"></i></th>
+                            <!-- Colonnes des séances -->
+                            {% for seance in all_seances %}
+                            <th class="seance-col-header">
+                                <a href="{% url 'ense:list_Abs_Etu' dep_id=my_Dep.id sea_id=seance.id %}"
+                                   class="seance-link"
+                                   title="{{ seance.date|date:'d/m/Y' }} - انقر لعرض غيابات هذه الحصة">
+                                    {{ seance.date|date:"d/m" }}
+                                </a>
+                            </th>
+                            {% endfor %}
+                            <th class="text-center sortable" data-sort="presents" title="عدد الحضور"><i class="fas fa-check text-success"></i> <i class="fas fa-sort fa-xs text-light"></i></th>
+                            <th class="text-center sortable" data-sort="absents" title="عدد الغيابات"><i class="fas fa-times text-danger"></i> <i class="fas fa-sort fa-xs text-light"></i></th>
+                            <th class="text-center sortable" data-sort="justifies" title="عدد الغيابات المبررة"><i class="fas fa-exclamation-triangle text-warning"></i> <i class="fas fa-sort fa-xs text-light"></i></th>
+                            <th class="text-center sortable taux-cell" data-sort="taux" title="نسبة الحضور">% <i class="fas fa-sort fa-xs text-light"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="absences-tbody">
+                        {% for stat in etudiants_stats %}
+                        <tr class="{% if stat.taux_presence >= 80 %}row-high-presence{% elif stat.taux_presence >= 50 %}row-medium-presence{% else %}row-low-presence{% endif %}"
+                            data-index="{{ forloop.counter }}"
+                            data-nom_fr="{{ stat.etudiant.nom_fr|default:'' }}"
+                            data-prenom_fr="{{ stat.etudiant.prenom_fr|default:'' }}"
+                            data-nom_ar="{{ stat.etudiant.nom_ar|default:'' }}"
+                            data-prenom_ar="{{ stat.etudiant.prenom_ar|default:'' }}"
+                            data-presents="{{ stat.presents }}"
+                            data-absents="{{ stat.absents }}"
+                            data-justifies="{{ stat.justifies }}"
+                            data-taux="{{ stat.taux_presence }}">
+                            <td class="text-center">
+                                <span class="badge bg-secondary">{{ forloop.counter }}</span>
+                            </td>
+                            <td><strong>{{ stat.etudiant.nom_fr|default:'-' }}</strong></td>
+                            <td>{{ stat.etudiant.prenom_fr|default:'-' }}</td>
+                            <td>{{ stat.etudiant.nom_ar|default:'-' }}</td>
+                            <td>{{ stat.etudiant.prenom_ar|default:'-' }}</td>
+                            <!-- Statuts des séances -->
+                            {% for status in stat.seance_statuses %}
+                            <td class="seance-col text-center">
+                                {% if status == 'P' %}
+                                    <i class="fas fa-check-circle status-icon status-present" title="حاضر"></i>
+                                {% elif status == 'A' %}
+                                    <i class="fas fa-times-circle status-icon status-absent" title="غائب"></i>
+                                {% elif status == 'J' %}
+                                    <i class="fas fa-exclamation-circle status-icon status-justified" title="مبرر"></i>
+                                {% else %}
+                                    <i class="fas fa-minus-circle status-icon status-none" title="بدون بيانات"></i>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                            <td class="text-center">
+                                <span class="badge badge-present">{{ stat.presents }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge badge-absent">{{ stat.absents }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge badge-justified">{{ stat.justifies }}</span>
+                            </td>
+                            <td class="taux-cell">
+                                <div class="custom-progress" title="نسبة الحضور: {{ stat.taux_presence }}%">
+                                    <div class="custom-progress-bar {% if stat.taux_presence >= 80 %}bg-success{% elif stat.taux_presence >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                                         style="width: {{ stat.taux_presence|floatformat:0 }}%;"></div>
+                                    <span class="custom-progress-text">{{ stat.taux_presence }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="{{ total_seances|add:9 }}" class="text-center p-4">
+                                <i class="fas fa-info-circle fa-2x text-muted mb-2"></i>
+                                <p class="text-muted mb-0">لا توجد بيانات غيابات للعرض</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+
+    <!-- Bouton retour -->
+    <div class="mt-3">
+        <a href="{% url 'ense:timeTable_Ens' dep_id=my_Dep.id %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> العودة إلى الجدول الزمني
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js_ens %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tbody = document.getElementById('absences-tbody');
+    if (!tbody) return;
+
+    const sortableHeaders = document.querySelectorAll('.sortable');
+    let currentSort = { key: null, asc: true };
+
+    sortableHeaders.forEach(th => {
+        th.addEventListener('click', function() {
+            const key = this.getAttribute('data-sort');
+
+            // Toggle direction si même colonne
+            if (currentSort.key === key) {
+                currentSort.asc = !currentSort.asc;
+            } else {
+                currentSort.key = key;
+                currentSort.asc = true;
+            }
+
+            // Supprimer les classes de tri de tous les en-têtes
+            sortableHeaders.forEach(h => {
+                h.classList.remove('sort-asc', 'sort-desc');
+            });
+
+            // Ajouter la classe de tri à l'en-tête actuel
+            this.classList.add(currentSort.asc ? 'sort-asc' : 'sort-desc');
+
+            // Trier les lignes
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            rows.sort((a, b) => {
+                let aVal = a.getAttribute('data-' + key) || '';
+                let bVal = b.getAttribute('data-' + key) || '';
+
+                // Conversion numérique pour index, presents, absents, justifies, taux
+                if (['index', 'presents', 'absents', 'justifies', 'taux'].includes(key)) {
+                    aVal = parseFloat(aVal) || 0;
+                    bVal = parseFloat(bVal) || 0;
+                } else {
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal.toLowerCase();
+                }
+
+                if (aVal < bVal) return currentSort.asc ? -1 : 1;
+                if (aVal > bVal) return currentSort.asc ? 1 : -1;
+                return 0;
+            });
+
+            // Réorganiser les lignes dans le tbody
+            rows.forEach(row => tbody.appendChild(row));
+        });
+    });
+
+    // Tri initial par nom_fr
+    const nomFrHeader = document.querySelector('.sortable[data-sort="nom_fr"]');
+    if (nomFrHeader) {
+        nomFrHeader.click();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,324 @@
+{% extends 'enseignant/base_Ens.html' %}
+{% load static %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# LISTE DES MATIÈRES PAR NIVEAU                                                   #}
+{# Hérite de base_Ens.html - active_menu = 'matieres'                              #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+
+{% block content_ens %}
+<div class="grey_zone m-1 p-2">
+    <!-- EN-TÊTE -->
+    <h4 class="border-bottom border-danger text-dark mb-3">
+        <i class="fas fa-book"></i>
+        قائمة المواد - {{my_Dep.nom_ar}}
+    </h4>
+
+    <!-- FORMULAIRE DE FILTRAGE -->
+    <div class="p-2 mb-2">
+        <form id="matieres_form" method="POST" class="filter-form">
+            {% csrf_token %}
+
+            <div class="mb-2 d-flex align-items-center flex-wrap gap-2" id="div_refs">
+                <label class="myLabelList me-2">الإصلاح:</label>
+                <select id="refs" name="reforme" class="form-select w-auto">
+                    <option value="" disabled selected>-----إختر الإصلاح------</option>
+                </select>
+            </div>
+
+            <div class="mb-2 d-flex align-items-center flex-wrap gap-2" id="div_nivs">
+                <label class="myLabelList me-2">المستوى:</label>
+                <select id="nivs" name="niveau" class="form-select w-auto" disabled>
+                    <option value="" disabled selected>-----إختر المستوى-----</option>
+                </select>
+            </div>
+
+            <div class="mb-2 d-flex align-items-center flex-wrap gap-2" id="div_spts">
+                <label class="myLabelList me-2">التخصص:</label>
+                <select id="spts" name="specialite" class="form-select w-auto" disabled>
+                    <option value="" disabled selected>-----إختر التخصص-----</option>
+                </select>
+            </div>
+
+            <div class="mb-2 d-flex align-items-center flex-wrap gap-2" id="div_semestres">
+                <label class="myLabelList me-2">السداسي:</label>
+                <select id="semestres" name="semestre" class="form-select w-auto" disabled>
+                    <option value="" disabled selected>-----إختر السداسي-----</option>
+                </select>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="mt-3 d-flex gap-2 flex-wrap">
+                <button type="button" id="btn_afficher" class="btn btn-success" disabled>
+                    <i class="fas fa-list"></i> إظهار القائمة
+                </button>
+                <a href="{% url 'ense:timeTable_Ens' my_Dep.id %}" class="btn btn-secondary">
+                    <i class="fas fa-calendar"></i> العودة لإستعمال الزمن
+                </a>
+                <a href="{% url 'ense:list_etudiants_ens' my_Dep.id %}" class="btn btn-outline-info">
+                    <i class="fas fa-users"></i> قائمة الطلبة
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Messages de statut -->
+    <div id="status_messages" class="mt-3"></div>
+
+    <!-- Loading spinner -->
+    <div id="loading_spinner" class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">جاري التحميل...</span>
+        </div>
+        <p class="mt-2 text-muted">جاري تحميل البيانات...</p>
+    </div>
+
+    <!-- Zone d'affichage du tableau des matières -->
+    <div id="matieres_table" class="mt-3"></div>
+</div>
+{% endblock %}
+
+{% block extra_js_ens %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Vérification des éléments requis
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (!csrfInput) {
+        console.error('CSRF token non trouvé');
+        return;
+    }
+
+    const matieresJsonUrl = "{% url 'ense:matieres_json_ens' my_Dep.id %}";
+    const csrfToken = csrfInput.value;
+
+    const refsSelect = document.getElementById('refs');
+    const nivsSelect = document.getElementById('nivs');
+    const sptsSelect = document.getElementById('spts');
+    const semestresSelect = document.getElementById('semestres');
+    const btnAfficher = document.getElementById('btn_afficher');
+    const matieresTable = document.getElementById('matieres_table');
+    const statusMessages = document.getElementById('status_messages');
+    const loadingSpinner = document.getElementById('loading_spinner');
+
+    // Vérification que tous les éléments existent
+    if (!refsSelect || !nivsSelect || !sptsSelect || !semestresSelect) {
+        console.error('Éléments de formulaire non trouvés');
+        return;
+    }
+
+    // Charger les données initiales
+    loadInitialData();
+
+    refsSelect.addEventListener('change', function() {
+        nivsSelect.disabled = !this.value;
+        sptsSelect.disabled = true;
+        semestresSelect.disabled = true;
+        btnAfficher.disabled = true;
+        resetSelect(nivsSelect, '-----إختر المستوى-----');
+        resetSelect(sptsSelect, '-----إختر التخصص-----');
+        resetSelect(semestresSelect, '-----إختر السداسي-----');
+        if (this.value) loadNiveaux(this.value);
+    });
+
+    nivsSelect.addEventListener('change', function() {
+        sptsSelect.disabled = !this.value;
+        semestresSelect.disabled = true;
+        btnAfficher.disabled = true;
+        resetSelect(sptsSelect, '-----إختر التخصص-----');
+        resetSelect(semestresSelect, '-----إختر السداسي-----');
+        if (this.value) loadSpecialites(this.value);
+    });
+
+    sptsSelect.addEventListener('change', function() {
+        semestresSelect.disabled = !this.value;
+        btnAfficher.disabled = true;
+        resetSelect(semestresSelect, '-----إختر السداسي-----');
+        if (this.value) loadSemestres();
+    });
+
+    semestresSelect.addEventListener('change', function() {
+        btnAfficher.disabled = !this.value;
+    });
+
+    btnAfficher.addEventListener('click', loadMatieres);
+
+    function resetSelect(select, placeholder) {
+        select.innerHTML = `<option value="" disabled selected>${placeholder}</option>`;
+    }
+
+    function showLoading() { loadingSpinner.classList.add('show'); }
+    function hideLoading() { loadingSpinner.classList.remove('show'); }
+
+    function showMessage(message, type = 'info') {
+        statusMessages.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                <i class="fas fa-${type === 'danger' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
+    }
+
+    function loadInitialData() {
+        console.log('Chargement des réformes...');
+        fetch(matieresJsonUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrfToken },
+            body: 'action=get_reformes'
+        })
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        })
+        .then(data => {
+            console.log('Réformes reçues:', data);
+            if (data.data && data.data.length > 0) {
+                data.data.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.id;
+                    opt.textContent = item.nom_ar || item.nom_fr || item.code;
+                    refsSelect.appendChild(opt);
+                });
+            } else {
+                showMessage('لا توجد إصلاحات متاحة', 'warning');
+            }
+        })
+        .catch(err => { console.error('Erreur:', err); showMessage('خطأ في تحميل الإصلاحات', 'danger'); });
+    }
+
+    function loadNiveaux(reformeId) {
+        console.log('Chargement des niveaux pour réforme:', reformeId);
+        fetch(matieresJsonUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrfToken },
+            body: `action=get_niveaux&reforme=${reformeId}`
+        })
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        })
+        .then(data => {
+            console.log('Niveaux reçus:', data);
+            if (data.data) data.data.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.nom_ar || item.nom_fr || item.code;
+                nivsSelect.appendChild(opt);
+            });
+        })
+        .catch(err => { console.error('Erreur:', err); showMessage('خطأ في تحميل المستويات', 'danger'); });
+    }
+
+    function loadSpecialites(niveauId) {
+        console.log('Chargement des spécialités pour niveau:', niveauId);
+        fetch(matieresJsonUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrfToken },
+            body: `action=get_specialites&reforme=${refsSelect.value}&niveau=${niveauId}`
+        })
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        })
+        .then(data => {
+            console.log('Spécialités reçues:', data);
+            if (data.data) data.data.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.nom_ar || item.nom_fr || item.code;
+                sptsSelect.appendChild(opt);
+            });
+        })
+        .catch(err => { console.error('Erreur:', err); showMessage('خطأ في تحميل التخصصات', 'danger'); });
+    }
+
+    function loadSemestres() {
+        console.log('Chargement des semestres...');
+        fetch(matieresJsonUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrfToken },
+            body: 'action=get_semestres'
+        })
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        })
+        .then(data => {
+            console.log('Semestres reçus:', data);
+            if (data.data) data.data.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.nom_ar || `السداسي ${item.numero}`;
+                semestresSelect.appendChild(opt);
+            });
+        })
+        .catch(err => { console.error('Erreur:', err); showMessage('خطأ في تحميل السداسيات', 'danger'); });
+    }
+
+    function loadMatieres() {
+        showLoading();
+        statusMessages.innerHTML = '';
+
+        const formData = new FormData();
+        formData.append('action', 'get_matieres');
+        formData.append('reforme', refsSelect.value);
+        formData.append('niveau', nivsSelect.value);
+        formData.append('specialite', sptsSelect.value);
+        formData.append('semestre', semestresSelect.value);
+
+        console.log('Chargement des matières...');
+        fetch(matieresJsonUrl, { method: 'POST', headers: { 'X-CSRFToken': csrfToken }, body: formData })
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        })
+        .then(data => {
+            hideLoading();
+            console.log('Matières reçues:', data);
+            if (data.error) { showMessage(data.error, 'danger'); return; }
+            if (!data.data || data.data.length === 0) {
+                matieresTable.innerHTML = `<div class="alert alert-warning text-center"><i class="fas fa-exclamation-triangle fa-2x mb-2"></i><p>لا توجد مواد للعرض</p></div>`;
+                return;
+            }
+            renderMatieresTable(data.data);
+        })
+        .catch(err => { hideLoading(); console.error('Erreur:', err); showMessage('خطأ في تحميل المواد', 'danger'); });
+    }
+
+    function renderMatieresTable(matieres) {
+        let html = `
+            <div class="card fade-in">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-book"></i> قائمة المواد (${matieres.length} مادة)</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-sm align-middle mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="text-center">#</th>
+                                    <th>الرمز</th>
+                                    <th>الإسم (العربي)</th>
+                                    <th>Nom en Français</th>
+                                    <th class="text-center">المعامل</th>
+                                    <th class="text-center">الرصيد</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+
+        matieres.forEach((mat, i) => {
+            html += `
+                <tr>
+                    <td class="text-center"><span class="badge bg-primary">${i + 1}</span></td>
+                    <td><code>${mat.code || '-'}</code></td>
+                    <td><strong>${mat.nom_ar || '-'}</strong></td>
+                    <td>${mat.nom_fr || '-'}</td>
+                    <td class="text-center"><span class="badge bg-info">${mat.coeff || 0}</span></td>
+                    <td class="text-center"><span class="badge bg-success">${mat.credit || 0}</span></td>
+                </tr>`;
+        });
+
+        html += `</tbody></table></div></div></div>`;
+        matieresTable.innerHTML = html;
+    }
+});
+</script>
+{% endblock %}

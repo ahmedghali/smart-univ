@@ -1,0 +1,234 @@
+{% extends 'etudiant/base_Etu.html' %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<!-- Header Update Profile -->
+<div class="update-header mb-4">
+  <div class="row align-items-center">
+    <div class="col-md-8">
+      <h2 class="mb-0 text-white">
+        <i class="fas fa-user-edit text-white me-2"></i>
+        تحديث الملف الشخصي
+      </h2>
+      <p class="text-white-75 mb-0">تحديث معلومات الحساب والبيانات الشخصية</p>
+    </div>
+    <div class="col-md-4 text-end">
+      <a href="{% url 'etud:profile_Etu' %}" class="btn btn-light btn-sm">
+        <i class="fas fa-arrow-right me-1"></i>
+        العودة للملف الشخصي
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Messages d'erreur et de succès -->
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{message.tags}} alert-dismissible fade show" role="alert">
+      <i class="fas fa-info-circle me-2"></i>
+      {{message}}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+{% endif %}
+
+<!-- Form Container -->
+<div class="row">
+  <div class="col-lg-8 mx-auto">
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      
+      <!-- معلومات الحساب -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header border-0">
+          <h5 class="mb-0">
+            <i class="fas fa-user-cog text-primary me-2"></i>
+            معلومات الحساب
+          </h5>
+        </div>
+        <div class="card-body">
+          {{User_form|crispy}}
+        </div>
+      </div>
+
+      <!-- المعلومات الشخصية -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header border-0">
+          <h5 class="mb-0">
+            <i class="fas fa-id-card text-primary me-2"></i>
+            المعلومات الشخصية
+          </h5>
+        </div>
+        <div class="card-body">
+          {{Etu_form|crispy}}
+        </div>
+      </div>
+
+      <!-- أزرار الحفظ -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <button type="submit" class="btn btn-primary btn-lg me-3">
+            <i class="fas fa-save me-2"></i>
+            حفظ التغييرات
+          </button>
+          <a href="{% url 'etud:profile_Etu' %}" class="btn btn-secondary btn-lg">
+            <i class="fas fa-times me-2"></i>
+            إلغاء
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Body avec thème gris */
+body {
+    background-color: #f1f3f4;
+    color: #495057;
+}
+
+/* Update Header */
+.update-header {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+}
+
+.update-header h2,
+.update-header p {
+    color: white !important;
+}
+
+.text-white-75 {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* Cards */
+.card {
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    background-color: #e9ecef;
+    border: 1px solid #dee2e6;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+    font-weight: 600;
+    background-color: #dee2e6 !important;
+    border-bottom: 1px solid #ced4da;
+}
+
+.card-header h5 {
+    color: #495057 !important;
+}
+
+.card-body {
+    background-color: #e9ecef;
+}
+
+/* Form Controls */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    background-color: #ffffff;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+}
+
+/* Buttons */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0.75rem 2rem;
+}
+
+.btn-primary {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+}
+
+.btn-primary:hover {
+    background-color: #45a049;
+    border-color: #45a049;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-light {
+    background-color: #f8f9fa;
+    border-color: #f8f9fa;
+    color: #495057;
+}
+
+/* Text Colors */
+.text-primary {
+    color: #4CAF50 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .update-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .btn-lg {
+        display: block;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Crispy Forms Styling */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-check {
+    margin-bottom: 0.5rem;
+}
+
+.form-check-input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.form-check-label {
+    margin-left: 0.5rem;
+    font-weight: 500;
+}
+
+/* Alert Styling */
+.alert {
+    border-radius: 8px;
+    border: none;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+</style>
+{% endblock %}

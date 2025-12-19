@@ -1,0 +1,494 @@
+{% extends 'etudiant/base_Etu.html' %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<div class="container-fluid p-3" style="background-color: #f8f9fa;">
+  <div class="row justify-content-center">
+    <div class="col-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">
+            <i class="fas fa-list-alt me-2"></i>
+            قائمة الحصص الدراسية
+          </h4>
+          <small class="text-light">إدارة ومتابعة حصص مادة: {{sea_name.matiere}}</small>
+        </div>
+        
+        <div class="card-body" style="background-color: #f8f9fa;">
+          <!-- معلومات المادة -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="text-muted mb-3 border-bottom pb-2">
+                <i class="fas fa-book me-2"></i>
+                معلومات المادة
+              </h5>
+              <div class="subject-info-card">
+                <div class="subject-header">
+                  <h6 class="subject-title">{{sea_name.matiere}}</h6>
+                  <div class="subject-details">
+                    <span class="detail-item">
+                      <i class="fas fa-calendar ms-1"></i>
+                      السداسي {{sea_name.semestre|default:"غير محدد"}}
+                    </span>
+                    <span class="detail-item">
+                      <i class="fas fa-user ms-1"></i>
+                      {{sea_name.enseignant.enseignant.nom_ar}} {{sea_name.enseignant.enseignant.prenom_ar}}
+                    </span>
+                    <span class="detail-item">
+                      <i class="fas fa-tag ms-1"></i>
+                      {{sea_name.type|default:"غير محدد"}}
+                    </span>
+                    <span class="detail-item">
+                      <i class="fas fa-map-marker-alt ms-1"></i>
+                      {{sea_name.lieu|default:"غير محدد"}}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- إحصائيات الحصص -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="text-muted mb-3 border-bottom pb-2">
+                <i class="fas fa-chart-pie me-2"></i>
+                إحصائيات الحصص
+              </h5>
+              <div class="row g-3">
+                <div class="col-lg-3 col-md-6">
+                  <div class="stat-card total">
+                    <div class="stat-icon">
+                      <i class="fas fa-list"></i>
+                    </div>
+                    <div class="stat-content">
+                      <h3>{{all_Seances.count}}</h3>
+                      <p>العدد الإجمالي للحصص</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                  <div class="stat-card completed">
+                    <div class="stat-icon">
+                      <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                      <h3>{{nbr_Sea_fait.count}}</h3>
+                      <p>الحصص المنجزة</p>
+                      <small class="progress-text">{{taux_avancement}}% مكتمل</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                  <div class="stat-card cancelled">
+                    <div class="stat-icon">
+                      <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                      <h3>{{nbr_Sea_annuler.count}}</h3>
+                      <p>الحصص الملغاة</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                  <div class="stat-card remaining">
+                    <div class="stat-icon">
+                      <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                      <h3>{{nbr_Sea_reste}}</h3>
+                      <p>الحصص المتبقية</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- شريط التقدم -->
+              <div class="progress-section mt-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="progress-label">نسبة التقدم الإجمالية</span>
+                  <span class="progress-percentage">{{taux_avancement}}%</span>
+                </div>
+                <div class="progress" style="height: 12px;">
+                  <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
+                       style="width: {{taux_avancement}}%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- قائمة الحصص -->
+          <div class="row">
+            <div class="col-12">
+              <h5 class="text-muted mb-3 border-bottom pb-2">
+                <i class="fas fa-table me-2"></i>
+                تفاصيل الحصص
+              </h5>
+              <div class="table-container">
+                <div class="table-responsive">
+                  <table class="table table-hover table-sm sessions-table">
+                    <thead class="table-dark">
+                      <tr>
+                        <th width="50">#</th>
+                        <th width="100">التاريخ</th>
+                        <th width="120">التوقيت</th>
+                        <th>عنوان الحصة</th>
+                        <th width="140">الحالة</th>
+                        <th>الملاحظات</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for x in all_Seances %}
+                      <tr class="session-row">
+                        <td class="text-center fw-bold">{{forloop.counter}}</td>
+                        <td class="text-center">
+                          <span class="date-display">{{x.date|date:"d/m/Y"}}</span>
+                        </td>
+                        <td class="text-center">
+                          <span class="time-badge">{{x.temps|slice:"-11:"}}</span>
+                        </td>
+                        <td class="session-title">{{x.intitule|default:"غير محدد"}}</td>
+                        <td class="text-center">
+                          {% if x.fait == True and x.remplacer == False %}
+                            <span class="status-badge completed">
+                              <i class="fas fa-check me-1"></i>تمت الحصة
+                            </span>
+                          {% elif x.fait == True and x.remplacer == True %}
+                            <span class="status-badge replaced">
+                              <i class="fas fa-sync me-1"></i>حصة تعويضية
+                            </span>
+                          {% elif x.annuler == True %}
+                            <span class="status-badge cancelled">
+                              <i class="fas fa-times me-1"></i>ملغاة
+                            </span>
+                          {% else %}
+                            <span class="status-badge pending">
+                              <i class="fas fa-clock me-1"></i>لم تتم
+                            </span>
+                          {% endif %}
+                        </td>
+                        <td class="notes-cell">
+                          {% if x.obs %}
+                            <span class="notes-text" title="{{x.obs}}">{{x.obs|truncatechars:40}}</span>
+                          {% else %}
+                            <span class="text-muted">لا توجد ملاحظات</span>
+                          {% endif %}
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+            <a href="{% url 'etudiant:timeTable_Etu' %}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-2"></i>
+              العودة إلى الجدول الزمني
+            </a>
+            
+            <div class="d-flex gap-2">
+              <!-- Lien vers les absences de l'étudiant -->
+              {% if sea_name.abs_liste_Etu %}
+              <a href="{% url 'etudiant:abs_Etu_Classe' sea_name.id %}" 
+                class="btn btn-warning btn-sm">
+                <i class="fas fa-user-times me-1"></i>
+                غياباتي
+              </a>
+              {% endif %}
+              
+              <button class="btn btn-outline-primary btn-sm" onclick="printTable()">
+                <i class="fas fa-print me-1"></i>
+                طباعة
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Animation au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    // Animation des cartes de statistiques
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.4s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+
+    // Animation de la barre de progression
+    const progressBar = document.querySelector('.progress-bar');
+    if (progressBar) {
+        setTimeout(() => {
+            progressBar.style.width = progressBar.style.width;
+        }, 800);
+    }
+
+    // Animation du tableau
+    const tableContainer = document.querySelector('.table-container');
+    if (tableContainer) {
+        tableContainer.style.opacity = '0';
+        tableContainer.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            tableContainer.style.transition = 'all 0.5s ease';
+            tableContainer.style.opacity = '1';
+            tableContainer.style.transform = 'translateY(0)';
+        }, 600);
+    }
+});
+
+function printTable() {
+    window.print();
+}
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Reprenez les mêmes styles que list_Seance_Ens.html */
+.subject-info-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1.5rem;
+    border-radius: 12px;
+    color: white;
+    margin-bottom: 0;
+}
+
+.subject-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.subject-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: white;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.6rem 1.2rem;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Cartes de statistiques */
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border-left: 4px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card.total { border-left-color: #6c757d; }
+.stat-card.completed { border-left-color: #28a745; }
+.stat-card.cancelled { border-left-color: #dc3545; }
+.stat-card.remaining { border-left-color: #ffc107; }
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.stat-card.total .stat-icon { background: linear-gradient(135deg, #6c757d, #5a6268); }
+.stat-card.completed .stat-icon { background: linear-gradient(135deg, #28a745, #20c997); }
+.stat-card.cancelled .stat-icon { background: linear-gradient(135deg, #dc3545, #c82333); }
+.stat-card.remaining .stat-icon { background: linear-gradient(135deg, #ffc107, #e0a800); }
+
+.stat-content h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.stat-content p {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin: 0;
+    font-weight: 500;
+}
+
+.progress-text {
+    font-size: 0.8rem;
+    color: #28a745;
+    font-weight: 600;
+}
+
+/* Section de progression */
+.progress-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.progress-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+.progress-percentage {
+    font-weight: 700;
+    color: #28a745;
+    font-size: 1.1rem;
+}
+
+.progress {
+    border-radius: 10px;
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+
+/* Conteneur du tableau */
+.table-container {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Tableau des sessions */
+.sessions-table {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.sessions-table th {
+    background: #343a40 !important;
+    color: white;
+    font-weight: 600;
+    text-align: center;
+    padding: 1rem 0.75rem;
+    border: none;
+    font-size: 0.85rem;
+}
+
+.sessions-table td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.session-row:hover {
+    background-color: #f8f9fa;
+}
+
+/* Affichage des dates */
+.date-display {
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.time-badge {
+    background: #f8f9fa;
+    color: #495057;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    direction: ltr;
+}
+
+/* Badges de statut */
+.status-badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.status-badge.completed { background: #d4edda; color: #155724; }
+.status-badge.replaced { background: #cce7ff; color: #004085; }
+.status-badge.cancelled { background: #f8d7da; color: #721c24; }
+.status-badge.pending { background: #fff3cd; color: #856404; }
+
+/* Notes */
+.notes-cell { max-width: 250px; }
+.notes-text { color: #6c757d; font-size: 0.85rem; cursor: help; }
+
+/* Boutons */
+.btn {
+    border-radius: 8px;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .subject-details { flex-direction: column; gap: 0.75rem; }
+    .detail-item { justify-content: center; width: 100%; }
+    .stat-card { margin-bottom: 1rem; flex-direction: column; text-align: center; gap: 0.5rem; }
+    .stat-icon { width: 50px; height: 50px; font-size: 1.2rem; }
+    .stat-content h3 { font-size: 1.5rem; }
+    .sessions-table { font-size: 0.8rem; }
+    .sessions-table th, .sessions-table td { padding: 0.5rem 0.25rem; }
+    .d-flex.justify-content-between { flex-direction: column; gap: 1rem; }
+    .d-flex.gap-2 { justify-content: center; }
+}
+
+/* Impression */
+@media print {
+    .card-header, .border-bottom, .btn, .d-flex.justify-content-between { display: none !important; }
+    .table-container { box-shadow: none; }
+    .session-row:hover { background-color: transparent !important; }
+    .status-badge { background: transparent !important; border: 1px solid #333 !important; color: #333 !important; }
+}
+</style>
+{% endblock %}

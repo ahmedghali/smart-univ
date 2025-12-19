@@ -1,0 +1,404 @@
+{% extends 'enseignant/base_Ens.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block extra_css_ens %}
+<style>
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.btn {
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.alert {
+    border-radius: 10px;
+    border: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .col-md-6 {
+        margin-bottom: 1rem;
+    }
+
+    .btn-lg {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content_ens %}
+<div class="grey_zone m-1 p-2">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <!-- En-tête de la page -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-user-edit me-2"></i>
+                        تعديل الملف الشخصي
+                    </h3>
+                    <small class="text-light">تحديث معلومات الحساب والبيانات الشخصية</small>
+                </div>
+            </div>
+
+            <!-- Messages de feedback -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{% if message.tags == 'success' %}check{% else %}exclamation{% endif %}-circle me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Formulaire principal -->
+            <form method="POST" enctype="multipart/form-data" id="profileUpdateForm">
+                {% csrf_token %}
+
+                <!-- Section 1: Informations du compte -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 text-primary">
+                            <i class="fas fa-user-cog me-2"></i>
+                            معلومات الحساب
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {{ User_form|crispy }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Informations personnelles -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 text-primary">
+                            <i class="fas fa-id-card me-2"></i>
+                            المعلومات الشخصية
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.civilite|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.nom_ar|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.prenom_ar|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.sex|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.date_nais|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.nom_fr|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.prenom_fr|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.sitfam|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.matricule|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.codeIns|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Informations professionnelles -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 text-primary">
+                            <i class="fas fa-briefcase me-2"></i>
+                            المعلومات المهنية
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.grade|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.diplome|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.specialite_ar|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.bac_annee|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.specialite_fr|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.date_Recrut|as_crispy_field }}
+                                </div>
+
+                                <!-- Statut professionnel -->
+                                <div class="form-group mb-3">
+                                    <label class="form-label">الحالة المهنية</label>
+                                    <div class="form-check">
+                                        {{ Ens_form.vacAcademique }}
+                                        <label class="form-check-label" for="{{ Ens_form.vacAcademique.id_for_label }}">
+                                            عطلة أكاديمية
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        {{ Ens_form.maladie }}
+                                        <label class="form-check-label" for="{{ Ens_form.maladie.id_for_label }}">
+                                            عطلة مرضية
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Informations de contact -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 text-primary">
+                            <i class="fas fa-phone me-2"></i>
+                            معلومات الاتصال
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.telmobile1|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.telmobile2|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.telfix|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.fax|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.email_perso|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.email_prof|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.adresse|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.wilaya|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 5: Plateformes numériques -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 text-primary">
+                            <i class="fas fa-laptop me-2"></i>
+                            المنصات الرقمية
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            {{ Ens_form.inscritProgres }}
+                                            <label class="form-check-label" for="{{ Ens_form.inscritProgres.id_for_label }}">
+                                                مسجل بمنصة PROGRES
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            {{ Ens_form.inscritMoodle }}
+                                            <label class="form-check-label" for="{{ Ens_form.inscritMoodle.id_for_label }}">
+                                                مسجل بمنصة MOODLE
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            {{ Ens_form.inscritSNDL }}
+                                            <label class="form-check-label" for="{{ Ens_form.inscritSNDL.id_for_label }}">
+                                                مسجل بمنصة SNDL
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 6: Réseaux sociaux et recherche -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 text-primary">
+                            <i class="fas fa-share-alt me-2"></i>
+                            الشبكات الاجتماعية والأكاديمية
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.googlescholar|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.researchgate|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.orcid_id|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.linkedIn|as_crispy_field }}
+                                </div>
+                                <!-- Statistiques Scholar -->
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.scholar_publications_count|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.scholar_citations_count|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.facebook|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.x_twitter|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.tiktok|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.telegram|as_crispy_field }}
+                                </div>
+                                <!-- Indices Scholar -->
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.scholar_h_index|as_crispy_field }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ Ens_form.scholar_i10_index|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons d'action -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body text-center">
+                        <button type="submit" class="btn btn-success btn-lg me-3">
+                            <i class="fas fa-save me-2"></i>
+                            حفظ التغييرات
+                        </button>
+                        {% if my_Dep %}
+                        <a href="{% url 'ense:profile_ens_dep' my_Dep.id %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>
+                            إلغاء
+                        </a>
+                        {% else %}
+                        <a href="{% url 'ense:profile_Ens' %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>
+                            إلغاء
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation avant soumission -->
+<script>
+document.getElementById('profileUpdateForm').addEventListener('submit', function(e) {
+    if (!confirm('هل أنت متأكد من حفظ التغييرات؟')) {
+        e.preventDefault();
+    }
+});
+
+// Validation côté client
+document.addEventListener('DOMContentLoaded', function() {
+    // Validation des champs email
+    const emailFields = document.querySelectorAll('input[type="email"]');
+    emailFields.forEach(field => {
+        field.addEventListener('blur', function() {
+            if (this.value && !this.validity.valid) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+    });
+
+    // Validation des champs téléphone
+    const phoneFields = document.querySelectorAll('input[name*="tel"]');
+    phoneFields.forEach(field => {
+        field.addEventListener('input', function() {
+            // Autoriser uniquement les chiffres, espaces, tirets et parenthèses
+            this.value = this.value.replace(/[^\d\s\-\(\)\+]/g, '');
+        });
+    });
+});
+</script>
+{% endblock %}

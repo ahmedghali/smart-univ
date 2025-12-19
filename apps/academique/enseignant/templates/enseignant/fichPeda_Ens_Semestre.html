@@ -1,0 +1,734 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{{title|default:"البطاقة البيداغوجية"}}</title>
+
+    <!-- Global static -->
+    <link rel="shortcut icon" type="text/css" href="{% static '/images/logo-no-background.ico' %}">
+    <link rel="stylesheet" type="text/css" href="{% static '/css/all.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static '/css/bootstrap.css' %}">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
+
+        /* Modern styles - A4 Portrait version optimized for single page */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', Arial, sans-serif !important;
+            font-size: 11px !important;
+            line-height: 1.3;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 10px;
+        }
+
+        /* Navigation bar for screen only */
+        .nav-bar {
+            background: #343a40;
+            padding: 10px 20px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-bar a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .nav-bar a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-bar .btn-print {
+            background: #28a745;
+        }
+
+        .nav-bar .btn-print:hover {
+            background: #218838;
+        }
+
+        .nav-bar .semester-switch {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-bar .semester-switch a {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-bar .semester-switch a.active {
+            background: #007bff;
+        }
+
+        /* Print container - A4 portrait dimensions */
+        .print-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 8mm;
+            margin: 0 auto;
+            width: 190mm;
+            height: 277mm;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header styles - COMPACT */
+        .header-section {
+            background: white;
+            color: #343a40;
+            padding: 5px 10px;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .logo-section {
+            flex: 0 0 55px;
+        }
+
+        .logo-section img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+        }
+
+        .university-info {
+            flex: 1;
+            text-align: center;
+            padding: 0 8px;
+        }
+
+        .university-info h5 {
+            margin: 0;
+            font-size: 12px;
+            font-weight: 700;
+            color: #343a40;
+            line-height: 1.15;
+        }
+
+        .university-info h6 {
+            margin: 0;
+            font-size: 10px;
+            font-weight: 400;
+            color: #6c757d;
+            line-height: 1.1;
+        }
+
+        .academic-year {
+            flex: 0 0 80px;
+            text-align: center;
+            font-size: 9px;
+            color: #6c757d;
+            line-height: 1.1;
+        }
+
+        .academic-year div:last-child {
+            font-weight: 700;
+            font-size: 11px;
+            color: #343a40;
+            margin-top: 1px;
+        }
+
+        /* Title section - COMPACT */
+        .title-section {
+            background: rgb(246, 247, 248);
+            color: #343a40;
+            text-align: center;
+            padding: 4px;
+            border-radius: 3px;
+            margin-bottom: 2px;
+            flex-shrink: 0;
+        }
+
+        .title-section h4 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .semester-indicator {
+            font-size: 11px;
+            margin-top: 2px;
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 3px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        /* Teacher info - COMPACT */
+        .teacher-info {
+            background: #f8f9fa;
+            color: #343a40;
+            padding: 3px 8px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 3px;
+            flex-shrink: 0;
+            border-radius: 3px;
+        }
+
+        .teacher-info span {
+            font-size: 9px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .teacher-info .label {
+            font-weight: 700;
+            margin-left: 2px;
+        }
+
+        /* Content area - flexible to take remaining space */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        /* Semester container */
+        .semester-container {
+            flex: 1;
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .semester-header {
+            background: #e9ecef;
+            color: #343a40;
+            padding: 6px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 700;
+            border-bottom: 2px solid #dee2e6;
+            flex-shrink: 0;
+        }
+
+        .semester-body {
+            flex: 1;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+            overflow: hidden;
+        }
+
+        /* Modern table */
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+            background: white;
+        }
+
+        .modern-table th {
+            background: #f8f9fa !important;
+            color: #000000 !important;
+            padding: 5px 3px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 9px;
+            border: 1px solid #dee2e6;
+            white-space: nowrap;
+            line-height: 1.3;
+        }
+
+        .modern-table td {
+            padding: 6px 3px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            font-size: 9px;
+            background: white;
+            line-height: 1.4;
+        }
+
+        .modern-table tr:nth-child(even) td {
+            background: #f8f9fa;
+        }
+
+        .modern-table tr:hover td {
+            background: #e9ecef;
+            transition: background 0.2s ease;
+        }
+
+        /* Volume section */
+        .volume-section-bottom {
+            background: #f8f9fa;
+            padding: 8px;
+            margin-top: 8px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .volume-section-bottom h6 {
+            margin: 2px 0;
+            font-size: 11px;
+            font-weight: 600;
+            color: #343a40;
+            line-height: 1.3;
+        }
+
+        .volume-section-bottom .total {
+            font-size: 12px;
+            font-weight: 700;
+            color: #343a40;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 4px;
+            margin-bottom: 5px;
+        }
+
+        /* Signatures section - fixed at bottom - ENLARGED */
+        .signatures-section {
+            flex-shrink: 0;
+            margin-top: auto;
+            height: 50mm;
+        }
+
+        .signatures {
+            color: #343a40;
+            padding: 6px 0;
+            display: flex;
+            justify-content: space-around;
+            font-weight: 700;
+            font-size: 12px;
+            background: transparent;
+        }
+
+        .signature-box {
+            text-align: center;
+            padding: 6px 12px;
+            min-width: 140px;
+            min-height: 38mm;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            border: 1px dashed #6c757d;
+            border-radius: 4px;
+            background: #fafafa;
+        }
+
+        /* Empty state */
+        .empty-state {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #e9ecef;
+            color: #343a40;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border: 2px solid #dee2e6;
+            text-align: center;
+        }
+
+        /* Print styles - A4 Portrait single page - SIMILAR TO WEB */
+        @media print {
+            .nav-bar {
+                display: none !important;
+            }
+
+            @page {
+                size: A4 portrait;
+                margin: 8mm;
+            }
+
+            body {
+                background: white !important;
+                padding: 0 !important;
+                font-size: 11px !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .print-container {
+                width: 194mm !important;
+                height: 281mm !important;
+                padding: 6mm !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border-radius: 6px !important;
+                border: 1px solid #dee2e6 !important;
+                overflow: hidden !important;
+                page-break-inside: avoid !important;
+                page-break-after: avoid !important;
+            }
+
+            /* Header - similar to web */
+            .header-section {
+                flex-shrink: 0 !important;
+                padding: 6px 10px !important;
+                margin-bottom: 3px !important;
+                border-bottom: 1px solid #dee2e6 !important;
+            }
+
+            .logo-section img {
+                width: 50px !important;
+                height: 50px !important;
+            }
+
+            .university-info h5 {
+                font-size: 12px !important;
+                line-height: 1.2 !important;
+            }
+
+            .academic-year {
+                font-size: 9px !important;
+            }
+
+            .academic-year div:last-child {
+                font-size: 11px !important;
+            }
+
+            /* Title - similar to web */
+            .title-section {
+                flex-shrink: 0 !important;
+                padding: 5px !important;
+                margin-bottom: 3px !important;
+                background: #f8f9fa !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .title-section h4 {
+                font-size: 14px !important;
+            }
+
+            .semester-indicator {
+                font-size: 11px !important;
+                background: #e9ecef !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Teacher info - similar to web */
+            .teacher-info {
+                flex-shrink: 0 !important;
+                padding: 4px 10px !important;
+                margin-bottom: 4px !important;
+                background: #f8f9fa !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .teacher-info span {
+                font-size: 10px !important;
+            }
+
+            /* Content area */
+            .content-area {
+                flex: 1 !important;
+                min-height: 0 !important;
+                overflow: hidden !important;
+            }
+
+            .semester-container {
+                flex: 1 !important;
+                min-height: 0 !important;
+                overflow: hidden !important;
+                border: 2px solid #dee2e6 !important;
+                border-radius: 6px !important;
+            }
+
+            .semester-header {
+                background: #e9ecef !important;
+                color: #343a40 !important;
+                padding: 6px !important;
+                font-size: 13px !important;
+                border-bottom: 2px solid #dee2e6 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .semester-body {
+                flex: 1 !important;
+                padding: 6px !important;
+                overflow: hidden !important;
+                align-items: flex-start !important;
+                justify-content: flex-start !important;
+            }
+
+            /* Table - readable like web */
+            .modern-table {
+                font-size: 9px !important;
+            }
+
+            .modern-table th {
+                background: #f8f9fa !important;
+                color: black !important;
+                border: 1px solid #dee2e6 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                padding: 5px 3px !important;
+                font-size: 9px !important;
+            }
+
+            .modern-table td {
+                background: white !important;
+                color: black !important;
+                border: 1px solid #dee2e6 !important;
+                padding: 6px 3px !important;
+                font-size: 9px !important;
+                line-height: 1.3 !important;
+            }
+
+            .modern-table tr:nth-child(even) td {
+                background: #f8f9fa !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .modern-table tr:hover td {
+                background: white !important;
+            }
+
+            /* Volume section */
+            .volume-section-bottom {
+                flex-shrink: 0 !important;
+                padding: 8px !important;
+                margin-top: 6px !important;
+                background: #f8f9fa !important;
+                border-radius: 4px !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .volume-section-bottom h6 {
+                font-size: 11px !important;
+            }
+
+            .volume-section-bottom .total {
+                font-size: 12px !important;
+            }
+
+            /* Signatures - ENLARGED for print */
+            .signatures-section {
+                flex-shrink: 0 !important;
+                height: 45mm !important;
+                margin-top: auto !important;
+            }
+
+            .signatures {
+                background: transparent !important;
+                padding: 5px 0 !important;
+            }
+
+            .signature-box {
+                min-width: 130px !important;
+                min-height: 35mm !important;
+                padding: 6px 10px !important;
+                font-size: 11px !important;
+                border: 1px dashed #666 !important;
+                border-radius: 4px !important;
+                background: #fafafa !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .print-container {
+                padding: 10px;
+                margin: 5px;
+                width: auto;
+                height: auto;
+            }
+
+            .teacher-info {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .header-section {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .nav-bar {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation Bar (hidden on print) -->
+    <div class="nav-bar">
+        <a href="{% url 'ense:dashboard_Ens' my_Dep.id %}">
+            <i class="fas fa-arrow-right me-2"></i>
+            العودة للوحة التحكم
+        </a>
+        <div class="semester-switch">
+            <a href="?semestre=1" class="{% if semestre_selected == '1' %}active{% endif %}">
+                <i class="fas fa-calendar-alt me-1"></i> السداسي الأول
+            </a>
+            <a href="?semestre=2" class="{% if semestre_selected == '2' %}active{% endif %}">
+                <i class="fas fa-calendar-alt me-1"></i> السداسي الثاني
+            </a>
+        </div>
+        <a href="javascript:void(0)" onclick="window.print()" class="btn-print">
+            <i class="fas fa-print me-2"></i>
+            طباعة
+        </a>
+    </div>
+
+    {% if all_classes == 0 %}
+    <div class="empty-state">
+        <i class="fas fa-calendar-times fa-3x mb-3"></i>
+        <h2 style="margin: 0; font-size: 24px;">لا حصص في السداسي {{semestre_selected}}</h2>
+        <p class="mt-2 mb-0">لا توجد بطاقة بيداغوجية لهذا السداسي</p>
+    </div>
+    {% else %}
+
+    <div class="print-container">
+        <!-- Header moderne -->
+        <div class="header-section">
+            <div class="logo-section">
+                <img src="{% static '/images/logoOuargla.png' %}" alt="Logo Univ-Ouargla">
+            </div>
+            <div class="university-info">
+                <h5>وزارة التعليم العالي والبحث العلمي</h5>
+                <h5>{{univ}}</h5>
+                <h5>كلية {{my_Fac}}</h5>
+                <h5>قسم {{my_Dep}}</h5>
+            </div>
+            <div class="academic-year">
+                <div>السنة الجامعية</div>
+                <div>{% if annee_univ %}{{annee_univ.nom}}{% else %}غير محددة{% endif %}</div>
+            </div>
+        </div>
+
+        <!-- Titre principal -->
+        <div class="title-section">
+            <h4>بطاقة المتابعة البيداغوجية للأستاذ</h4>
+            <div class="semester-indicator">
+                السداسي {% if semestre_selected == "1" %}الأول{% else %}الثاني{% endif %}
+            </div>
+        </div>
+
+        <!-- Informations enseignant -->
+        <div class="teacher-info">
+            <span><span class="label">الأستاذ:</span>{{my_Ens.enseignant.nom_ar}} {{my_Ens.enseignant.prenom_ar}}</span>
+            <span><span class="label">الرتبة:</span>{{my_Ens.enseignant.grade|default:"-"}}</span>
+            <span><span class="label">الاختصاص:</span>{{my_Ens.enseignant.specialite_ar|default:"-"}}</span>
+            <span><span class="label">الصفة:</span>{{my_Ens.get_statut_display|default:"-"}}</span>
+        </div>
+
+        <!-- Zone de contenu principal -->
+        <div class="content-area">
+            <!-- Semestre sélectionné -->
+            <div class="semester-container">
+                <div class="semester-header">
+                    السداسي {% if semestre_selected == "1" %}الأول{% else %}الثاني{% endif %}
+                </div>
+                <div class="semester-body">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>الرقم</th>
+                                <th>اسم المقياس</th>
+                                <th>الوحدة</th>
+                                <th>اليوم</th>
+                                <th>الحصة</th>
+                                <th>المكان</th>
+                                <th>المستوى والمجموعة</th>
+                                <th>التخصص</th>
+                                <th>النوع</th>
+                                <th>الحجم الساعي</th>
+                                <th>الملاحظة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for x in all_Classe_Ens %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td style="text-align: right; font-weight: 600;">{{x.matiere.nom_fr}}</td>
+                                <td>{{x.matiere.unite.nom_ar|default:"-"}}</td>
+                                <td>{{x.get_jour_display}}</td>
+                                <td>{{x.temps}}</td>
+                                <td>{% if x.lieu %}{{x.lieu}}{% else %}-{% endif %}</td>
+                                <td>{{x.niv_spe_dep_sg.niv_spe_dep.niveau}} -
+                                    {% if x.niv_spe_dep_sg.section %}{{x.niv_spe_dep_sg.section.nom_ar}}{% endif %}
+                                    {% if x.niv_spe_dep_sg.groupe %}.{{x.niv_spe_dep_sg.groupe.nom_ar}}{% endif %}
+                                </td>
+                                <td>{{x.niv_spe_dep_sg.niv_spe_dep.specialite.nom_ar|default:"-"}}</td>
+                                <td style="font-weight: 600;">{{x.type}}</td>
+                                <td style="font-weight: 700;">
+                                    {% if x.type == 'Cours' %}2.25
+                                    {% elif x.type == 'TD' %}1.5
+                                    {% elif x.type == 'TP' %}1.5{% else %}-{% endif %}
+                                </td>
+                                <td>{{x.observation|default:"-"}}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Volume section -->
+            <div class="volume-section-bottom">
+                <h6 class="total">مجموع الحجم الساعي: {{vol_hor_Total}}</h6>
+                <h6>الدروس: {{vol_hor_cours}} - الأعمال الموجهة: {{vol_hor_TD}} - الأعمال التطبيقية: {{vol_hor_TP}}</h6>
+                <h6>عدد الحصص: {{all_classes}}</h6>
+            </div>
+        </div>
+
+        <!-- Signatures section - fixed at bottom -->
+        <div class="signatures-section">
+            <div class="signatures">
+                <div class="signature-box">الأستاذ</div>
+                <div class="signature-box">رئيس القسم</div>
+                <div class="signature-box">عميد الكلية</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Scripts -->
+    <script src="{% static '/js/jquery-3.7.1.min.js' %}" defer></script>
+    <script src="{% static '/js/bootstrap.bundle.js' %}" defer></script>
+    <script src="{% static '/js/all.min.js' %}" defer></script>
+
+</body>
+
+</html>

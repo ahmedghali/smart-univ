@@ -1,0 +1,183 @@
+/**
+ * Styles personnalisés pour l'admin Classe
+ * Style dark cohérent avec le reste de l'admin
+ */
+
+/* ══════════════════════════════════════════════════════════════
+   STYLE POUR LA SECTION LIEU
+   ══════════════════════════════════════════════════════════════ */
+
+/* Style du select lieu */
+#id_lieu_selection {
+    width: 100%;
+    min-height: 45px;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 4px;
+    background-color: var(--body-bg, #fff);
+    color: var(--body-fg, #333);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+#id_lieu_selection:hover {
+    border-color: var(--primary, #79aec8);
+}
+
+#id_lieu_selection:focus {
+    border-color: var(--primary, #417690);
+    box-shadow: 0 0 0 2px rgba(65, 118, 144, 0.25);
+    outline: none;
+}
+
+#id_lieu_selection:disabled {
+    background-color: var(--darkened-bg, #f0f0f0);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Style pour les optgroups */
+#id_lieu_selection optgroup {
+    font-weight: bold;
+    color: var(--body-quiet-color, #666);
+    background-color: var(--darkened-bg, #f5f5f5);
+    padding: 8px 0;
+}
+
+#id_lieu_selection option {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--body-fg, #333);
+    background-color: var(--body-bg, #fff);
+}
+
+#id_lieu_selection option:hover {
+    background-color: var(--primary, #79aec8);
+    color: #fff;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STYLE DU FIELDSET LIEU (comme les autres sections)
+   ══════════════════════════════════════════════════════════════ */
+
+/* Le fieldset contenant lieu_selection hérite du style admin standard */
+.field-lieu_selection {
+    padding: 10px 0;
+}
+
+.field-lieu_selection .form-row {
+    margin-bottom: 0;
+}
+
+/* Message d'aide / description */
+.field-lieu_selection + .description,
+fieldset:has(.field-lieu_selection) .description {
+    display: block;
+    margin: 8px 0;
+    padding: 10px 12px;
+    background-color: var(--message-warning-bg, #ffc);
+    border-left: 4px solid var(--primary, #79aec8);
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    color: var(--body-fg, #333);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ANIMATION DE CHARGEMENT
+   ══════════════════════════════════════════════════════════════ */
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+#id_lieu_selection:disabled {
+    animation: pulse 1.5s infinite;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STYLE RESPONSIVE
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+    #id_lieu_selection {
+        font-size: 16px;
+        min-height: 50px;
+        padding: 12px;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MESSAGES D'ERREUR
+   ══════════════════════════════════════════════════════════════ */
+
+.field-lieu_selection .errorlist {
+    background-color: var(--error-bg, #ffebee);
+    border: 1px solid var(--error-fg, #ba2121);
+    border-radius: 4px;
+    padding: 10px;
+    margin-top: 5px;
+}
+
+.field-lieu_selection .errorlist li {
+    color: var(--error-fg, #ba2121);
+    font-size: 13px;
+    list-style: none;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SUPPORT DU MODE SOMBRE (Dark Mode)
+   ══════════════════════════════════════════════════════════════ */
+
+@media (prefers-color-scheme: dark) {
+    #id_lieu_selection {
+        background-color: var(--body-bg, #121212);
+        color: var(--body-fg, #e0e0e0);
+        border-color: var(--border-color, #444);
+    }
+
+    #id_lieu_selection:hover {
+        border-color: var(--primary, #79aec8);
+    }
+
+    #id_lieu_selection:focus {
+        box-shadow: 0 0 0 2px rgba(121, 174, 200, 0.35);
+    }
+
+    #id_lieu_selection optgroup {
+        background-color: var(--darkened-bg, #1e1e1e);
+        color: var(--body-quiet-color, #999);
+    }
+
+    #id_lieu_selection option {
+        background-color: var(--body-bg, #121212);
+        color: var(--body-fg, #e0e0e0);
+    }
+
+    .field-lieu_selection + .description,
+    fieldset:has(.field-lieu_selection) .description {
+        background-color: var(--darkened-bg, #1e1e1e);
+        color: var(--body-fg, #e0e0e0);
+    }
+}
+
+/* Support explicite du thème dark de Django Admin */
+html[data-theme="dark"] #id_lieu_selection,
+body.dark #id_lieu_selection {
+    background-color: var(--body-bg, #121212);
+    color: var(--body-fg, #e0e0e0);
+    border-color: var(--border-color, #444);
+}
+
+html[data-theme="dark"] #id_lieu_selection optgroup,
+body.dark #id_lieu_selection optgroup {
+    background-color: var(--darkened-bg, #1e1e1e);
+}
+
+html[data-theme="dark"] #id_lieu_selection option,
+body.dark #id_lieu_selection option {
+    background-color: var(--body-bg, #121212);
+    color: var(--body-fg, #e0e0e0);
+}

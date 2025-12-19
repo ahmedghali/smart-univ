@@ -1,0 +1,679 @@
+{% extends 'enseignant/base_Ens.html' %}
+{% load static %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# DASHBOARD ENSEIGNANT - Tableau de bord principal                                #}
+{# Hérite de base_Ens.html - active_menu = 'dashboard'                             #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+
+{% block extra_css_ens %}
+<style>
+/* Dashboard Header */
+.dashboard-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #495057;
+    padding: 2rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    border: 1px solid #dee2e6;
+}
+
+.dashboard-date {
+    background: rgba(108, 117, 125, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    border: 1px solid rgba(108, 117, 125, 0.2);
+}
+
+/* Semester Selector */
+.semester-selector .card {
+    border-radius: 12px;
+    background-color: #e9ecef;
+    border: 1px solid #dee2e6;
+}
+
+/* Timeline */
+.timeline {
+    position: relative;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 8px;
+    width: 10px;
+    height: 10px;
+    background: #6c757d;
+    border-radius: 50%;
+    border: 2px solid #f8f9fa;
+}
+
+.timeline-time {
+    min-width: 80px;
+    margin-right: 1rem;
+    margin-left: 1rem;
+}
+
+.timeline-content {
+    flex: 1;
+    background: #f1f3f4;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 3px solid #6c757d;
+}
+
+/* Chart */
+.chart-container {
+    position: relative;
+    height: 200px;
+}
+
+.chart-legend {
+    padding: 1rem 0;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    margin-right: 0.5rem;
+}
+
+/* Activity List */
+.activity-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+}
+
+/* Stats Attendance */
+.stats-attendance {
+    background: #f1f3f4;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.stat-item {
+    padding: 0.5rem 0;
+}
+
+.stat-value {
+    font-weight: 700;
+}
+
+/* Card styling specific to dashboard */
+.dashboard-card {
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    background-color: #e9ecef;
+    border: 1px solid #dee2e6;
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.dashboard-card:nth-child(2) { animation-delay: 0.1s; }
+.dashboard-card:nth-child(3) { animation-delay: 0.2s; }
+
+.dashboard-card .card-header {
+    border-radius: 12px 12px 0 0 !important;
+    background-color: #dee2e6 !important;
+    border-bottom: 1px solid #ced4da;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .dashboard-header { padding: 1.5rem; text-align: center; }
+    .timeline::before, .timeline-item::before { display: none; }
+    .timeline-item { flex-direction: column; }
+    .timeline-time { min-width: auto; margin: 0 0 0.5rem 0; }
+}
+</style>
+{% endblock %}
+
+{% block content_ens %}
+<!-- Date du jour -->
+<div class="mb-4 text-end">
+  <div class="dashboard-date d-inline-block">
+    <i class="fas fa-calendar-day me-2"></i>
+    <span>{% now "l j F Y" %}</span>
+  </div>
+</div>
+
+<!-- Sélecteur de semestre -->
+<div class="semester-selector mb-4">
+  <div class="card border-0 shadow-sm">
+    <div class="card-body py-2">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <h6 class="mb-0">
+            <i class="fas fa-filter me-2"></i>
+            تصفية حسب السداسي
+          </h6>
+        </div>
+        <div class="col-md-6 text-end">
+          <div class="btn-group" role="group">
+            {% for semestre in all_semestres %}
+              <a href="?semestre={{ semestre.numero }}"
+                 class="btn btn-sm {% if semestre_selected == semestre.numero|stringformat:'s' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                السداسي {{ semestre.numero }}
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Statistiques principales -->
+<div class="row mb-4">
+  <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+    <div class="stat-card card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="stat-icon bg-primary-subtle text-primary rounded-circle me-3">
+            <i class="fas fa-chalkboard-teacher"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="stat-number">{{ stats_enseignant.total_classes|default:0 }}</div>
+            <div class="stat-label">إجمالي الحصص</div>
+            <small class="text-success">{{ stats_enseignant.volume_horaire }} ساعة</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+    <div class="stat-card card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="stat-icon bg-success-subtle text-success rounded-circle me-3">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="stat-number">{{ stats_enseignant.total_etudiants }}</div>
+            <div class="stat-label">عدد الطلاب</div>
+            <small class="text-info">{{ stats_enseignant.niveaux_count }} مستويات</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+    <div class="stat-card card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="stat-icon bg-warning-subtle text-warning rounded-circle me-3">
+            <i class="fas fa-book"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="stat-number">{{ stats_enseignant.total_matieres }}</div>
+            <div class="stat-label">المواد المدرسة</div>
+            <small class="text-primary">{{ stats_enseignant.specialites_count }} تخصصات</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+    <div class="stat-card card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="stat-icon bg-info-subtle text-info rounded-circle me-3">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="stat-number">{{ stats_enseignant.taux_realisation }}%</div>
+            <div class="stat-label">نسبة الإنجاز</div>
+            <div class="progress mt-1" style="height: 6px;">
+              <div class="progress-bar bg-info" style="width: {{ stats_enseignant.taux_realisation }}%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Emploi du temps aujourd'hui -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="dashboard-card card border-0 shadow-sm">
+      <div class="card-header border-0">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            <i class="fas fa-calendar-day text-primary me-2"></i>
+            برنامج اليوم - {{ today|date:"l" }}
+          </h5>
+          <a href="{% url 'ense:timeTable_Ens' my_Dep.id %}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-calendar me-1"></i>
+            الجدول الكامل
+          </a>
+        </div>
+      </div>
+      <div class="card-body">
+        {% if classes_today %}
+          <div class="timeline">
+            {% for classe in classes_today %}
+            <div class="timeline-item">
+              <div class="timeline-time">
+                <small class="text-muted">{{ classe.temps }}</small>
+              </div>
+              <div class="timeline-content">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <h6 class="mb-1">
+                      <span class="badge {% if classe.type == 'Cours' %}bg-success{% elif classe.type == 'TD' %}bg-warning{% elif classe.type == 'TP' %}bg-info{% else %}bg-danger{% endif %} me-2">
+                        {{ classe.type }}
+                      </span>
+                      {{ classe.matiere.nom_fr }}
+                    </h6>
+                    <p class="text-muted mb-1 small">
+                      <i class="fas fa-users me-1"></i>
+                      {{ classe.niv_spe_dep_sg }}
+                      {% if classe.lieu %}
+                        | <i class="fas fa-map-marker-alt me-1"></i>{{ classe.lieu }}
+                      {% endif %}
+                    </p>
+                  </div>
+                  <div class="text-end">
+                    {% if classe.seance_created %}
+                      <div class="progress mb-1" style="width: 80px; height: 6px;">
+                        <div class="progress-bar bg-success" style="width: {{ classe.taux_avancement }}%"></div>
+                      </div>
+                      <small class="text-success">{{ classe.taux_avancement }}%</small>
+                    {% else %}
+                      <span class="badge bg-secondary">غير منشأة</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-4">
+            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+            <h6 class="text-muted">لا توجد حصص مجدولة لهذا اليوم</h6>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Graphiques et activités -->
+<div class="row mb-4">
+  <!-- Répartition des types de cours -->
+  <div class="col-xl-6 col-lg-12 mb-4">
+    <div class="dashboard-card card border-0 shadow-sm h-100">
+      <div class="card-header border-0">
+        <h5 class="mb-0">
+          <i class="fas fa-chart-pie text-primary me-2"></i>
+          توزيع أنواع الحصص
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-6">
+            <div class="chart-container">
+              <canvas id="coursTypesChart" width="200" height="200"></canvas>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="chart-legend">
+              <div class="legend-item">
+                <span class="legend-color bg-success"></span>
+                <span class="legend-label">دروس ({{ stats_repartition.cours }})</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color bg-warning"></span>
+                <span class="legend-label">أعمال موجهة ({{ stats_repartition.td }})</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color bg-info"></span>
+                <span class="legend-label">أعمال تطبيقية ({{ stats_repartition.tp }})</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color bg-danger"></span>
+                <span class="legend-label">خرجات علمية ({{ stats_repartition.ss }})</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activités récentes -->
+  <div class="col-xl-6 col-lg-12 mb-4">
+    <div class="dashboard-card card border-0 shadow-sm h-100">
+      <div class="card-header border-0">
+        <h5 class="mb-0">
+          <i class="fas fa-clock text-primary me-2"></i>
+          الأنشطة الأخيرة
+        </h5>
+      </div>
+      <div class="card-body">
+        {% if activites_recentes %}
+          <div class="activity-list">
+            {% for activite in activites_recentes %}
+            <div class="activity-item">
+              <div class="activity-icon bg-info">
+                <i class="fas fa-edit text-white"></i>
+              </div>
+              <div class="activity-content pe-2">
+                <h6 class="mb-1">{{ activite.titre }}</h6>
+                <p class="text-muted mb-0 small">{{ activite.description }}</p>
+                <small class="text-muted">{{ activite.date|timesince }} مضى</small>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-3">
+            <i class="fas fa-history fa-2x text-muted mb-2"></i>
+            <p class="text-muted mb-0">لا توجد أنشطة حديثة</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tableau des classes -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="dashboard-card card border-0 shadow-sm">
+      <div class="card-header border-0">
+        <h5 class="mb-0">
+          <i class="fas fa-chalkboard text-primary me-2"></i>
+          حصصي - السداسي {{ semestre_selected }}
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>المادة</th>
+                <th>النوع</th>
+                <th>المستوى</th>
+                <th>اليوم</th>
+                <th>التوقيت</th>
+                <th class="text-center">التقدم</th>
+                <th class="text-center">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for classe in mes_classes %}
+              <tr>
+                <td><strong>{{ classe.matiere.nom_fr }}</strong></td>
+                <td>
+                  <span class="badge {% if classe.type == 'Cours' %}bg-success{% elif classe.type == 'TD' %}bg-warning text-dark{% elif classe.type == 'TP' %}bg-info{% else %}bg-danger{% endif %}">
+                    {{ classe.type }}
+                  </span>
+                </td>
+                <td><small class="text-muted">{{ classe.niv_spe_dep_sg }}</small></td>
+                <td>{{ classe.jour }}</td>
+                <td><small>{{ classe.temps }}</small></td>
+                <td class="text-center">
+                  {% if classe.seance_created %}
+                    <div class="progress mx-auto" style="width: 100px; height: 10px;">
+                      <div class="progress-bar bg-success" style="width: {{ classe.taux_avancement|default:0 }}%"></div>
+                    </div>
+                  {% else %}
+                    <span class="badge bg-secondary">غير منشأة</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  <div class="btn-group btn-group-sm">
+                    <a href="#" class="btn btn-outline-primary btn-sm" title="إدارة">
+                      <i class="fas fa-cog"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7" class="text-center py-4">
+                  <i class="fas fa-chalkboard fa-2x text-muted mb-2"></i>
+                  <br>
+                  <span class="text-muted">لا توجد حصص في هذا السداسي</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Statistiques d'assiduité et actions rapides -->
+<div class="row mb-4">
+  <!-- Statistiques d'assiduité -->
+  <div class="col-xl-6 col-lg-6 mb-4">
+    <div class="dashboard-card card border-0 shadow-sm h-100">
+      <div class="card-header border-0">
+        <h5 class="mb-0">
+          <i class="fas fa-user-check text-primary me-2"></i>
+          إحصائيات الحضور
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="stats-attendance">
+          <div class="stat-item mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <span>معدل الحضور العام</span>
+              <span class="stat-value text-success">{{ stats_assiduite.taux_presence_general }}%</span>
+            </div>
+            <div class="progress mt-1" style="height: 6px;">
+              <div class="progress-bar bg-success" style="width: {{ stats_assiduite.taux_presence_general }}%"></div>
+            </div>
+          </div>
+          <div class="stat-item mb-3">
+            <div class="d-flex justify-content-between">
+              <span>إجمالي الغيابات</span>
+              <span class="stat-value text-danger">{{ stats_assiduite.total_absences }}</span>
+            </div>
+          </div>
+          <div class="stat-item mb-3">
+            <div class="d-flex justify-content-between">
+              <span>الغيابات المبررة</span>
+              <span class="stat-value text-info">{{ stats_assiduite.absences_justifiees }}</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="d-flex justify-content-between">
+              <span>الطلاب المتأخرون</span>
+              <span class="stat-value text-warning">{{ stats_assiduite.etudiants_risque }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions rapides -->
+  <div class="col-xl-6 col-lg-6 mb-4">
+    <div class="dashboard-card card border-0 shadow-sm h-100">
+      <div class="card-header border-0">
+        <h5 class="mb-0">
+          <i class="fas fa-bolt text-primary me-2"></i>
+          إجراءات سريعة
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-2">
+          <a href="{% url 'ense:fichPeda_Ens_Semestre' my_Dep.id %}?semestre={{ semestre_selected }}" class="btn btn-outline-warning" target="_blank">
+            <i class="fas fa-file-alt me-2"></i>
+            البطاقة البيداغوجية - السداسي {{ semestre_selected }}
+          </a>
+          <a href="{% url 'ense:fichePedagogique' my_Dep.id %}" class="btn btn-outline-danger" target="_blank">
+            <i class="fas fa-file-invoice me-2"></i>
+            البطاقة البيداغوجية الشاملة
+          </a>
+          <a href="{% url 'auth:profile' %}" class="btn btn-outline-primary">
+            <i class="fas fa-id-card me-2"></i>
+            صفحة التعريف
+          </a>
+          <a href="{% url 'auth:profile_update' %}" class="btn btn-outline-success">
+            <i class="fas fa-edit me-2"></i>
+            تعديل المعلومات
+          </a>
+          <a href="{% url 'ense:list_matieres_ens' my_Dep.id %}" class="btn btn-outline-info">
+            <i class="fas fa-book me-2"></i>
+            موادي
+          </a>
+          <a href="{% url 'ense:timeTable_Ens' my_Dep.id %}" class="btn btn-outline-secondary">
+            <i class="fas fa-calendar-alt me-2"></i>
+            جدول الأوقات
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notifications -->
+{% if notifications %}
+<div class="row">
+  <div class="col-12">
+    <div class="dashboard-card card border-0 shadow-sm">
+      <div class="card-header border-0">
+        <h5 class="mb-0">
+          <i class="fas fa-bell text-primary me-2"></i>
+          التنبيهات والإشعارات
+        </h5>
+      </div>
+      <div class="card-body">
+        {% for notification in notifications %}
+        <div class="alert alert-{{ notification.type }} alert-dismissible fade show" role="alert">
+          <i class="fas fa-{{ notification.icon }} me-2"></i>
+          <strong>{{ notification.titre }}</strong> {{ notification.message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Graphique en secteurs
+    const ctx = document.getElementById('coursTypesChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['دروس', 'أعمال موجهة', 'أعمال تطبيقية', 'خرجات علمية'],
+                datasets: [{
+                    data: [
+                        {{ stats_repartition.cours|default:0 }},
+                        {{ stats_repartition.td|default:0 }},
+                        {{ stats_repartition.tp|default:0 }},
+                        {{ stats_repartition.ss|default:0 }}
+                    ],
+                    backgroundColor: ['#28a745', '#ffc107', '#17a2b8', '#dc3545'],
+                    borderWidth: 2,
+                    borderColor: '#f8f9fa'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((context.parsed * 100) / total).toFixed(1) : 0;
+                                return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+    }
+
+    // Animation des compteurs
+    const counters = document.querySelectorAll('.stat-number');
+    counters.forEach(counter => {
+        const target = parseInt(counter.textContent.replace('%', ''));
+        if (isNaN(target)) return;
+        let current = 0;
+        const increment = target / 30;
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            counter.textContent = Math.floor(current) + (counter.textContent.includes('%') ? '%' : '');
+        }, 30);
+    });
+
+    // Auto-dismiss des alertes
+    setTimeout(function() {
+        document.querySelectorAll('.alert-dismissible').forEach(alert => {
+            try {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            } catch(e) {}
+        });
+    }, 8000);
+});
+</script>
+{% endblock %}

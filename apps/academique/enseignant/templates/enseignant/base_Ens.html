@@ -1,0 +1,551 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# BASE TEMPLATE POUR L'ESPACE ENSEIGNANT                                          #}
+{# Hérite de base_dashboard.html et définit les éléments communs                   #}
+{# Variables de contexte attendues: my_Dep, my_Fac, my_Ens, active_menu            #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+
+{% block title %}{{ title }}{% if my_Ens %} - {{ my_Ens.nom_ar }} {{ my_Ens.prenom_ar }}{% elif my_Dep %} - {{ my_Dep.nom_ar }}{% endif %}{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# CONTEXT INFO - Affiche les informations du département/faculté                  #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{% block context_info %}
+{% if my_Dep %}
+<div class="context-info">
+    <i class="fas fa-building"></i>
+    <span>القسم الحالي: <strong>{{ my_Dep.nom_ar }}</strong></span>
+    {% if my_Dep.nom_fr %}
+        <span class="ms-2 opacity-75">- {{ my_Dep.nom_fr }}</span>
+    {% endif %}
+</div>
+{% elif my_Fac %}
+<div class="context-info">
+    <i class="fas fa-university"></i>
+    <span>الكلية: <strong>{{ my_Fac.nom_ar }}</strong></span>
+    {% if my_Fac.nom_fr %}
+        <span class="ms-2 opacity-75">- {{ my_Fac.nom_fr }}</span>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# SIDEBAR MENU - Menu latéral commun pour l'espace enseignant                     #}
+{# Utilise la variable 'active_menu' pour marquer l'élément actif                  #}
+{# Valeurs possibles: 'dashboard', 'timetable', 'enseignants', 'matieres',         #}
+{#                    'niveaux', 'etudiants', 'profile'                            #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{% block sidebar_menu %}
+
+{% if my_Dep %}
+<!-- لوحة التحكم -->
+<a class="nav-link {% if active_menu == 'dashboard' %}active{% endif %}" href="{% url 'ense:dashboard_Ens' my_Dep.id %}">
+    <i class="fas fa-tachometer-alt"></i>
+    لوحة التحكم
+</a>
+
+<!-- إستعمال الزمن -->
+<a class="nav-link {% if active_menu == 'timetable' %}active{% endif %}" href="{% url 'ense:timeTable_Ens' my_Dep.id %}">
+    <i class="fas fa-calendar-alt"></i>
+    إستعمال الزمن
+</a>
+
+<!-- قائمة الأساتذة -->
+<a class="nav-link {% if active_menu == 'enseignants' %}active{% endif %}" href="{% url 'ense:list_enseignants_ens' my_Dep.id %}">
+    <i class="fas fa-chalkboard-teacher"></i>
+    قائمة الأساتذة
+</a>
+
+<!-- المستويات -->
+<a class="nav-link {% if active_menu == 'niveaux' %}active{% endif %}" href="{% url 'ense:list_NivSpeDep_Ens' my_Dep.id %}">
+    <i class="fas fa-layer-group"></i>
+    المستويات
+</a>
+
+<!-- الطلبة - Sous-menu -->
+<div class="sub-menu {% if active_menu == 'etudiants' %}active{% endif %}">
+    <a class="nav-link">
+        <i class="fas fa-user-graduate"></i>
+        الطلبة
+    </a>
+    <div class="sub-menu-items">
+        <a class="nav-link {% if active_menu == 'etudiants' %}active{% endif %}" href="{% url 'ense:list_etudiants_ens' my_Dep.id %}">
+            <i class="fas fa-list"></i>
+            القائمة
+        </a>
+        <a class="nav-link {% if active_menu == 'niveaux' %}active{% endif %}" href="{% url 'ense:niveaux_enseigner' my_Dep.id %}">
+            <i class="fas fa-users"></i>
+            الأفواج الفرعية
+        </a>
+    </div>
+</div>
+
+<!-- البنية التحتية - Sous-menu -->
+<div class="sub-menu {% if active_menu == 'infrastructure' or active_menu == 'matieres' or active_menu == 'specialites' or active_menu == 'amphi' or active_menu == 'salle' or active_menu == 'labo' %}active{% endif %}">
+    <a class="nav-link">
+        <i class="fas fa-building"></i>
+        البنية التحتية
+    </a>
+    <div class="sub-menu-items">
+        <a class="nav-link {% if active_menu == 'matieres' %}active{% endif %}" href="{% url 'ense:list_matieres_ens' my_Dep.id %}">
+            <i class="fas fa-book"></i>
+            المواد
+        </a>
+        <a class="nav-link {% if active_menu == 'specialites' %}active{% endif %}" href="{% url 'ense:list_specialites_ens' my_Dep.id %}">
+            <i class="fas fa-graduation-cap"></i>
+            التخصصات
+        </a>
+        <a class="nav-link {% if active_menu == 'amphi' %}active{% endif %}" href="{% url 'ense:list_Amphi_Ens' my_Dep.id %}">
+            <i class="fas fa-chalkboard"></i>
+            المدرجات
+        </a>
+        <a class="nav-link {% if active_menu == 'salle' %}active{% endif %}" href="{% url 'ense:list_Salle_Ens' my_Dep.id %}">
+            <i class="fas fa-door-open"></i>
+            القاعات
+        </a>
+        <a class="nav-link {% if active_menu == 'labo' %}active{% endif %}" href="{% url 'ense:list_Labo_Ens' my_Dep.id %}">
+            <i class="fas fa-flask"></i>
+            المخابر
+        </a>
+    </div>
+</div>
+
+{% else %}
+{# Menu simplifié pour les pages sans département (profile, etc.) #}
+<div class="nav-section">الإدارة</div>
+
+<div class="sub-menu">
+    <a class="nav-link">
+        <i class="fas fa-chalkboard-teacher"></i>
+        المقاييس
+    </a>
+    <div class="sub-menu-items">
+        <a class="nav-link" href="#">
+            <i class="fas fa-list"></i>
+            قائمة المقاييس
+        </a>
+        <a class="nav-link" href="#">
+            <i class="fas fa-calendar-alt"></i>
+            جدول الحصص
+        </a>
+    </div>
+</div>
+
+<div class="sub-menu">
+    <a class="nav-link">
+        <i class="fas fa-user-graduate"></i>
+        الطلبة
+    </a>
+    <div class="sub-menu-items">
+        <a class="nav-link" href="#">
+            <i class="fas fa-list"></i>
+            قوائم الطلبة
+        </a>
+        <a class="nav-link" href="#">
+            <i class="fas fa-clipboard-list"></i>
+            النتائج
+        </a>
+    </div>
+</div>
+
+<a class="nav-link" href="#">
+    <i class="fas fa-chart-bar"></i>
+    الإحصائيات
+    <span class="badge bg-secondary ms-auto">قريباً</span>
+</a>
+{% endif %}
+
+{% block sidebar_menu_extra %}{% endblock %}
+{% endblock %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# CSS COMMUN - Styles partagés par tous les templates enseignant                  #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{% block extra_css %}
+{{ block.super }}
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* LAYOUT GÉNÉRAL                                                                   */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.grey_zone {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding: 15px;
+    margin: 8px;
+    direction: rtl;
+    text-align: right;
+}
+
+.main-header {
+    margin-bottom: 20px;
+    direction: rtl;
+    text-align: right;
+}
+
+.page-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding-bottom: 8px;
+    text-align: right;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* CARTES                                                                           */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 12px 15px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    direction: rtl;
+    text-align: right;
+}
+
+.card-body {
+    padding: 15px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* STATISTIQUES                                                                     */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.stat-card {
+    border-radius: 6px;
+    padding: 15px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.stat-card h3, .stat-card h4 {
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.stat-card small {
+    font-size: 0.85rem;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #343a40 !important;
+}
+
+.stat-label {
+    color: #6c757d !important;
+    font-size: 0.9rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* TABLEAUX - RTL (Right-to-Left pour l'arabe)                                     */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.table-responsive {
+    border-radius: 6px;
+    overflow-x: auto;
+    direction: rtl;
+}
+
+.table {
+    margin-bottom: 0;
+    font-size: 0.85rem;
+    direction: rtl;
+    text-align: right;
+}
+
+.table thead th {
+    border: none;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 10px 8px;
+    background-color: #343a40;
+    color: white;
+    white-space: nowrap;
+    text-align: right;
+}
+
+.table thead th.text-center {
+    text-align: center !important;
+}
+
+.table tbody tr {
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(0,123,255,0.05);
+}
+
+.table tbody td {
+    padding: 8px;
+    vertical-align: middle;
+    border-top: none;
+    text-align: right;
+}
+
+.table tbody td.text-center {
+    text-align: center !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* BADGES                                                                           */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.badge {
+    font-size: 0.75em;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* BOUTONS                                                                          */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn-sm {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* PROGRESS BARS                                                                    */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.progress {
+    border-radius: 8px;
+    background-color: #dee2e6;
+    height: 12px !important;
+}
+
+.progress-bar {
+    border-radius: 8px;
+    transition: width 0.6s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* COULEURS SUBTILES                                                                */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.bg-primary-subtle { background-color: rgba(108, 117, 125, 0.15) !important; }
+.bg-success-subtle { background-color: rgba(25, 135, 84, 0.1) !important; }
+.bg-warning-subtle { background-color: rgba(255, 193, 7, 0.1) !important; }
+.bg-info-subtle { background-color: rgba(13, 202, 240, 0.1) !important; }
+.bg-danger-subtle { background-color: #f8d7da !important; }
+.bg-secondary-subtle { background-color: #e9ecef !important; }
+.bg-dark-subtle { background-color: #f8f9fa !important; border: 1px solid #dee2e6; }
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* ALERTS                                                                           */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.alert-info {
+    border-left: 4px solid #0dcaf0;
+}
+
+.alert-warning {
+    border-left: 4px solid #ffc107;
+}
+
+.alert-danger {
+    border-left: 4px solid #dc3545;
+}
+
+.alert-success {
+    border-left: 4px solid #198754;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* FORMULAIRES                                                                      */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.form-section {
+    background-color: white;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+
+.form-section h4 {
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.filter-form .form-select {
+    min-width: 250px;
+}
+
+.myLabelList {
+    min-width: 100px;
+    font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* LOADING SPINNER                                                                  */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+.loading-spinner {
+    display: none;
+    text-align: center;
+    padding: 20px;
+}
+
+.loading-spinner.show {
+    display: block;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* ANIMATIONS                                                                       */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* RESPONSIVE                                                                       */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 992px) {
+    .main-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .semester-selector {
+        width: 100%;
+    }
+
+    .semester-selector .btn {
+        flex: 1;
+        font-size: 0.8rem;
+    }
+
+    .table {
+        font-size: 0.75rem;
+    }
+
+    .stat-card h3 {
+        font-size: 1.5rem;
+    }
+
+    .stat-card h4 {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .grey_zone {
+        padding: 10px;
+        margin: 5px;
+    }
+
+    .filter-form .form-select {
+        min-width: 100%;
+    }
+
+    .myLabelList {
+        min-width: 80px;
+    }
+
+    .table {
+        font-size: 0.7rem;
+    }
+
+    .badge {
+        font-size: 0.65em;
+        padding: 2px 4px;
+    }
+
+    .page-title {
+        font-size: 0.95rem;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-body {
+        padding: 1rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 0.5rem 0.25rem;
+    }
+
+    .btn-group {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-group .btn {
+        border-radius: 6px !important;
+        margin-bottom: 0.25rem;
+    }
+}
+</style>
+{% block extra_css_ens %}{% endblock %}
+{% endblock %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# CONTENT BLOCK - À définir par les templates enfants                             #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{% block content %}
+{% block content_ens %}{% endblock %}
+{% endblock %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# JAVASCRIPT BLOCK - Pour les scripts des templates enfants                       #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{% block extra_js %}
+{{ block.super }}
+{% block extra_js_ens %}{% endblock %}
+{% endblock %}

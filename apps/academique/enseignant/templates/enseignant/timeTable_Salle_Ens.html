@@ -1,0 +1,560 @@
+{% extends 'enseignant/base_Ens.html' %}
+{% load static %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# EMPLOI DU TEMPS - SALLE                                                         #}
+{# Hérite de base_Ens.html - active_menu = 'salle'                                 #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+
+{% block extra_css_ens %}
+<style>
+/* Statistiques */
+.stat-card-timetable {
+    border: 1px solid rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 15px;
+    text-align: center;
+}
+
+.stat-card-timetable:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.stat-card-timetable h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+/* Conteneur du tableau */
+.timetable-container {
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Tableau emploi du temps */
+.timetable {
+    margin: 0;
+    font-size: 12px;
+    background: #f8f9fa;
+}
+
+.timetable th {
+    background: #343a40 !important;
+    color: white;
+    font-weight: 600;
+    text-align: center;
+    padding: 12px 8px;
+    border: 1px solid #495057;
+}
+
+.time-header {
+    width: 140px;
+    background: #212529 !important;
+}
+
+.day-header {
+    width: calc((100% - 140px) / 6);
+    min-width: 120px;
+}
+
+.time-slot {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 8px;
+    text-align: center;
+    border-right: 3px solid #28a745;
+    vertical-align: middle;
+}
+
+.time-period {
+    font-weight: bold;
+    color: #495057;
+    font-size: 12px;
+    margin-bottom: 2px;
+}
+
+.time-range {
+    font-size: 11px;
+    color: #6c757d;
+    direction: ltr;
+}
+
+.class-cell {
+    padding: 2px !important;
+    vertical-align: top;
+    min-height: 80px;
+    max-width: 160px;
+    background: #f5f5f5;
+}
+
+/* Élément cours */
+.class-item {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 4px 6px;
+    margin: 1px 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    transition: all 0.2s ease;
+    overflow: hidden;
+    font-size: 11px;
+}
+
+.class-item:hover {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    transform: translateY(-1px);
+}
+
+.class-item.cours {
+    border-right: 3px solid #28a745;
+    background: #f0f8f0;
+}
+
+.class-item.td {
+    border-right: 3px solid #ffc107;
+    background: #fffbf0;
+}
+
+.class-item.tp {
+    border-right: 3px solid #17a2b8;
+    background: #f0f9fb;
+}
+
+.class-item.ss {
+    border-right: 3px solid #dc3545;
+    background: #fff0f0;
+}
+
+/* En-tête du cours */
+.class-header {
+    margin-bottom: 3px;
+}
+
+.type-badge {
+    font-size: 8px;
+    padding: 1px 4px;
+    border-radius: 8px;
+    font-weight: 600;
+    color: white;
+    display: inline-block;
+}
+
+/* Contenu du cours */
+.class-content {
+    line-height: 1.2;
+}
+
+.subject-name {
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 2px;
+    font-size: 10px;
+}
+
+.teacher-name {
+    color: #34495e;
+    font-size: 9px;
+    margin-bottom: 3px;
+    padding: 1px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+/* Détails du cours */
+.class-details {
+    margin-top: 2px;
+}
+
+.class-details > div {
+    margin-bottom: 1px;
+    line-height: 1.1;
+}
+
+.level-info small {
+    font-weight: 600;
+    font-size: 8px;
+}
+
+.specialty-info small,
+.department-info small,
+.group-info small {
+    font-size: 7px;
+    display: block;
+}
+
+/* Barre de progression */
+.progress {
+    background-color: rgba(0,0,0,0.1);
+    height: 2px !important;
+    margin-top: 2px;
+}
+
+/* Icônes plus petites */
+.teacher-name i,
+.specialty-info i,
+.department-info i,
+.group-info i {
+    font-size: 7px;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .timetable {
+        font-size: 10px;
+    }
+
+    .class-item {
+        padding: 3px 4px;
+    }
+
+    .subject-name {
+        font-size: 9px;
+    }
+
+    .teacher-name {
+        font-size: 8px;
+    }
+
+    .class-details small {
+        font-size: 7px;
+    }
+}
+
+@media (max-width: 768px) {
+    .timetable {
+        font-size: 9px;
+    }
+
+    .time-slot {
+        padding: 4px 2px;
+    }
+
+    .time-period {
+        font-size: 9px;
+    }
+
+    .time-range {
+        font-size: 8px;
+    }
+
+    .class-cell {
+        min-height: 60px;
+        max-width: 120px;
+    }
+
+    .class-item {
+        padding: 2px 3px;
+        margin: 0.5px 0;
+        font-size: 9px;
+    }
+
+    .subject-name {
+        font-size: 8px;
+    }
+
+    .teacher-name {
+        font-size: 7px;
+    }
+
+    .type-badge {
+        font-size: 7px;
+        padding: 1px 2px;
+    }
+
+    .stat-card-timetable {
+        margin-bottom: 1rem;
+    }
+
+    .stat-card-timetable h3 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Impression */
+@media print {
+    .btn,
+    .d-flex.justify-content-between {
+        display: none !important;
+    }
+
+    .class-item {
+        box-shadow: none;
+        border: 1px solid #333;
+    }
+
+    .timetable th {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+    }
+
+    .time-slot {
+        background: #f8f8f8 !important;
+    }
+
+    .class-item:hover {
+        transform: none;
+        box-shadow: none;
+    }
+}
+
+/* États vides améliorés */
+.alert.border-0 {
+    border-radius: 12px;
+    background: linear-gradient(135deg, #e8f4fd 0%, #f0f0f0 100%);
+}
+
+/* Animation de chargement */
+.timetable-container {
+    transition: all 0.5s ease;
+}
+</style>
+{% endblock %}
+
+{% block content_ens %}
+<div class="grey_zone m-1 p-2">
+    <!-- EN-TÊTE PRINCIPAL -->
+    <div class="main-header d-flex justify-content-between align-items-center mb-3">
+        <h4 class="page-title border-bottom border-danger text-dark mb-0">
+            <i class="fas fa-door-open text-success"></i>
+            استعمال الزمن - {{salle_dep.salle.nom_ar|default:salle_dep.salle.nom_fr}}
+            <small class="text-muted ms-2">(السداسي {{semestre_numero}})</small>
+        </h4>
+
+        <!-- Boutons d'action -->
+        <div class="btn-group" role="group">
+            <a href="{% url 'ense:list_Salle_Ens' my_Dep.id %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-right"></i> العودة للقائمة
+            </a>
+            {% if all_classes > 0 %}
+            <button class="btn btn-outline-primary btn-sm" onclick="printTimetable()">
+                <i class="fas fa-print"></i> طباعة
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if all_classes == 0 %}
+    <!-- Message si aucune classe -->
+    <div class="text-center m-5 p-5">
+        <div class="alert alert-info border-0">
+            <i class="fas fa-info-circle fa-3x mb-3 d-block"></i>
+            <h5 class="mb-2">لا توجد حصص لهذه القاعة</h5>
+            <p class="mb-0 text-muted">لم يتم جدولة أي حصص دراسية لهذه القاعة في السداسي {{semestre_numero}}</p>
+        </div>
+    </div>
+    {% else %}
+
+    <!-- Statistiques des cours -->
+    <div class="statistics-section mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> إحصائيات الحصص</h5>
+            </div>
+            <div class="card-body">
+                <div class="row justify-content-center">
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card-timetable bg-primary-subtle rounded">
+                            <h3 class="text-primary mb-0">{{all_classes}}</h3>
+                            <small class="text-muted">إجمالي الحصص</small>
+                        </div>
+                    </div>
+                    {% if nbr_Cours > 0 %}
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card-timetable bg-success-subtle rounded">
+                            <h3 class="text-success mb-0">{{nbr_Cours}}</h3>
+                            <small class="text-muted">دروس (Cours)</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if nbr_TD > 0 %}
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card-timetable bg-warning-subtle rounded">
+                            <h3 class="text-warning mb-0">{{nbr_TD}}</h3>
+                            <small class="text-muted">أعمال موجهة (TD)</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if nbr_TP > 0 %}
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card-timetable bg-info-subtle rounded">
+                            <h3 class="text-info mb-0">{{nbr_TP}}</h3>
+                            <small class="text-muted">أعمال تطبيقية (TP)</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emploi du temps -->
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-table"></i>
+                الجدول الزمني الأسبوعي
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="timetable-container">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm timetable mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="time-header">الحصة / التوقيت</th>
+                                <th class="day-header">السبت</th>
+                                <th class="day-header">الأحد</th>
+                                <th class="day-header">الإثنين</th>
+                                <th class="day-header">الثلاثاء</th>
+                                <th class="day-header">الأربعاء</th>
+                                <th class="day-header">الخميس</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for creneau in sixClasses %}
+                            <tr>
+                                <td class="time-slot">
+                                    <div class="time-period">الحصة {{forloop.counter}}</div>
+                                    <div class="time-range">{{creneau}}</div>
+                                </td>
+                                {% for day in sevenDays %}
+                                <td class="class-cell">
+                                    {% for classe in all_Classe_Salle %}
+                                        {% if classe.temps == creneau and classe.jour == day %}
+                                        <div class="class-item {% if classe.type == 'Cours' %}cours{% elif classe.type == 'TD' %}td{% elif classe.type == 'TP' %}tp{% else %}ss{% endif %}">
+                                            <div class="class-header">
+                                                <span class="type-badge {% if classe.type == 'Cours' %}bg-success{% elif classe.type == 'TD' %}bg-warning{% elif classe.type == 'TP' %}bg-info{% else %}bg-danger{% endif %}">
+                                                    {{classe.type}}
+                                                </span>
+                                            </div>
+                                            <div class="class-content">
+                                                <div class="subject-name">
+                                                    {{classe.matiere.nom_ar|default:classe.matiere.nom_fr|truncatechars:25}}
+                                                </div>
+                                                <div class="teacher-name">
+                                                    <i class="fas fa-user"></i>
+                                                    {{classe.enseignant.enseignant.nom_ar}} {{classe.enseignant.enseignant.prenom_ar}}
+                                                </div>
+                                                <div class="class-details">
+                                                    <div class="level-info">
+                                                        <small class="text-primary fw-bold">
+                                                            {{classe.niv_spe_dep_sg.niv_spe_dep.niveau}}
+                                                        </small>
+                                                    </div>
+                                                    <div class="specialty-info">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-graduation-cap"></i>
+                                                            {{classe.niv_spe_dep_sg.niv_spe_dep.specialite.nom_ar|default:classe.niv_spe_dep_sg.niv_spe_dep.specialite.nom_fr|truncatechars:20}}
+                                                        </small>
+                                                    </div>
+                                                    {% if classe.niv_spe_dep_sg.section %}
+                                                    <div class="group-info">
+                                                        <small class="text-warning fw-bold">
+                                                            <i class="fas fa-users"></i>
+                                                            القسم: {{classe.niv_spe_dep_sg.section}}
+                                                        </small>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                                {% if classe.taux_avancement %}
+                                                <div class="progress mt-2">
+                                                    <div class="progress-bar {% if classe.type == 'Cours' %}bg-success{% elif classe.type == 'TD' %}bg-warning{% elif classe.type == 'TP' %}bg-info{% else %}bg-danger{% endif %}"
+                                                         style="width: {{classe.taux_avancement}}%"
+                                                         title="تقدم الدروس: {{classe.taux_avancement}}%">
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer avec informations -->
+    <div class="card mt-3">
+        <div class="card-footer bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle"></i>
+                        القاعة: {{salle_dep.salle.nom_ar|default:salle_dep.salle.nom_fr}} - السداسي {{semestre_numero}}
+                    </small>
+                </div>
+                <div class="col-md-6 text-end">
+                    <small class="text-muted">
+                        <i class="fas fa-university"></i>
+                        {{my_Dep.nom_ar}} - {{my_Fac.nom_ar}}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js_ens %}
+<script>
+// Animation au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    // Animation des statistiques
+    const statCards = document.querySelectorAll('.stat-card-timetable');
+    statCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+
+        setTimeout(() => {
+            card.style.transition = 'all 0.3s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+
+    // Animation du tableau
+    const table = document.querySelector('.timetable-container');
+    if (table) {
+        table.style.opacity = '0';
+        table.style.transform = 'translateY(20px)';
+
+        setTimeout(() => {
+            table.style.transition = 'all 0.5s ease';
+            table.style.opacity = '1';
+            table.style.transform = 'translateY(0)';
+        }, 300);
+    }
+
+    // Animation des nombres
+    const statNumbers = document.querySelectorAll('.stat-card-timetable h3');
+    statNumbers.forEach(function(el) {
+        const finalValue = parseInt(el.textContent) || 0;
+        if (finalValue > 0) {
+            let current = 0;
+            const increment = finalValue / 30;
+            const timer = setInterval(function() {
+                current += increment;
+                if (current >= finalValue) { current = finalValue; clearInterval(timer); }
+                el.textContent = Math.floor(current);
+            }, 16);
+        }
+    });
+});
+
+function printTimetable() {
+    window.print();
+}
+</script>
+{% endblock %}

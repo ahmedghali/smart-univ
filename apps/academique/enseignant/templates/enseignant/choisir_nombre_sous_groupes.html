@@ -1,0 +1,110 @@
+{% extends 'enseignant/base_Ens.html' %}
+{% load static %}
+
+{% block content_ens %}
+<div class="grey_zone m-1 p-2">
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="text-primary mb-2">
+                                <i class="fas fa-users me-2"></i>إنشاء مجموعات فرعية
+                            </h4>
+                            <p class="text-muted mb-1">
+                                <strong>المادة:</strong> {{ classe.matiere.nom_ar }}
+                            </p>
+                            <p class="text-muted mb-0">
+                                <strong>المجموعة:</strong> {{ classe.niv_spe_dep_sg }}
+                            </p>
+                        </div>
+                        <div>
+                            <span class="badge bg-info fs-6">{{ classe.type }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulaire principal -->
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>إعدادات المجموعات الفرعية
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">اختر عدد المجموعات الفرعية:</label>
+                            <select name="nombre" class="form-select form-select-lg" required>
+                                <option value="">-- اختر العدد --</option>
+                                <option value="2">2 مجموعات فرعية</option>
+                                <option value="3">3 مجموعات فرعية</option>
+                                <option value="4">4 مجموعات فرعية</option>
+                                <option value="5">5 مجموعات فرعية</option>
+                                <option value="6">6 مجموعات فرعية</option>
+                            </select>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                سيتم إنشاء المجموعات تلقائياً بأسماء: مجموعة 1، مجموعة 2، إلخ
+                            </div>
+                        </div>
+
+                        <div class="alert alert-light border">
+                            <h6 class="fw-bold">
+                                <i class="fas fa-lightbulb text-warning me-2"></i>ملاحظة مهمة:
+                            </h6>
+                            <ul class="mb-0">
+                                <li>سيتم إنشاء المجموعات الفرعية فوراً</li>
+                                <li>بعد ذلك ستتمكن من توزيع الطلاب على هذه المجموعات</li>
+                                <li>يمكنك تعديل التوزيع لاحقاً إذا لزم الأمر</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <button type="submit" class="btn btn-success btn-lg px-4">
+                                <i class="fas fa-plus me-2"></i>إنشاء المجموعات
+                            </button>
+                            <a href="{% url 'ense:niveaux_enseigner' my_Dep.id %}"
+                               class="btn btn-outline-secondary btn-lg px-4">
+                                <i class="fas fa-arrow-left me-2"></i>إلغاء
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border-radius: 12px;
+}
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+.form-select-lg {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    padding: 12px 16px;
+}
+.form-select-lg:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+.btn-lg {
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-weight: 600;
+}
+</style>
+{% endblock %}

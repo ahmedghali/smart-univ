@@ -1,0 +1,120 @@
+{% extends "authentification/base.html" %}
+
+{% block title %}اختيار المنصب - Smart-Univ{% endblock %}
+
+{% block content %}
+<div class="auth-card">
+    <div class="auth-header">
+        <div class="logo">
+            <i class="fas fa-user-circle"></i>
+        </div>
+        <h1>مرحباً بك!</h1>
+        <p>اختر المنصب للمتابعة</p>
+    </div>
+
+    <div class="auth-body">
+        <h3 class="text-center mb-4">اختر منصبك</h3>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if roles %}
+            <form method="post" action="{% url 'auth:select_role' %}" id="roleForm">
+                {% csrf_token %}
+
+                <div class="roles-container mb-4">
+                    {% for role_code, role_label in roles %}
+                        <label class="role-card" for="role_{{ forloop.counter }}">
+                            <div class="d-flex align-items-center">
+                                <input
+                                    type="radio"
+                                    name="role"
+                                    value="{{ role_code }}"
+                                    id="role_{{ forloop.counter }}"
+                                    class="me-3"
+                                    required
+                                >
+                                <div class="flex-grow-1">
+                                    <div class="role-label">
+                                        {% if role_code == 'etudiant' %}
+                                            <i class="fas fa-user-graduate text-primary me-2"></i>
+                                        {% elif role_code == 'enseignant' %}
+                                            <i class="fas fa-chalkboard-teacher text-success me-2"></i>
+                                        {% elif 'chef_departement' in role_code %}
+                                            <i class="fas fa-user-tie text-warning me-2"></i>
+                                        {% elif 'doyen' in role_code %}
+                                            <i class="fas fa-user-shield text-info me-2"></i>
+                                        {% elif 'recteur' in role_code %}
+                                            <i class="fas fa-crown text-danger me-2"></i>
+                                        {% else %}
+                                            <i class="fas fa-user text-secondary me-2"></i>
+                                        {% endif %}
+                                        {{ role_label }}
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-2"></i>متابعة
+                </button>
+            </form>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'comm:home' %}" class="text-muted small me-3">
+                    <i class="fas fa-home me-1"></i>الصفحة الرئيسية
+                </a>
+                <a href="{% url 'auth:logout' %}" class="text-muted small">
+                    <i class="fas fa-sign-out-alt me-1"></i>تسجيل الخروج
+                </a>
+            </div>
+        {% else %}
+            <div class="alert alert-warning text-center">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                لا توجد مناصب متاحة لحسابك. يرجى الاتصال بالمسؤول.
+            </div>
+            <a href="{% url 'auth:logout' %}" class="btn btn-secondary w-100">
+                <i class="fas fa-sign-out-alt me-2"></i>تسجيل الخروج
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Highlight selected role card
+    document.addEventListener('DOMContentLoaded', function() {
+        const roleCards = document.querySelectorAll('.role-card');
+        const radioInputs = document.querySelectorAll('input[type="radio"]');
+
+        roleCards.forEach((card, index) => {
+            card.addEventListener('click', function() {
+                // Remove selected class from all cards
+                roleCards.forEach(c => c.classList.remove('selected'));
+
+                // Add selected class to clicked card
+                this.classList.add('selected');
+
+                // Check the corresponding radio button
+                radioInputs[index].checked = true;
+            });
+        });
+
+        // Check if a radio is already selected on page load
+        radioInputs.forEach((radio, index) => {
+            if (radio.checked) {
+                roleCards[index].classList.add('selected');
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,761 @@
+{% extends 'etudiant/base_Etu.html' %}
+{% block content %}
+
+<script>
+  // Auto-refresh et cache management
+  window.addEventListener("pageshow", function (event) {
+    if (event.persisted) {
+      window.location.reload();
+    }
+  });
+</script>
+
+<!-- Header Profile -->
+<div class="profile-header mb-4">
+  <div class="row align-items-center">
+    
+
+    <div class="col-md-8">
+      <h2 class="mb-0">
+        <i class="fas fa-user-circle me-2 text-dark"></i>
+        الملف الشخصي
+      </h2>
+      <p class="mb-0">{{my_Etu.nom_ar}} {{my_Etu.prenom_ar}} - {{my_Etu.niv_spe_dep_sg.niv_spe_dep}}</p>
+      <p class="mb-0"><strong>المستخدم:</strong> {{my_Etu.user.username}}</p>
+      <p class="mb-0"><strong>البريد:</strong> {{my_Etu.user.email}}</p>
+    </div>
+    
+    <div class="col-md-4 text-end">
+      <div class="profile-actions">
+        <a href="{% url 'etud:profileUpdate_Etu' %}" class="btn btn-light btn-sm me-2">
+          <i class="fas fa-edit me-1"></i>
+          تحرير الملف
+        </a>
+        <a href="{% url 'etud:change_password_Etu' %}" class="btn btn-outline-light btn-sm">
+          <i class="fas fa-key me-1"></i>
+          تغيير كلمة المرور
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Content -->
+<div class="row">
+  <!-- Informations principales -->
+  <div class="col-xl-8 col-lg-12 mb-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header border-0">
+        <h5 class="mb-0">
+          <i class="fas fa-user text-primary me-2"></i>
+          المعلومات الشخصية
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6 mb-4">
+            <div class="info-group">
+              <h6 class="info-label">
+                <i class="fas fa-id-card text-muted me-2"></i>
+                الهوية الكاملة
+              </h6>
+              <div class="info-content">
+                <div class="name-display">
+                  <span class="name-ar">{{my_Etu.nom_ar}} {{my_Etu.prenom_ar}}</span>
+                  <span class="name-fr">{{my_Etu.nom_fr}} {{my_Etu.prenom_fr}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-4">
+            <div class="info-group">
+              <h6 class="info-label">
+                <i class="fas fa-calendar text-muted me-2"></i>
+                تاريخ الميلاد
+              </h6>
+              <div class="info-content">
+                {{my_Etu.date_nais|date:"d F Y"}}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-4">
+            <div class="info-group">
+              <h6 class="info-label">
+                <i class="fas fa-venus-mars text-muted me-2"></i>
+                الجنس
+              </h6>
+              <div class="info-content">
+                <span class="badge {% if my_Etu.sexe == 'ذكر' %}bg-primary{% else %}bg-success {% endif %}">
+                  {{my_Etu.get_sexe_display}}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-4">
+            <div class="info-group">
+              <h6 class="info-label">
+                <i class="fas fa-heart text-muted me-2"></i>
+                الحالة العائلية
+              </h6>
+              <div class="info-content">
+                <span class="badge bg-info">
+                  {{my_Etu.get_sit_fam_display}}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-4">
+            <div class="info-group">
+              <h6 class="info-label">
+                <i class="fas fa-graduation-cap text-muted me-2"></i>
+                سنة البكالوريا
+              </h6>
+              <div class="info-content">
+                {{my_Etu.bac_annee|default:"غير محدد"}}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-4">
+            <div class="info-group">
+              <h6 class="info-label">
+                <i class="fas fa-hashtag text-muted me-2"></i>
+                رقم التسجيل
+              </h6>
+              <div class="info-content">
+                <span class="matricule-display">{{my_Etu.matricule}}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 mb-4">
+            <div class="info-group">
+              <h6 class="info-label">
+                <i class="fas fa-university text-muted me-2"></i>
+                المؤسسة الأكاديمية
+              </h6>
+              <div class="info-content">
+                <div class="institution-path">
+                  <span class="path-item faculty">{{my_Fac.nom_ar}}</span>
+                  <i class="fas fa-chevron-left text-muted mx-2"></i>
+                  <span class="path-item department">{{my_Dep.nom_ar}}</span>
+                  <i class="fas fa-chevron-left text-muted mx-2"></i>
+                  <span class="path-item level">{{my_Etu.niv_spe_dep_sg}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar avec informations supplémentaires -->
+  <div class="col-xl-4 col-lg-12 mb-4">
+    <!-- Informations de contact -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header border-0">
+        <h5 class="mb-0">
+          <i class="fas fa-phone text-primary me-2"></i>
+          معلومات الاتصال
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="contact-list">
+          {% if my_Etu.tel_mobile1 %}
+          <div class="contact-item">
+            <i class="fas fa-mobile-alt text-success"></i>
+            <span class="contact-label">جوال 1:</span>
+            <span class="contact-value">{{my_Etu.tel_mobile1}}</span>
+          </div>
+          {% endif %}
+
+          {% if my_Etu.tel_mobile2 %}
+          <div class="contact-item">
+            <i class="fas fa-mobile-alt text-info"></i>
+            <span class="contact-label">جوال 2:</span>
+            <span class="contact-value">{{my_Etu.tel_mobile2}}</span>
+          </div>
+          {% endif %}
+
+          {% if my_Etu.tel_fix %}
+          <div class="contact-item">
+            <i class="fas fa-phone text-primary"></i>
+            <span class="contact-label">هاتف ثابت:</span>
+            <span class="contact-value">{{my_Etu.tel_fix}}</span>
+          </div>
+          {% endif %}
+
+          {% if my_Etu.email_perso %}
+          <div class="contact-item">
+            <i class="fas fa-envelope text-warning"></i>
+            <span class="contact-label">إيميل شخصي:</span>
+            <span class="contact-value">{{my_Etu.email_perso}}</span>
+          </div>
+          {% endif %}
+
+          {% if my_Etu.email_prof %}
+          <div class="contact-item">
+            <i class="fas fa-envelope-open text-danger"></i>
+            <span class="contact-label">إيميل مهني:</span>
+            <span class="contact-value">{{my_Etu.email_prof}}</span>
+          </div>
+          {% endif %}
+
+          {% if my_Etu.adresse %}
+          <div class="contact-item">
+            <i class="fas fa-map-marker-alt text-secondary"></i>
+            <span class="contact-label">العنوان:</span>
+            <span class="contact-value">{{my_Etu.adresse}}</span>
+          </div>
+          {% endif %}
+
+          {% if my_Etu.wilaya %}
+          <div class="contact-item">
+            <i class="fas fa-map-marker-alt text-secondary"></i>
+            <span class="contact-label">الولاية:</span>
+            <span class="contact-value">{{my_Etu.wilaya}}</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Statut et plateformes -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header border-0">
+        <h5 class="mb-0">
+          <i class="fas fa-cog text-primary me-2"></i>
+          الحالة والمنصات
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="status-grid">
+          <div class="status-item">
+            <span class="status-label">منصة Progres:</span>
+            <span class="badge {% if my_Etu.inscrit_progres %}bg-success{% else %}bg-danger{% endif %}">
+              {% if my_Etu.inscrit_progres %}مسجل{% else %}غير مسجل{% endif %}
+            </span>
+          </div>
+
+          <div class="status-item">
+            <span class="status-label">منصة MOODLE:</span>
+            <span class="badge {% if my_Etu.inscrit_moodle %}bg-success{% else %}bg-danger{% endif %}">
+              {% if my_Etu.inscrit_moodle %}مسجل{% else %}غير مسجل{% endif %}
+            </span>
+          </div>
+
+          <div class="status-item">
+            <span class="status-label">منصة SNDL:</span>
+            <span class="badge {% if my_Etu.inscrit_sndl %}bg-success{% else %}bg-danger{% endif %}">
+              {% if my_Etu.inscrit_sndl %}مسجل{% else %}غير مسجل{% endif %}
+            </span>
+          </div>
+
+          <div class="status-item">
+            <span class="status-label">عطلة أكاديمية:</span>
+            <span class="badge {% if my_Etu.en_vac_aca %}bg-warning{% else %}bg-success{% endif %}">
+              {% if my_Etu.en_vac_aca %}نعم{% else %}لا{% endif %}
+            </span>
+          </div>
+
+          <div class="status-item">
+            <span class="status-label">عطلة مرضية:</span>
+            <span class="badge {% if my_Etu.en_maladie %}bg-warning{% else %}bg-success{% endif %}">
+              {% if my_Etu.en_maladie %}نعم{% else %}لا{% endif %}
+            </span>
+          </div>
+
+          {% if my_Etu.delegue %}
+          <div class="status-item">
+            <span class="status-label">طالب مندوب:</span>
+            <span class="badge bg-primary">نعم</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Réseaux sociaux et liens académiques -->
+<div class="row">
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header border-0">
+        <h5 class="mb-0">
+          <i class="fas fa-share-alt text-primary me-2"></i>
+          الشبكات الاجتماعية والروابط الأكاديمية
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="social-links">
+          {% if my_Etu.google_scholar %}
+          <a href="{{my_Etu.google_scholar}}" target="_blank" class="social-link google-scholar">
+            <i class="fas fa-graduation-cap"></i>
+            <span>Google Scholar</span>
+          </a>
+          {% endif %}
+
+          {% if my_Etu.researchgate %}
+          <a href="{{my_Etu.researchgate}}" target="_blank" class="social-link researchgate">
+            <i class="fas fa-flask"></i>
+            <span>ResearchGate</span>
+          </a>
+          {% endif %}
+
+          {% if my_Etu.orcid_id %}
+          <div class="social-link orcid">
+            <i class="fas fa-id-badge"></i>
+            <span>ORCID: {{my_Etu.orcid_id}}</span>
+          </div>
+          {% endif %}
+
+          {% if my_Etu.linkedin %}
+          <a href="{{my_Etu.linkedin}}" target="_blank" class="social-link linkedin">
+            <i class="fab fa-linkedin"></i>
+            <span>LinkedIn</span>
+          </a>
+          {% endif %}
+
+          {% if my_Etu.facebook %}
+          <a href="{{my_Etu.facebook}}" target="_blank" class="social-link facebook">
+            <i class="fab fa-facebook"></i>
+            <span>Facebook</span>
+          </a>
+          {% endif %}
+
+          {% if my_Etu.x_twitter %}
+          <a href="{{my_Etu.x_twitter}}" target="_blank" class="social-link twitter">
+            <i class="fab fa-twitter"></i>
+            <span>X (Twitter)</span>
+          </a>
+          {% endif %}
+
+          {% if my_Etu.tiktok %}
+          <a href="{{my_Etu.tiktok}}" target="_blank" class="social-link tiktok">
+            <i class="fab fa-tiktok"></i>
+            <span>TikTok</span>
+          </a>
+          {% endif %}
+
+          {% if my_Etu.telegram %}
+          <a href="{{my_Etu.telegram}}" target="_blank" class="social-link telegram">
+            <i class="fab fa-telegram"></i>
+            <span>Telegram</span>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Body avec thème gris */
+body {
+    background-color: #f1f3f4;
+    color: #495057;
+}
+
+/* Profile Header */
+.profile-header {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+}
+
+.profile-header h2,
+.profile-header p {
+    color: white !important;
+}
+
+.text-white-75 {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.profile-actions .btn {
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+/* Cards générales */
+.card {
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: box-shadow 0.3s ease;
+    background-color: #e9ecef;
+    border: 1px solid #dee2e6;
+}
+
+.card:hover {
+    box-shadow: 0 5px 20px rgba(0,0,0,0.12);
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+    font-weight: 600;
+    background-color: #dee2e6 !important;
+    border-bottom: 1px solid #ced4da;
+}
+
+.card-header h5 {
+    color: #495057 !important;
+}
+
+.card-body {
+    background-color: #e9ecef;
+}
+
+/* Info Groups */
+.info-group {
+    margin-bottom: 1.5rem;
+}
+
+.info-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.info-content {
+    color: #495057;
+    font-size: 1rem;
+}
+
+.name-display {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.name-ar {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #343a40;
+}
+
+.name-fr {
+    font-size: 0.95rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.matricule-display {
+    font-family: 'Courier New', monospace;
+    background: #f8f9fa;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.institution-path {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.path-item {
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.path-item.faculty {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.path-item.department {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.path-item.level {
+    background: #e8f5e8;
+    color: #388e3c;
+}
+
+/* Contact List */
+.contact-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #f1f3f4;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.contact-item i {
+    width: 20px;
+    font-size: 1rem;
+}
+
+.contact-label {
+    font-weight: 600;
+    color: #495057;
+    min-width: 80px;
+}
+
+.contact-value {
+    color: #6c757d;
+    word-break: break-word;
+}
+
+/* Status Grid */
+.status-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.status-item {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    padding: 0.75rem;
+    background: #f1f3f4;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.status-label {
+    font-weight: 600;
+    color: #495057;
+    flex: 1;
+}
+
+/* Social Links */
+.social-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: white;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.social-link:hover {
+    transform: translateY(-2px);
+    text-decoration: none;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.social-link.google-scholar {
+    background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+}
+
+.social-link.researchgate {
+    background: linear-gradient(135deg, #00d0af 0%, #00a693 100%);
+}
+
+.social-link.orcid {
+    background: linear-gradient(135deg, #a6ce39 0%, #8fb532 100%);
+    cursor: default;
+}
+
+.social-link.linkedin {
+    background: linear-gradient(135deg, #0077b5 0%, #005885 100%);
+}
+
+.social-link.facebook {
+    background: linear-gradient(135deg, #1877f2 0%, #166fe5 100%);
+}
+
+.social-link.twitter {
+    background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%);
+}
+
+.social-link.tiktok {
+    background: linear-gradient(135deg, #ff0050 0%, #e1003d 100%);
+}
+
+.social-link.telegram {
+    background: linear-gradient(135deg, #0088cc 0%, #006ba6 100%);
+}
+
+.social-link i {
+    font-size: 1.2rem;
+}
+
+/* Badges */
+.badge {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+/* Text Colors */
+.text-primary {
+    color: #4CAF50 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .profile-actions {
+        margin-top: 1rem;
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+    
+    .institution-path {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .institution-path i {
+        transform: rotate(90deg);
+    }
+    
+    .social-links {
+        grid-template-columns: 1fr;
+    }
+    
+    .contact-item {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: right;
+    }
+    
+    .status-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .name-display {
+        text-align: center;
+    }
+    
+    .profile-actions .btn {
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
+    }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+
+/* Print styles */
+@media print {
+    .profile-header .profile-actions,
+    .btn {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #dee2e6 !important;
+        break-inside: avoid;
+        background-color: white !important;
+    }
+    
+    .card-body {
+        background-color: white !important;
+    }
+    
+    .social-link {
+        color: black !important;
+        background: #f8f9fa !important;
+        border: 1px solid #dee2e6 !important;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animation au scroll
+    const cards = document.querySelectorAll('.card');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    });
+    
+    cards.forEach(card => {
+        observer.observe(card);
+    });
+    
+    // Copier au clic pour les informations importantes
+    const matriculeDisplay = document.querySelector('.matricule-display');
+    if (matriculeDisplay) {
+        matriculeDisplay.addEventListener('click', function() {
+            navigator.clipboard.writeText(this.textContent);
+            
+            // Feedback visuel
+            const originalBg = this.style.backgroundColor;
+            this.style.backgroundColor = '#d4edda';
+            setTimeout(() => {
+                this.style.backgroundColor = originalBg;
+            }, 500);
+        });
+        
+        matriculeDisplay.style.cursor = 'pointer';
+        matriculeDisplay.title = 'انقر للنسخ';
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends 'base_public.html' %}
+
+{% block title %}الرئيسية - نظام الجامعة الذكية{% endblock %}
+
+{% block hero_section %}
+<!-- Hero Band - Modern Style -->
+<div class="hero-band">
+    <div class="hero-overlay"></div>
+    <div class="container position-relative">
+        <div class="row py-5">
+            <div class="col-12 text-center">
+                <div class="hero-logo mb-4">
+                    <i class="fas fa-university"></i>
+                </div>
+                <h1 class="display-4 mb-3 fw-bold text-white">
+                    نظام الجامعة الذكية
+                </h1>
+                <p class="lead mb-4 hero-subtitle">نظام متكامل لإدارة الجامعات والمؤسسات التعليمية بكفاءة عالية</p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{% url 'auth:login' %}" class="btn btn-hero-login btn-lg px-4 py-2">
+                        <i class="fas fa-sign-in-alt me-2"></i>تسجيل الدخول
+                    </a>
+                    <a href="#features" class="btn btn-hero-info btn-lg px-4 py-2">
+                        <i class="fas fa-info-circle me-2"></i>المزيد من المعلومات
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container pt-4">
+
+<!-- Statistics Cards -->
+<div class="row mb-5">
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-university fa-3x text-primary mb-3"></i>
+                <h3 class="card-title">الجامعات</h3>
+                <p class="text-muted">إدارة شاملة</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-building fa-3x text-success mb-3"></i>
+                <h3 class="card-title">الكليات</h3>
+                <p class="text-muted">تنظيم دقيق</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-chalkboard-teacher fa-3x text-warning mb-3"></i>
+                <h3 class="card-title">الأساتذة</h3>
+                <p class="text-muted">إدارة متقدمة</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-user-graduate fa-3x text-info mb-3"></i>
+                <h3 class="card-title">الطلاب</h3>
+                <p class="text-muted">متابعة مستمرة</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="row mb-5" id="features">
+    <div class="col-12 mb-4">
+        <h2 class="text-center">
+            <i class="fas fa-star text-warning"></i>
+            مميزات النظام
+        </h2>
+        <hr class="w-25 mx-auto">
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-mobile-alt text-primary"></i>
+                    متوافق مع جميع الأجهزة
+                </h5>
+                <p class="card-text">
+                    يعمل بكفاءة على الحواسيب والأجهزة اللوحية والهواتف الذكية
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-shield-alt text-success"></i>
+                    أمان عالي
+                </h5>
+                <p class="card-text">
+                    حماية متقدمة للبيانات مع نظام صلاحيات متكامل
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-chart-line text-info"></i>
+                    تقارير تفصيلية
+                </h5>
+                <p class="card-text">
+                    إحصائيات وتقارير شاملة لمتابعة الأداء
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-language text-warning"></i>
+                    دعم متعدد اللغات
+                </h5>
+                <p class="card-text">
+                    يدعم اللغة العربية والفرنسية والإنجليزية
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-users text-primary"></i>
+                    إدارة المستخدمين
+                </h5>
+                <p class="card-text">
+                    نظام متقدم لإدارة المستخدمين والصلاحيات
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-clock text-success"></i>
+                    سهولة الاستخدام
+                </h5>
+                <p class="card-text">
+                    واجهة بسيطة وسهلة الاستخدام لجميع المستخدمين
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action -->
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body text-center py-5">
+                <h3 class="mb-3">هل أنت مستعد للبدء؟</h3>
+                <p class="lead mb-4">انضم إلينا اليوم واستفد من جميع المميزات</p>
+                <a href="{% url 'auth:login' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-rocket"></i> ابدأ الآن
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

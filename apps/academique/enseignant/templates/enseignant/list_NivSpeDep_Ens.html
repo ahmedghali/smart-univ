@@ -1,0 +1,292 @@
+{% extends 'enseignant/base_Ens.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block extra_css_ens %}
+<style>
+    .stat-card {
+        transition: transform 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .card {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: none;
+        border-radius: 10px;
+    }
+
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .btn-group .btn {
+        margin: 0 2px;
+    }
+
+    .badge {
+        font-size: 0.85em;
+        font-weight: 500;
+    }
+
+    .level-info {
+        line-height: 1.4;
+    }
+
+    .count-badge {
+        min-width: 50px;
+        display: inline-block;
+    }
+</style>
+{% endblock %}
+
+{% block content_ens %}
+<div class="grey_zone m-1 p-2">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="border-bottom border-danger text-dark mb-0 pb-2">
+            <i class="fas fa-layer-group text-primary me-2"></i>
+            قائمة المستويات - {{my_Dep.nom_ar}}
+        </h4>
+        <a href="{% url 'ense:dashboard_Ens' my_Dep.id %}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> العودة
+        </a>
+    </div>
+
+{% if all_NivSpeDep.count == 0 %}
+    <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle fa-2x mb-2"></i>
+        <h4 class="mb-0">لا توجد مستويات في هذا القسم</h4>
+        <p class="text-muted mt-2 mb-0">يرجى التواصل مع الإدارة لإضافة المستويات</p>
+    </div>
+{% else %}
+
+    <!-- Stats Card -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-card bg-primary-subtle rounded-circle p-3 me-3">
+                            <i class="fas fa-layer-group text-primary fa-2x"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 text-primary">{{all_NivSpeDep.count}}</h3>
+                            <span class="text-muted">عدد جميع المستويات بالقسم</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">
+                        <i class="fas fa-building text-secondary me-1"></i>
+                        <strong>القسم:</strong> {{my_Dep.nom_ar}}
+                    </p>
+                    <p class="mb-0 text-muted">
+                        <i class="fas fa-university me-1"></i>
+                        <strong>الكلية:</strong> {{my_Fac.nom_ar}}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEMESTRE 1 -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-calendar-alt me-2"></i>
+                السداسي الأول (S1)
+                {% if all_NivSpeDep_S1 %}
+                <span class="badge bg-light text-primary ms-2">{{all_NivSpeDep_S1|length}} مستوى</span>
+                {% endif %}
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if all_NivSpeDep_S1 %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center" style="width: 50px;">#</th>
+                            <th>المستوى</th>
+                            <th>الإصلاح</th>
+                            <th>التعريف</th>
+                            <th>التخصص</th>
+                            <th>المسار</th>
+                            <th class="text-center">الطلبة</th>
+                            <th class="text-center">المواد</th>
+                            <th class="text-center" style="width: 120px;">العمليات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for x in all_NivSpeDep_S1 %}
+                        <tr>
+                            <td class="text-center">
+                                <span class="badge bg-secondary">{{forloop.counter}}</span>
+                            </td>
+                            <td class="level-info">
+                                <span class="fw-bold">{{ x.niv_spe_dep.niveau.nom_ar }}</span>
+                                <br>
+                                <small class="text-muted">{{ x.niv_spe_dep.niveau.nom_fr }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ x.niv_spe_dep.specialite.reforme.nom_ar }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted">{{ x.niv_spe_dep.specialite.identification.nom_ar|default:"-" }}</span>
+                            </td>
+                            <td class="level-info">
+                                <span class="fw-bold">{{ x.niv_spe_dep.specialite.nom_ar }}</span>
+                                <br>
+                                <small class="text-muted">{{ x.niv_spe_dep.specialite.nom_fr }}</small>
+                            </td>
+                            <td>
+                                <span class="text-muted">{{ x.niv_spe_dep.specialite.parcours.nom_ar|default:"-" }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-success count-badge">
+                                    <i class="fas fa-users me-1"></i>{{ x.niv_spe_dep.nbr_etudiants|default:0 }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-primary count-badge">
+                                    <i class="fas fa-book me-1"></i>{{ x.niv_spe_dep.nbr_matieres_s1|default:0 }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'ense:timeTable_Niv_Ens' my_Dep.id x.niv_spe_dep.id x.semestre.numero %}"
+                                       class="btn btn-outline-primary btn-sm" title="استعمال الزمن">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </a>
+                                    <a href="{% url 'ense:list_etudiants_ens' my_Dep.id %}?niveau={{x.niv_spe_dep.niveau.id}}"
+                                       class="btn btn-outline-success btn-sm" title="قائمة الطلبة">
+                                        <i class="fas fa-users"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center p-4 text-muted">
+                <i class="fas fa-info-circle fa-2x mb-2"></i>
+                <p class="mb-0">لا توجد مستويات للسداسي الأول</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- SEMESTRE 2 -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-calendar-alt me-2"></i>
+                السداسي الثاني (S2)
+                {% if all_NivSpeDep_S2 %}
+                <span class="badge bg-light text-success ms-2">{{all_NivSpeDep_S2|length}} مستوى</span>
+                {% endif %}
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if all_NivSpeDep_S2 %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center" style="width: 50px;">#</th>
+                            <th>المستوى</th>
+                            <th>الإصلاح</th>
+                            <th>التعريف</th>
+                            <th>التخصص</th>
+                            <th>المسار</th>
+                            <th class="text-center">الطلبة</th>
+                            <th class="text-center">المواد</th>
+                            <th class="text-center" style="width: 120px;">العمليات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for x in all_NivSpeDep_S2 %}
+                        <tr>
+                            <td class="text-center">
+                                <span class="badge bg-secondary">{{forloop.counter}}</span>
+                            </td>
+                            <td class="level-info">
+                                <span class="fw-bold">{{ x.niv_spe_dep.niveau.nom_ar }}</span>
+                                <br>
+                                <small class="text-muted">{{ x.niv_spe_dep.niveau.nom_fr }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ x.niv_spe_dep.specialite.reforme.nom_ar }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted">{{ x.niv_spe_dep.specialite.identification.nom_ar|default:"-" }}</span>
+                            </td>
+                            <td class="level-info">
+                                <span class="fw-bold">{{ x.niv_spe_dep.specialite.nom_ar }}</span>
+                                <br>
+                                <small class="text-muted">{{ x.niv_spe_dep.specialite.nom_fr }}</small>
+                            </td>
+                            <td>
+                                <span class="text-muted">{{ x.niv_spe_dep.specialite.parcours.nom_ar|default:"-" }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-success count-badge">
+                                    <i class="fas fa-users me-1"></i>{{ x.niv_spe_dep.nbr_etudiants|default:0 }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-primary count-badge">
+                                    <i class="fas fa-book me-1"></i>{{ x.niv_spe_dep.nbr_matieres_s2|default:0 }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'ense:timeTable_Niv_Ens' my_Dep.id x.niv_spe_dep.id x.semestre.numero %}"
+                                       class="btn btn-outline-primary btn-sm" title="استعمال الزمن">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </a>
+                                    <a href="{% url 'ense:list_etudiants_ens' my_Dep.id %}?niveau={{x.niv_spe_dep.niveau.id}}"
+                                       class="btn btn-outline-success btn-sm" title="قائمة الطلبة">
+                                        <i class="fas fa-users"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center p-4 text-muted">
+                <i class="fas fa-info-circle fa-2x mb-2"></i>
+                <p class="mb-0">لا توجد مستويات للسداسي الثاني</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Bouton de retour -->
+    <div class="text-center">
+        <a href="{% url 'ense:dashboard_Ens' my_Dep.id %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>العودة للوحة التحكم
+        </a>
+    </div>
+
+{% endif %}
+</div>
+{% endblock %}

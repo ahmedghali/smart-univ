@@ -1,0 +1,326 @@
+{% extends 'enseignant/base_Ens.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block extra_css_ens %}
+<style>
+.stat-card {
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Style du tableau emploi du temps */
+.timetable-body {
+    font-size: 14px;
+}
+
+.time-header {
+    background-color: #495057 !important;
+    color: white;
+    font-weight: bold;
+    width: 120px;
+}
+
+.time-slot {
+    background-color: #e9ecef;
+    font-weight: bold;
+    font-size: 13px;
+    padding: 8px 4px;
+    vertical-align: middle;
+    width: 120px;
+}
+
+.class-cell {
+    padding: 2px !important;
+    vertical-align: top;
+    min-height: 120px;
+    max-width: 160px;
+    position: relative;
+}
+
+.class-item {
+    margin: 1px;
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    font-size: 12px;
+    line-height: 1.3;
+    overflow: hidden;
+    word-wrap: break-word;
+}
+
+.class-item.cours {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border-left: 3px solid #28a745;
+}
+
+.class-item.td {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border-left: 3px solid #ffc107;
+}
+
+.class-item.tp {
+    background: linear-gradient(135deg, #cce7ff 0%, #b3d9ff 100%);
+    border-left: 3px solid #007bff;
+}
+
+.class-item.ss {
+    background: linear-gradient(135deg, #f8d7da 0%, #f1c2c7 100%);
+    border-left: 3px solid #dc3545;
+}
+
+.type-badge {
+    background: rgba(0,0,0,0.1);
+    padding: 2px 5px;
+    border-radius: 2px;
+    font-weight: bold;
+    font-size: 11px;
+    margin-bottom: 3px;
+    text-align: center;
+}
+
+.subject {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 3px;
+    font-size: 12px;
+}
+
+.teacher-location {
+    color: #666;
+    font-size: 11px;
+    margin-bottom: 2px;
+}
+
+.level-info {
+    border-top: 1px solid rgba(0,0,0,0.1);
+    padding-top: 2px;
+    margin-top: 2px;
+}
+
+.level-reform {
+    color: #495057;
+    font-size: 9px;
+    font-weight: bold;
+    margin-bottom: 1px;
+}
+
+.specialty {
+    color: #6c757d;
+    font-size: 8px;
+    margin-bottom: 1px;
+    font-style: italic;
+}
+
+.group {
+    color: #007bff;
+    font-size: 8px;
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    .timetable-body {
+        font-size: 10px;
+    }
+
+    .class-item {
+        font-size: 9px;
+        padding: 3px;
+    }
+
+    .time-slot {
+        font-size: 9px;
+        width: 80px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content_ens %}
+<script>
+  window.addEventListener("pageshow", function (event) {
+    if (event.persisted) {
+      window.location.reload();
+    }
+  });
+</script>
+
+<div class="grey_zone m-1 p-2">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h4 class="border-bottom border-danger text-dark font-weight-bold mb-2">
+                <i class="fas fa-calendar-alt me-2"></i>
+                توزيع حصص:
+                {% if niv_spe_dep %}
+                    <strong>{{niv_spe_dep.niveau.nom_ar}}</strong>
+                    <span class="text-primary">- {{niv_spe_dep.specialite.nom_ar}}</span>
+                {% elif all_Classe_Niv %}
+                    {{all_Classe_Niv.0.niv_spe_dep_sg.niv_spe_dep}}
+                {% endif %}
+                <span class="badge bg-info ms-2">السداسي {{semestre_num}}</span>
+            </h4>
+            {% if niv_spe_dep %}
+            <small class="text-muted">
+                <i class="fas fa-graduation-cap me-1"></i>
+                الإصلاح: {{niv_spe_dep.specialite.reforme.nom_ar}}
+                {% if niv_spe_dep.specialite.identification %}
+                    - التعريف: {{niv_spe_dep.specialite.identification.nom_ar}}
+                {% endif %}
+                {% if niv_spe_dep.specialite.parcours %}
+                    - المسار: {{niv_spe_dep.specialite.parcours.nom_ar}}
+                {% endif %}
+            </small>
+            {% endif %}
+        </div>
+        <a href="{% url 'ense:list_NivSpeDep_Ens' my_Dep.id %}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> العودة
+        </a>
+    </div>
+
+    {% if all_classes == 0 %}
+    <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle fa-2x mb-2"></i>
+        <h4 class="mb-0">لا توجد حصص لهذا المستوى في السداسي {{semestre_num}}</h4>
+        <p class="text-muted mt-2 mb-0">يرجى إضافة حصص أو التحقق من السداسي الآخر</p>
+    </div>
+    {% else %}
+
+    <!-- Statistiques -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-chart-bar me-2"></i>
+                إحصائيات الحصص
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-card text-center p-3 bg-light rounded">
+                        <h3 class="text-primary mb-0">{{all_classes}}</h3>
+                        <small class="text-muted">إجمالي الحصص</small>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stat-card text-center p-3 bg-success-subtle rounded">
+                        <h4 class="text-success mb-0">{{nbr_Cours}}</h4>
+                        <small class="text-muted">دروس (Cours)</small>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stat-card text-center p-3 bg-warning-subtle rounded">
+                        <h4 class="text-warning mb-0">{{nbr_TD}}</h4>
+                        <small class="text-muted">أعمال موجهة (TD)</small>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stat-card text-center p-3 bg-info-subtle rounded">
+                        <h4 class="text-info mb-0">{{nbr_TP}}</h4>
+                        <small class="text-muted">أعمال تطبيقية (TP)</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card text-center p-3 bg-secondary-subtle rounded">
+                        <h4 class="text-secondary mb-0">{{nbr_SS}}</h4>
+                        <small class="text-muted">خرجات ميدانية (SS)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emploi du temps -->
+    <div class="card">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-table me-2"></i>
+                الجدول الزمني الأسبوعي
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-sm table-bordered text-center mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="time-header">الحصة</th>
+                            <th>السبت</th>
+                            <th>الأحد</th>
+                            <th>الإثنين</th>
+                            <th>الثلاثاء</th>
+                            <th>الأربعاء</th>
+                            <th>الخميس</th>
+                        </tr>
+                    </thead>
+                    <tbody class="timetable-body">
+                        {% for time_slot in sixClassesTimes %}
+                        <tr>
+                            <td class="time-slot">
+                                الحصة {{forloop.counter}}<br>
+                                <small>{{ time_slot }}</small>
+                            </td>
+                            {% for day in sevenDays %}
+                            <td class="class-cell">
+                                {% for classTime in all_Classe_Time %}
+                                    {% if classTime.temps == time_slot and classTime.jour == day %}
+                                    <div class="class-item {% if classTime.type == 'Cours' %}cours{% elif classTime.type == 'TD' %}td{% elif classTime.type == 'TP' %}tp{% else %}ss{% endif %}">
+                                        <div class="type-badge">{{classTime.type}}</div>
+                                        <div class="subject">{{classTime.matiere.nom_fr|truncatechars:15}}</div>
+                                        <div class="teacher-location">
+                                            {{classTime.enseignant.enseignant.nom_ar}} .{{classTime.enseignant.enseignant.prenom_ar|slice:":1"}}
+                                            {% if classTime.lieu %} - {{classTime.lieu}}{% endif %}
+                                        </div>
+                                        <div class="level-info">
+                                            <div class="level-reform">
+                                                {{classTime.niv_spe_dep_sg.niv_spe_dep.niveau.nom_ar}} - {{classTime.niv_spe_dep_sg.niv_spe_dep.specialite.reforme.nom_ar}}
+                                            </div>
+                                            <div class="specialty">تخصص: {{classTime.niv_spe_dep_sg.niv_spe_dep.specialite.nom_ar}}</div>
+                                            <div class="group">
+                                                {% if classTime.niv_spe_dep_sg.section and classTime.niv_spe_dep_sg.groupe %}
+                                                    {{classTime.niv_spe_dep_sg.section.nom_ar}} - {{classTime.niv_spe_dep_sg.groupe.nom_ar}}
+                                                {% elif classTime.niv_spe_dep_sg.section %}
+                                                    قطاع: {{classTime.niv_spe_dep_sg.section.nom_ar}}
+                                                {% elif classTime.niv_spe_dep_sg.groupe %}
+                                                    فوج: {{classTime.niv_spe_dep_sg.groupe.nom_ar}}
+                                                {% else %}
+                                                    جميع الطلبة
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+
+    <!-- Boutons de navigation -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <a href="{% url 'ense:list_NivSpeDep_Ens' my_Dep.id %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>العودة لقائمة المستويات
+            </a>
+        </div>
+        <div class="col-md-6 text-end">
+            {% if niv_spe_dep %}
+            <a href="{% url 'ense:list_etudiants_ens' my_Dep.id %}?niveau={{niv_spe_dep.niveau.id}}" class="btn btn-success">
+                <i class="fas fa-users me-2"></i>قائمة طلبة هذا المستوى
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

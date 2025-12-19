@@ -1,0 +1,115 @@
+{% extends "authentification/base.html" %}
+
+{% block title %}اختيار القسم - Smart-Univ{% endblock %}
+
+{% block content %}
+<div class="auth-card">
+    <div class="auth-header">
+        <div class="logo">
+            <i class="fas fa-building"></i>
+        </div>
+        <h1>اختر قسمك</h1>
+        <p>لديك انتماءات لعدة أقسام</p>
+    </div>
+
+    <div class="auth-body">
+        <h3 class="text-center mb-4">اختر القسم للمتابعة</h3>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if affectations %}
+            <form method="post" action="{% url 'auth:select_departement' %}" id="departementForm">
+                {% csrf_token %}
+
+                <div class="roles-container mb-4">
+                    {% for affectation in affectations %}
+                        <label class="role-card" for="dep_{{ forloop.counter }}">
+                            <div class="d-flex align-items-center">
+                                <input
+                                    type="radio"
+                                    name="departement_id"
+                                    value="{{ affectation.departement.id }}"
+                                    id="dep_{{ forloop.counter }}"
+                                    class="me-3"
+                                    required
+                                >
+                                <div class="flex-grow-1">
+                                    <div class="role-label">
+                                        <i class="fas fa-building text-primary me-2"></i>
+                                        {{ affectation.departement.nom_ar|default:affectation.departement.nom_fr }}
+                                    </div>
+                                    <div class="text-muted small mt-1">
+                                        <i class="fas fa-university me-1"></i>
+                                        {{ affectation.departement.faculte.nom_ar|default:affectation.departement.faculte.nom_fr }}
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-2"></i>متابعة
+                </button>
+            </form>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'comm:home' %}" class="text-muted small me-3">
+                    <i class="fas fa-home me-1"></i>الصفحة الرئيسية
+                </a>
+                <a href="{% url 'auth:select_role' %}" class="text-muted small me-3">
+                    <i class="fas fa-arrow-right me-1"></i>رجوع
+                </a>
+                <a href="{% url 'auth:logout' %}" class="text-muted small">
+                    <i class="fas fa-sign-out-alt me-1"></i>تسجيل الخروج
+                </a>
+            </div>
+        {% else %}
+            <div class="alert alert-warning text-center">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                لا توجد انتماءات متاحة. يرجى الاتصال بالمسؤول.
+            </div>
+            <a href="{% url 'auth:select_role' %}" class="btn btn-secondary w-100">
+                <i class="fas fa-arrow-right me-2"></i>رجوع
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Highlight selected departement card
+    document.addEventListener('DOMContentLoaded', function() {
+        const roleCards = document.querySelectorAll('.role-card');
+        const radioInputs = document.querySelectorAll('input[type="radio"]');
+
+        roleCards.forEach((card, index) => {
+            card.addEventListener('click', function() {
+                // Remove selected class from all cards
+                roleCards.forEach(c => c.classList.remove('selected'));
+
+                // Add selected class to clicked card
+                this.classList.add('selected');
+
+                // Check the corresponding radio button
+                radioInputs[index].checked = true;
+            });
+        });
+
+        // Check if a radio is already selected on page load
+        radioInputs.forEach((radio, index) => {
+            if (radio.checked) {
+                roleCards[index].classList.add('selected');
+            }
+        });
+    });
+</script>
+{% endblock %}

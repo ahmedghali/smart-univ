@@ -1,0 +1,368 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - {{ my_Uni.nom_ar }}{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .form-container {
+        background-color: white;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    }
+
+    .section-header {
+        background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        margin-top: 30px;
+    }
+
+    .section-header:first-of-type {
+        margin-top: 0;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+    }
+
+    .help-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+
+    .btn-save {
+        padding: 12px 40px;
+        font-size: 1.1rem;
+    }
+
+    .current-logo {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    }
+</style>
+{% endblock %}
+
+{% block sidebar_menu %}
+<!-- Menu spécifique université -->
+<div class="nav-section">الإدارة</div>
+
+<div class="sub-menu">
+    <a class="nav-link">
+        <i class="fas fa-building"></i>
+        الكليات
+    </a>
+    <div class="sub-menu-items">
+        <a class="nav-link" href="#">
+            <i class="fas fa-list"></i>
+            قائمة الكليات
+        </a>
+    </div>
+</div>
+
+<a class="nav-link" href="#">
+    <i class="fas fa-chart-bar"></i>
+    الإحصائيات
+    <span class="badge bg-secondary ms-auto">قريباً</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Boutons d'action -->
+<div class="row mb-4">
+    <div class="col-12">
+        <a href="{% url 'univ:profile_Uni' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-right me-2"></i>
+            العودة إلى الصفحة الشخصية / Retour au profil
+        </a>
+    </div>
+</div>
+
+<div class="form-container">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Informations de base -->
+        <div class="section-header">
+            <h4 class="mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                معلومات أساسية / Informations de base
+            </h4>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ Uni_form.nom_ar.id_for_label }}" class="form-label">
+                    {{ Uni_form.nom_ar.label }}
+                </label>
+                {{ Uni_form.nom_ar }}
+                {% if Uni_form.nom_ar.errors %}
+                    <div class="text-danger">{{ Uni_form.nom_ar.errors }}</div>
+                {% endif %}
+                {% if Uni_form.nom_ar.help_text %}
+                    <div class="help-text">{{ Uni_form.nom_ar.help_text }}</div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="{{ Uni_form.nom_fr.id_for_label }}" class="form-label">
+                    {{ Uni_form.nom_fr.label }}
+                </label>
+                {{ Uni_form.nom_fr }}
+                {% if Uni_form.nom_fr.errors %}
+                    <div class="text-danger">{{ Uni_form.nom_fr.errors }}</div>
+                {% endif %}
+                {% if Uni_form.nom_fr.help_text %}
+                    <div class="help-text">{{ Uni_form.nom_fr.help_text }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ Uni_form.sigle.id_for_label }}" class="form-label">
+                    {{ Uni_form.sigle.label }}
+                </label>
+                {{ Uni_form.sigle }}
+                {% if Uni_form.sigle.errors %}
+                    <div class="text-danger">{{ Uni_form.sigle.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="{{ Uni_form.logo.id_for_label }}" class="form-label">
+                    {{ Uni_form.logo.label }}
+                </label>
+                {% if my_Uni.logo %}
+                    <div class="mb-2">
+                        <img src="{{ my_Uni.logo.url }}" alt="Logo actuel" class="current-logo">
+                        <p class="text-muted mt-2">الشعار الحالي / Logo actuel</p>
+                    </div>
+                {% endif %}
+                {{ Uni_form.logo }}
+                {% if Uni_form.logo.errors %}
+                    <div class="text-danger">{{ Uni_form.logo.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Localisation -->
+        <div class="section-header">
+            <h4 class="mb-0">
+                <i class="fas fa-map-marker-alt me-2"></i>
+                الموقع / Localisation
+            </h4>
+        </div>
+
+        <div class="row">
+            <div class="col-12 mb-3">
+                <label for="{{ Uni_form.adresse.id_for_label }}" class="form-label">
+                    {{ Uni_form.adresse.label }}
+                </label>
+                {{ Uni_form.adresse }}
+                {% if Uni_form.adresse.errors %}
+                    <div class="text-danger">{{ Uni_form.adresse.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Contacts -->
+        <div class="section-header">
+            <h4 class="mb-0">
+                <i class="fas fa-phone me-2"></i>
+                الاتصالات / Contacts
+            </h4>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ Uni_form.telmobile.id_for_label }}" class="form-label">
+                    {{ Uni_form.telmobile.label }}
+                </label>
+                {{ Uni_form.telmobile }}
+                {% if Uni_form.telmobile.errors %}
+                    <div class="text-danger">{{ Uni_form.telmobile.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="{{ Uni_form.telfix1.id_for_label }}" class="form-label">
+                    {{ Uni_form.telfix1.label }}
+                </label>
+                {{ Uni_form.telfix1 }}
+                {% if Uni_form.telfix1.errors %}
+                    <div class="text-danger">{{ Uni_form.telfix1.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ Uni_form.telfix2.id_for_label }}" class="form-label">
+                    {{ Uni_form.telfix2.label }}
+                </label>
+                {{ Uni_form.telfix2 }}
+                {% if Uni_form.telfix2.errors %}
+                    <div class="text-danger">{{ Uni_form.telfix2.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="{{ Uni_form.fax.id_for_label }}" class="form-label">
+                    {{ Uni_form.fax.label }}
+                </label>
+                {{ Uni_form.fax }}
+                {% if Uni_form.fax.errors %}
+                    <div class="text-danger">{{ Uni_form.fax.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ Uni_form.email.id_for_label }}" class="form-label">
+                    {{ Uni_form.email.label }}
+                </label>
+                {{ Uni_form.email }}
+                {% if Uni_form.email.errors %}
+                    <div class="text-danger">{{ Uni_form.email.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="{{ Uni_form.siteweb.id_for_label }}" class="form-label">
+                    {{ Uni_form.siteweb.label }}
+                </label>
+                {{ Uni_form.siteweb }}
+                {% if Uni_form.siteweb.errors %}
+                    <div class="text-danger">{{ Uni_form.siteweb.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Réseaux sociaux -->
+        <div class="section-header">
+            <h4 class="mb-0">
+                <i class="fas fa-share-alt me-2"></i>
+                الشبكات الاجتماعية / Réseaux sociaux
+            </h4>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ Uni_form.facebook.id_for_label }}" class="form-label">
+                    <i class="fab fa-facebook me-1"></i>
+                    {{ Uni_form.facebook.label }}
+                </label>
+                {{ Uni_form.facebook }}
+                {% if Uni_form.facebook.errors %}
+                    <div class="text-danger">{{ Uni_form.facebook.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="{{ Uni_form.x_twitter.id_for_label }}" class="form-label">
+                    <i class="fab fa-twitter me-1"></i>
+                    {{ Uni_form.x_twitter.label }}
+                </label>
+                {{ Uni_form.x_twitter }}
+                {% if Uni_form.x_twitter.errors %}
+                    <div class="text-danger">{{ Uni_form.x_twitter.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label for="{{ Uni_form.linkedIn.id_for_label }}" class="form-label">
+                    <i class="fab fa-linkedin me-1"></i>
+                    {{ Uni_form.linkedIn.label }}
+                </label>
+                {{ Uni_form.linkedIn }}
+                {% if Uni_form.linkedIn.errors %}
+                    <div class="text-danger">{{ Uni_form.linkedIn.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label for="{{ Uni_form.tiktok.id_for_label }}" class="form-label">
+                    <i class="fab fa-tiktok me-1"></i>
+                    {{ Uni_form.tiktok.label }}
+                </label>
+                {{ Uni_form.tiktok }}
+                {% if Uni_form.tiktok.errors %}
+                    <div class="text-danger">{{ Uni_form.tiktok.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label for="{{ Uni_form.telegram.id_for_label }}" class="form-label">
+                    <i class="fab fa-telegram me-1"></i>
+                    {{ Uni_form.telegram.label }}
+                </label>
+                {{ Uni_form.telegram }}
+                {% if Uni_form.telegram.errors %}
+                    <div class="text-danger">{{ Uni_form.telegram.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-primary btn-save">
+                    <i class="fas fa-save me-2"></i>
+                    حفظ التغييرات / Enregistrer les modifications
+                </button>
+                <a href="{% url 'univ:profile_Uni' %}" class="btn btn-secondary btn-save ms-2">
+                    <i class="fas fa-times me-2"></i>
+                    إلغاء / Annuler
+                </a>
+            </div>
+        </div>
+
+        <!-- Erreurs générales du formulaire -->
+        {% if Uni_form.non_field_errors %}
+        <div class="alert alert-danger mt-4">
+            {{ Uni_form.non_field_errors }}
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Validation côté client pour améliorer l'expérience utilisateur
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+
+        form.addEventListener('submit', function(e) {
+            const nomAr = document.getElementById('{{ Uni_form.nom_ar.id_for_label }}').value.trim();
+            const nomFr = document.getElementById('{{ Uni_form.nom_fr.id_for_label }}').value.trim();
+
+            if (!nomAr && !nomFr) {
+                e.preventDefault();
+                alert('يجب إدخال اسم واحد على الأقل (عربي أو فرنسي)\nAu moins un nom doit être renseigné (arabe ou français)');
+                return false;
+            }
+        });
+    });
+</script>
+{% endblock %}
