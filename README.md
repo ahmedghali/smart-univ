@@ -41,14 +41,14 @@ pip install -r requirements.txt
 Créez la base de données PostgreSQL :
 
 ```sql
-CREATE USER smart_univ___user WITH PASSWORD 'votre_mot_de_passe';
-CREATE DATABASE smart_univ___db WITH OWNER smart_univ___user;
-GRANT ALL PRIVILEGES ON DATABASE smart_univ___db TO smart_univ___user;
-\c smart_univ___db
-GRANT ALL ON SCHEMA public TO smart_univ___user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO smart_univ___user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO smart_univ___user;
-GRANT CREATE ON SCHEMA public TO smart_univ___user;
+CREATE USER your_db_user WITH PASSWORD 'your_password';
+CREATE DATABASE your_db_name WITH OWNER your_db_user;
+GRANT ALL PRIVILEGES ON DATABASE your_db_name TO your_db_user;
+\c your_db_name
+GRANT ALL ON SCHEMA public TO your_db_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO your_db_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO your_db_user;
+GRANT CREATE ON SCHEMA public TO your_db_user;
 ```
 
 ### 5. Configuration des variables d'environnement
@@ -62,14 +62,14 @@ cp .env.example .env
 Modifiez le fichier `.env` avec vos paramètres :
 
 ```env
-SECRET_KEY=votre-clé-secrète-django
+SECRET_KEY=your-secret-key-here
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 
 DB_ENGINE=django.db.backends.postgresql
-DB_NAME=smart_univ___db
-DB_USER=smart_univ___user
-DB_PASSWORD=votre_mot_de_passe
+DB_NAME=your_db_name
+DB_USER=your_db_user
+DB_PASSWORD=your_password
 DB_HOST=localhost
 DB_PORT=5432
 ```
@@ -120,7 +120,6 @@ smart-univ/
 ├── .gitignore              # Fichiers à ignorer par Git
 ├── requirements.txt        # Dépendances Python
 ├── manage.py              # Script de gestion Django
-├── guide.md               # Guide de développement détaillé
 └── README.md              # Ce fichier
 ```
 
@@ -176,7 +175,7 @@ python manage.py collectstatic
 
 ## Développement
 
-Pour plus d'informations sur le développement, consultez le fichier [guide.md](guide.md) qui contient l'historique détaillé de toutes les tâches réalisées.
+Ce projet suit les bonnes pratiques Django avec une architecture modulaire.
 
 ## Sécurité
 
