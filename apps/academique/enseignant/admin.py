@@ -6,6 +6,7 @@ from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from .models import Enseignant
 from .utils import create_user_for_enseignant
+from apps.academique.affectation.models import Ens_Dep
 
 
 # ══════════════════════════════════════════════════════════════
@@ -310,3 +311,25 @@ class EnseignantAdmin(ImportExportModelAdmin):
             django_messages.error(request, "Enseignant introuvable.")
 
         return redirect('admin:enseignant_enseignant_changelist')
+
+    def get_queryset(self, request):
+        """
+        Filtre les enseignants par département pour les non-superusers.
+        Les chefs de département ne voient que les enseignants de leur département.
+        """
+        qs = super().get_queryset(request)
+
+        # Les superusers voient tout
+        if request.user.is_superuser:
+            return qs
+
+        # Pour les autres, filtrer par département
+        departement_id = request.session.get('selected_departement_id')
+        if departement_id:
+            # Récupérer les IDs des enseignants affectés à ce département
+            ens_ids = Ens_Dep.objects.filter(
+                departement_id=departement_id
+            ).values_list('enseignant_id', flat=True)
+            return qs.filter(id__in=ens_ids)
+
+        return qs.none()

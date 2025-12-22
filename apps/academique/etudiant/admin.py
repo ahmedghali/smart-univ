@@ -285,3 +285,23 @@ class EtudiantAdmin(ImportExportModelAdmin):
             django_messages.error(request, "Étudiant introuvable.")
 
         return redirect('admin:etudiant_etudiant_changelist')
+
+    def get_queryset(self, request):
+        """
+        Filtre les étudiants par département pour les non-superusers.
+        Les chefs de département ne voient que les étudiants de leur département.
+        """
+        qs = super().get_queryset(request)
+
+        # Les superusers voient tout
+        if request.user.is_superuser:
+            return qs
+
+        # Pour les autres, filtrer par département
+        departement_id = request.session.get('selected_departement_id')
+        if departement_id:
+            return qs.filter(
+                niv_spe_dep_sg__niv_spe_dep__departement_id=departement_id
+            )
+
+        return qs.none()

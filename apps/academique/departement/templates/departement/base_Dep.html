@@ -120,6 +120,20 @@
     </div>
 </div>
 
+<!-- الإدارة - Section Admin -->
+<div class="sub-menu {% if active_menu == 'admin' %}active{% endif %}">
+    <a class="nav-link">
+        <i class="fas fa-cogs"></i>
+        الإدارة
+    </a>
+    <div class="sub-menu-items">
+        <a class="nav-link" href="/departement/admin/">
+            <i class="fas fa-user-plus"></i>
+            إضافة أستاذ / طالب
+        </a>
+    </div>
+</div>
+
 <!-- الملف الشخصي -->
 <a class="nav-link {% if active_menu == 'profile' %}active{% endif %}" href="{% url 'depa:profile_Dep' %}">
     <i class="fas fa-id-card"></i>

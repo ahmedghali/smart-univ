@@ -1,6 +1,6 @@
 git remote -v
 git add .
-git commit -m "stabel active deactive acces Ens vers Dep"
+git commit -m "ajouter admin au chef departement"
 git push -u origin main
 
 

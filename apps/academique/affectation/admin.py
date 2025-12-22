@@ -198,6 +198,24 @@ class Ens_DepAdmin(ImportExportModelAdmin):
         return f"{total:.2f}h"
     get_volume_horaire_display.short_description = "الحجم الساعي / Vol. horaire"
 
+    def get_queryset(self, request):
+        """
+        Filtre les affectations par département pour les non-superusers.
+        Les chefs de département ne voient que les affectations de leur département.
+        """
+        qs = super().get_queryset(request)
+
+        # Les superusers voient tout
+        if request.user.is_superuser:
+            return qs
+
+        # Pour les autres, filtrer par département
+        departement_id = request.session.get('selected_departement_id')
+        if departement_id:
+            return qs.filter(departement_id=departement_id)
+
+        return qs.none()
+
 
 # ══════════════════════════════════════════════════════════════
 # RESOURCES POUR IMPORT/EXPORT - INFRASTRUCTURE

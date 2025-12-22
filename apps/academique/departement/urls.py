@@ -1,9 +1,13 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
+from .dep_admin import dep_admin_site
 
 app_name = 'departement'
 
 urlpatterns = [
+    # Admin personnalisé pour le chef de département
+    path('admin/', dep_admin_site.urls),
+
     # Dashboard
     path('dashboard/', views.dashboard_Dep, name='dashboard_Dep'),
     path('api/dashboard-stats/', views.dashboard_stats_api, name='dashboard_stats_api'),
