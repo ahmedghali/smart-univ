@@ -1,0 +1,794 @@
+{% extends 'departement/base_Dep.html' %}
+{% block content %}
+
+<div class="container-fluid p-3">
+    <!-- En-tête avec titre et bouton d'édition -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="header-card">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <h4 class="department-title mb-2 mb-md-0">
+                        <i class="fas fa-university me-2"></i>
+                        صفحة التعريف - قسم {{my_Dep.nom_ar}}
+                    </h4>
+                    <a class="btn btn-success btn-modern" href="{% url 'depa:profileUpdate_Dep' %}">
+                        <i class="fas fa-edit ps-1"></i>
+                        تعديل الملف
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Informations générales -->
+        <div class="col-lg-6">
+            <div class="info-card">
+                <div class="info-card-header bg-primary">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        المعلومات الأساسية
+                    </h5>
+                </div>
+                <div class="info-card-body">
+                    {% if my_Dep.faculte %}
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fas fa-university text-warning"></i>
+                            الكلية:
+                        </div>
+                        <div class="info-value">{{my_Dep.faculte}}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if my_Dep.nom_ar %}
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fas fa-building text-primary"></i>
+                            اسم القسم:
+                        </div>
+                        <div class="info-value">{{my_Dep.nom_ar}}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if my_Dep.nom_fr %}
+                    <div class="info-row" >
+                        <div class="info-label">
+                            <i class="fas fa-building text-primary"></i>
+                            Département: {{my_Dep.nom_fr}}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if my_Dep.code %}
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fas fa-code text-secondary"></i>
+                            الكود:
+                        </div>
+                        <div class="info-value">
+                            <span class="badge bg-secondary">{{my_Dep.code}}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if my_Dep.sigle %}
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fas fa-tag text-secondary"></i>
+                            Sigle:
+                        </div>
+                        <div class="info-value">
+                            <span class="badge bg-info">{{my_Dep.sigle}}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    
+                    
+                    {% if my_Dep.logo %}
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fas fa-image text-warning"></i>
+                            الشعار:
+                        </div>
+                        <div class="info-value">
+                            <img src="{{my_Dep.logo.url}}" alt="Logo département" class="department-logo">
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Direction et administration -->
+        <div class="col-lg-6">
+            <div class="info-card">
+                <div class="info-card-header bg-success">
+                    <h5 class="mb-0">
+                        <i class="fas fa-users-cog me-2"></i>
+                        الإدارة والمسؤولون
+                    </h5>
+                </div>
+                <div class="info-card-body">
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fas fa-user-tie text-danger"></i>
+                            رئيس القسم:
+                        </div>
+                        <div class="info-value pe-2">
+                            {% if my_Dep.chef_departement %}
+                                <a href="#" class="profile-link">
+                                    <strong>{{my_Dep.chef_departement}}</strong>
+                                </a>
+                            {% else %}
+                                <span class="text-muted">غير محدد</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fas fa-graduation-cap text-warning"></i>
+                            النائب - بيداغوجيا:
+                        </div>
+                        <div class="info-value pe-2">
+                            {% if my_Dep.chef_dep_adj_p %}
+                                <a href="#" class="profile-link">
+                                    <strong>{{my_Dep.chef_dep_adj_p}}</strong>
+                                </a>
+                            {% else %}
+                                <span class="text-muted">غير محدد</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fas fa-university text-info"></i>
+                            النائب - ما بعد التدرج:
+                        </div>
+                        <div class="info-value pe-2">
+                            {% if my_Dep.chef_dep_adj_pg %}
+                                <a href="#" class="profile-link">
+                                    <strong>{{my_Dep.chef_dep_adj_pg}}</strong>
+                                </a>
+                            {% else %}
+                                <span class="text-muted">غير محدد</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations de contact -->
+        <div class="col-lg-6">
+            <div class="info-card">
+                <div class="info-card-header bg-warning">
+                    <h5 class="mb-0">
+                        <i class="fas fa-address-book me-2"></i>
+                        معلومات الاتصال
+                    </h5>
+                </div>
+                <div class="info-card-body">
+                    {% if my_Dep.telmobile %}
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fas fa-mobile-alt text-success"></i>
+                            رقم الجوال:
+                        </div>
+                        <div class="info-value">
+                            <a href="tel:{{my_Dep.telmobile}}" class="contact-link">
+                                {{my_Dep.telmobile}}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if my_Dep.telfix1 %}
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fas fa-phone text-primary"></i>
+                            الهاتف الثابت 1:
+                        </div>
+                        <div class="info-value">
+                            <a href="tel:{{my_Dep.telfix1}}" class="contact-link">
+                                {{my_Dep.telfix1}}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if my_Dep.telfix2 %}
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fas fa-phone text-primary"></i>
+                            الهاتف الثابت 2:
+                        </div>
+                        <div class="info-value">
+                            <a href="tel:{{my_Dep.telfix2}}" class="contact-link">
+                                {{my_Dep.telfix2}}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if my_Dep.tel3chiffre %}
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fas fa-phone text-info"></i>
+                            Tel 3 Chiffre:
+                        </div>
+                        <div class="info-value">
+                            <a href="tel:{{my_Dep.tel3chiffre}}" class="contact-link">
+                                {{my_Dep.tel3chiffre}}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if my_Dep.fax %}
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fas fa-fax text-secondary"></i>
+                            رقم الفاكس:
+                        </div>
+                        <div class="info-value">{{my_Dep.fax}}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if my_Dep.email %}
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fas fa-envelope text-danger"></i>
+                            البريد الإلكتروني:
+                        </div>
+                        <div class="info-value">
+                            <a href="mailto:{{my_Dep.email}}" class="contact-link">
+                                {{my_Dep.email}}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if my_Dep.siteweb %}
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fas fa-globe text-info"></i>
+                            الموقع الإلكتروني:
+                        </div>
+                        <div class="info-value">
+                            <a href="{{my_Dep.siteweb}}" target="_blank" class="contact-link">
+                                {{my_Dep.siteweb}}
+                                <i class="fas fa-external-link-alt fa-xs ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if not my_Dep.telmobile and not my_Dep.telfix1 and not my_Dep.telfix2 and not my_Dep.fax and not my_Dep.email and not my_Dep.siteweb %}
+                    <div class="text-center text-muted p-3">
+                        <i class="fas fa-info-circle"></i>
+                        لم يتم تعيين معلومات الاتصال بعد
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Réseaux sociaux -->
+        <div class="col-lg-6">
+            <div class="info-card">
+                <div class="info-card-header bg-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-share-alt me-2"></i>
+                        وسائل التواصل الاجتماعي
+                    </h5>
+                </div>
+                <div class="info-card-body">
+                    {% if my_Dep.linkedIn or my_Dep.facebook or my_Dep.x_twitter or my_Dep.tiktok or my_Dep.telegram %}
+                        <div class="social-grid">
+                            {% if my_Dep.linkedIn %}
+                            <div class="social-item linkedin">
+                                <i class="fab fa-linkedin"></i>
+                                <div class="social-info">
+                                    <div class="social-label">LinkedIn</div>
+                                    <a href="{{my_Dep.linkedIn}}" target="_blank" class="social-link">
+                                        الملف الشخصي
+                                        <i class="fas fa-external-link-alt fa-xs ms-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if my_Dep.facebook %}
+                            <div class="social-item facebook">
+                                <i class="fab fa-facebook"></i>
+                                <div class="social-info">
+                                    <div class="social-label">Facebook</div>
+                                    <a href="{{my_Dep.facebook}}" target="_blank" class="social-link">
+                                        صفحة الفايسبوك
+                                        <i class="fas fa-external-link-alt fa-xs ms-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if my_Dep.x_twitter %}
+                            <div class="social-item twitter">
+                                <i class="fab fa-x-twitter"></i>
+                                <div class="social-info">
+                                    <div class="social-label">X (Twitter)</div>
+                                    <a href="{{my_Dep.x_twitter}}" target="_blank" class="social-link">
+                                        حساب إكس
+                                        <i class="fas fa-external-link-alt fa-xs ms-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if my_Dep.tiktok %}
+                            <div class="social-item tiktok">
+                                <i class="fab fa-tiktok"></i>
+                                <div class="social-info">
+                                    <div class="social-label">TikTok</div>
+                                    <a href="{{my_Dep.tiktok}}" target="_blank" class="social-link">
+                                        حساب تيكتوك
+                                        <i class="fas fa-external-link-alt fa-xs ms-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if my_Dep.telegram %}
+                            <div class="social-item telegram">
+                                <i class="fab fa-telegram"></i>
+                                <div class="social-info">
+                                    <div class="social-label">Telegram</div>
+                                    <a href="{{my_Dep.telegram}}" target="_blank" class="social-link">
+                                        قناة تلغرام
+                                        <i class="fas fa-external-link-alt fa-xs ms-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted p-3">
+                            <i class="fas fa-info-circle"></i>
+                            لم يتم تعيين أي حسابات وسائل التواصل الاجتماعي بعد
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Variables CSS */
+:root {
+    --primary-color: #007bff;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #17a2b8;
+    --secondary-color: #6c757d;
+    --dark-color: #343a40;
+    --light-bg: #f8f9fa;
+    --border-radius: 12px;
+    --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+/* Reset et base */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: var(--light-bg);
+}
+
+/* Container principal */
+.container-fluid {
+    /* max-width: 1400px; */
+    margin: 0 auto;
+}
+
+/* Header card */
+.header-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: var(--border-radius);
+    padding: 1.5rem 2rem;
+    box-shadow: var(--box-shadow);
+    margin-bottom: 1rem;
+}
+
+.department-title {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.btn-modern {
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border: none;
+    transition: var(--transition);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Info cards */
+.info-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    overflow: hidden;
+    transition: var(--transition);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.info-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.info-card-header {
+    padding: 1rem 1.5rem;
+    color: white;
+    font-weight: 600;
+}
+
+.info-card-header.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color), #0056b3) !important;
+}
+
+.info-card-header.bg-success {
+    background: linear-gradient(135deg, var(--success-color), #1e7e34) !important;
+}
+
+.info-card-header.bg-warning {
+    background: linear-gradient(135deg, var(--warning-color), #e0a800) !important;
+    color: #333 !important;
+}
+
+.info-card-header.bg-dark {
+    background: linear-gradient(135deg, var(--dark-color), #23272b) !important;
+}
+
+.info-card-body {
+    padding: 1.5rem;
+    flex-grow: 1;
+}
+
+/* Info rows */
+.info-row {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+    transition: var(--transition);
+}
+
+.info-row:hover {
+    background: #e9ecef;
+    transform: translateX(3px);
+}
+
+.info-row:last-child {
+    margin-bottom: 0;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #495057;
+    min-width: 140px;
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-value {
+    flex: 1;
+    color: #333;
+    word-break: break-word;
+}
+
+.info-value strong {
+    color: #2c3e50;
+}
+
+/* Links */
+.profile-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.profile-link:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+.contact-link {
+    color: var(--success-color);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.contact-link:hover {
+    color: #1e7e34;
+    text-decoration: underline;
+}
+
+/* Department logo */
+.department-logo {
+    max-width: 60px;
+    max-height: 60px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    object-fit: contain;
+}
+
+/* Social media */
+.social-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+.social-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    transition: var(--transition);
+    border-left: 4px solid transparent;
+}
+
+.social-item:hover {
+    background: #e9ecef;
+    transform: translateX(3px);
+}
+
+.social-item i {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    width: 40px;
+    text-align: center;
+}
+
+.social-info {
+    flex: 1;
+}
+
+.social-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.social-link {
+    color: #6c757d;
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: var(--transition);
+}
+
+.social-link:hover {
+    text-decoration: underline;
+}
+
+/* Couleurs spécifiques pour les réseaux sociaux */
+.social-item.linkedin i {
+    color: #0077b5;
+}
+
+.social-item.linkedin:hover {
+    border-left-color: #0077b5;
+}
+
+.social-item.facebook i {
+    color: #1877f2;
+}
+
+.social-item.facebook:hover {
+    border-left-color: #1877f2;
+}
+
+.social-item.twitter i {
+    color: #000000;
+}
+
+.social-item.twitter:hover {
+    border-left-color: #000000;
+}
+
+.social-item.tiktok i {
+    color: #fe2c55;
+}
+
+.social-item.tiktok:hover {
+    border-left-color: #fe2c55;
+}
+
+.social-item.telegram i {
+    color: #0088cc;
+}
+
+.social-item.telegram:hover {
+    border-left-color: #0088cc;
+}
+
+/* Badges */
+.badge {
+    font-size: 0.8rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+}
+
+/* Responsive design */
+@media (max-width: 992px) {
+    .info-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .info-label {
+        min-width: auto;
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 1rem;
+    }
+    
+    .header-card {
+        padding: 1rem;
+    }
+    
+    .department-title {
+        font-size: 1.2rem;
+    }
+    
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .btn-modern {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .info-card-body {
+        padding: 1rem;
+    }
+
+    .social-item {
+        flex-direction: column;
+        text-align: center;
+        padding: 1rem 0.5rem;
+    }
+    
+    .social-item i {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container-fluid {
+        padding: 0.5rem;
+    }
+    
+    .header-card {
+        padding: 1rem;
+    }
+    
+    .department-title {
+        font-size: 1.1rem;
+    }
+    
+    .info-card-body {
+        padding: 0.75rem;
+    }
+    
+    .info-row {
+        padding: 0.5rem;
+    }
+    
+    .department-logo {
+        max-width: 50px;
+        max-height: 50px;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.info-card {
+    animation: fadeIn 0.6s ease-out;
+}
+
+/* Accessibilité */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Focus visible */
+.btn-modern:focus-visible,
+.profile-link:focus-visible,
+.contact-link:focus-visible,
+.social-link:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Corrections pour éviter les débordements */
+.row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.col-lg-6 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+/* Hauteur minimale pour les cartes */
+.info-card {
+    min-height: 200px;
+}
+
+/* Scroll smooth */
+html {
+    scroll-behavior: smooth;
+}
+</style>
+{% endblock %}

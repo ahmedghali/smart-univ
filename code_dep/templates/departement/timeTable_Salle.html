@@ -1,0 +1,265 @@
+{% extends 'departement/base_Dep.html' %}
+{% block content %}
+{% load crispy_forms_tags%}
+{% load custom_filters %}
+
+<script>
+  // Ecoute l'événement 'pageshow' pour recharger automatiquement la page lorsqu'elle est revisitée
+  window.addEventListener("pageshow", function (event) {
+    if (event.persisted) {  // Vérifie si la page vient du cache du navigateur
+      window.location.reload();  // Recharge la page automatiquement
+    }
+  });
+</script>
+
+<div class="grey_zone m-1 p-2">
+  {% for classTime in all_Classe_Salle %}
+    {% if forloop.counter == 1 %}
+      <h4 class="border-bottom border-danger text-dark font-weight-bold mb-3">
+        <i class="fas fa-door-open"></i>
+        توزيع حصص القاعة: {{classTime.lieu}}
+      </h4>
+    {% endif%}
+  {% endfor%}
+
+  {% if all_classes == 0 %}
+  <div class="alert alert-info text-center">
+    <i class="fas fa-info-circle"></i>
+    <h4 class="mb-0">لا توجد حصص لهذه القاعة</h4>
+  </div>
+  {% else %}
+
+  <!-- Statistiques -->
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">
+        <i class="fas fa-chart-bar"></i>
+        إحصائيات الحصص
+      </h5>
+    </div>
+    <div class="card-body">
+      <div class="row justify-content-center">
+        <div class="col-md-4">
+          <div class="stat-card text-center p-3 bg-warning-subtle rounded">
+            <h3 class="text-warning mb-0">{{nbr_TD}}</h3>
+            <small class="text-muted">أعمال موجهة (TD)</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Emploi du temps -->
+  <div class="card">
+    <div class="card-header bg-dark text-white">
+      <h5 class="mb-0">
+        <i class="fas fa-table"></i>
+        الجدول الزمني الأسبوعي للقاعة
+      </h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover table-sm table-bordered text-center mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th class="time-header">الحصة</th>
+              <th>السبت</th>
+              <th>الأحد</th>
+              <th>الإثنين</th>
+              <th>الثلاثاء</th>
+              <th>الأربعاء</th>
+              <th>الخميس</th>
+            </tr>
+          </thead>
+          <tbody class="timetable-body">
+            {% for clas in sixClasses %}
+            <tr>
+              <td class="time-slot">{{ clas|slice:"0:15" }}</td>
+              {% for day in sevenDays %}
+              <td class="class-cell">
+                {% for classTime in all_Classe_Time %}
+                  {% if classTime.temps == clas %}
+                    {% if classTime.jour == day %}
+                      {% set_flag False as flag %}
+                      <div class="class-item td">
+                        <div class="type-badge">{{classTime.type}}</div>
+                        <div class="subject">{{classTime.matiere.nom_fr|truncatechars:15}}</div>
+                        <div class="teacher-location">{{classTime.enseignant.enseignant.nom_ar}} {{classTime.enseignant.enseignant.prenom_ar}}</div>
+                        
+                        <!-- Informations niveau/spécialité/groupe -->
+                        <div class="level-info">
+                          <div class="level-reform">{{classTime.niv_spe_dep_sg.niv_spe_dep.niveau}} - {{classTime.niv_spe_dep_sg.niv_spe_dep.specialite.reforme}}</div>
+                          <div class="specialty">تخصص: {{classTime.niv_spe_dep_sg.niv_spe_dep.specialite}}</div>
+                          <div class="department">قسم: {{classTime.niv_spe_dep_sg.niv_spe_dep.departement}}</div>
+                          <div class="group">
+                            {% if classTime.type_affectation == 'par_section' %}
+                              {{section}}
+                            {% elif classTime.type_affectation == 'par_groupe' %}
+                              {{groupe}}
+                            {% endif %}
+                          </div>
+                        </div>
+                      </div>
+                    {% endif %}
+                  {% endif %}
+                {% endfor %}
+              </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% endif %}
+
+  <!-- Boutons de navigation -->
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <a href="#" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> العودة
+      </a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.grey_zone {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.stat-card {
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Style du tableau emploi du temps */
+.timetable-body {
+    font-size: 14px;
+}
+
+.time-header {
+    background-color: #495057 !important;
+    color: white;
+    font-weight: bold;
+    width: 120px;
+}
+
+.time-slot {
+    background-color: #e9ecef;
+    font-weight: bold;
+    font-size: 13px;
+    padding: 8px 4px;
+    vertical-align: middle;
+    width: 120px;
+}
+
+.class-cell {
+    padding: 2px !important;
+    vertical-align: top;
+    min-height: 120px;
+    max-width: 160px;
+    position: relative;
+}
+
+.class-item {
+    margin: 1px;
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    font-size: 12px;
+    line-height: 1.3;
+    overflow: hidden;
+    word-wrap: break-word;
+}
+
+.class-item.td {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border-left: 3px solid #ffc107;
+}
+
+.type-badge {
+    background: rgba(0,0,0,0.1);
+    padding: 2px 5px;
+    border-radius: 2px;
+    font-weight: bold;
+    font-size: 11px;
+    margin-bottom: 3px;
+    text-align: center;
+}
+
+.subject {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 3px;
+    font-size: 12px;
+}
+
+.teacher-location {
+    color: #666;
+    font-size: 11px;
+    margin-bottom: 2px;
+}
+
+/* Informations niveau/spécialité/groupe */
+.level-info {
+    border-top: 1px solid rgba(0,0,0,0.1);
+    padding-top: 2px;
+    margin-top: 2px;
+}
+
+.level-reform {
+    color: #495057;
+    font-size: 9px;
+    font-weight: bold;
+    margin-bottom: 1px;
+}
+
+.specialty {
+    color: #6c757d;
+    font-size: 8px;
+    margin-bottom: 1px;
+    font-style: italic;
+}
+
+.department {
+    color: #28a745;
+    font-size: 8px;
+    margin-bottom: 1px;
+    font-weight: bold;
+}
+
+.group {
+    color: #007bff;
+    font-size: 8px;
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    .timetable-body {
+        font-size: 10px;
+    }
+    
+    .class-item {
+        font-size: 9px;
+        padding: 3px;
+    }
+    
+    .time-slot {
+        font-size: 9px;
+        width: 80px;
+    }
+}
+</style>
+{% endblock %}

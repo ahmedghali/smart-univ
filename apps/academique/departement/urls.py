@@ -13,7 +13,7 @@ urlpatterns = [
     path('profile/update/', views.profileUpdate_Dep, name='profileUpdate_Dep'),
 
     # Enseignants
-    path('enseignants/<int:semestre>/', views.list_enseignants_dep, name='list_enseignants_dep'),
+    path('enseignants/<int:semestre_num>/', views.list_enseignants_dep, name='list_enseignants_dep'),
     path('enseignants/new/', views.new_Enseignant, name='new_Enseignant'),
     path('enseignants/heures/<int:semestre>/', views.heures_enseignants_dep, name='heures_enseignants_dep'),
 

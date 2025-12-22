@@ -1,0 +1,1316 @@
+{% extends 'departement/base_Dep.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="container-fluid px-3 py-2">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            
+            <!-- En-tête avec statistiques -->
+            <div class="header-section mb-3">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div class="header-title">
+                        <h4 class="mb-1 text-dark fw-bold">
+                            <i class="fas fa-layer-group me-2"></i>
+                            قائمة المستويات الدراسية
+                        </h4>
+                        <div class="stats-row">
+                            <span class="badge bg-primary me-2">
+                                <i class="fas fa-list-ol me-1"></i>
+                                المجموع: {{all_NivSpeDep.count}}
+                            </span>
+                            <span class="badge bg-success me-2">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                السداسي 1: {{all_NivSpeDep_S1.count}}
+                            </span>
+                            <span class="badge bg-info">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                السداسي 2: {{all_NivSpeDep_S2.count}}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="showSemester('S1')" id="btnS1">
+                                <i class="fas fa-calendar me-1"></i>السداسي 1
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="showSemester('S2')" id="btnS2">
+                                <i class="fas fa-calendar me-1"></i>السداسي 2
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary active" onclick="showSemester('all')" id="btnAll">
+                                <i class="fas fa-list me-1"></i>الكل
+                            </button>
+                        </div>
+                        <div class="ms-2">
+                            <button class="btn btn-sm btn-success" onclick="exportData()">
+                                <i class="fas fa-download me-1"></i>تصدير
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if all_NivSpeDep.count == 0 %}
+                <!-- حالة عدم وجود بيانات -->
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <h5 class="empty-title">لا توجد مستويات دراسية</h5>
+                    <p class="empty-text">لم يتم إضافة أي مستويات دراسية بعد</p>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>إضافة مستوى جديد
+                    </button>
+                </div>
+            {% else %}
+
+                <!-- السداسي الأول -->
+                <div class="semester-section" id="semesterS1">
+                    <div class="semester-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="semester-title">
+                                <i class="fas fa-calendar-check me-2"></i>
+                                السداسي الأول
+                                <span class="badge bg-success ms-2">{{all_NivSpeDep_S1.count}} مستوى</span>
+                            </h5>
+                            <button class="btn btn-sm btn-outline-light" onclick="toggleSemester('S1')">
+                                <i class="fas fa-eye" id="toggleIconS1"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container" id="tableS1">
+                        <div class="table-responsive">
+                            <table class="table table-modern table-hover mb-0">
+                                <thead class="table-header sticky-top">
+                                    <tr>
+                                        <th class="text-center" style="width: 60px;">#</th>
+                                        <th style="min-width: 120px;">المستوى</th>
+                                        <th style="min-width: 200px;">التخصص</th>
+                                        <th class="text-center" style="width: 100px;">الإصلاح</th>
+                                        <th style="min-width: 150px;">المسار</th>
+                                        <th class="text-center" style="width: 90px;">الطلبة</th>
+                                        <th class="text-center" style="width: 90px;">المواد</th>
+                                        <th class="text-center" style="width: 90px;">الغيابات</th>
+                                        <th class="text-center" style="width: 120px;">العمليات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for x in all_NivSpeDep_S1 %}
+                                    <tr class="niveau-row align-middle" 
+                                        data-semester="S1" 
+                                        data-niveau="{{x.niv_spe_dep.niveau}}" 
+                                        data-reforme="{{x.niv_spe_dep.specialite.reforme}}" 
+                                        data-students="{{x.niv_spe_dep.nbr_etudiants}}"
+                                        data-subjects="{{x.niv_spe_dep.nbr_matieres_s1}}">
+                                        <td class="text-center">
+                                            <span class="row-number fw-bold text-primary">{{forloop.counter}}</span>
+                                        </td>
+                                        <td class="niveau-cell">
+                                            <div class="niveau-info">
+                                                <div class="niveau-name fw-bold text-dark">{{x.niv_spe_dep.niveau}}</div>
+                                                <small class="text-muted d-flex align-items-center">
+                                                    <i class="fas fa-calendar me-1"></i>السداسي الأول
+                                                </small>
+                                            </div>
+                                        </td>
+                                        <td class="specialite-cell">
+                                            <div class="specialite-info">
+                                                <div class="specialite-name fw-semibold text-dark mb-1">{{x.niv_spe_dep.specialite}}</div>
+                                                {% if x.niv_spe_dep.specialite.identification %}
+                                                <small class="text-muted">{{x.niv_spe_dep.specialite.identification|truncatechars:40}}</small>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge reforme-badge fs-6 {% if x.niv_spe_dep.specialite.reforme == 'LMD' %}bg-success{% else %}bg-info{% endif %}">
+                                                {{x.niv_spe_dep.specialite.reforme}}
+                                            </span>
+                                        </td>
+                                        <td class="parcours-cell">
+                                            {% if x.niv_spe_dep.specialite.parcours %}
+                                                <span class="text-dark">{{x.niv_spe_dep.specialite.parcours}}</span>
+                                            {% else %}
+                                                <span class="text-muted fst-italic">غير محدد</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="stat-cell students">
+                                                <span class="stat-number">{{x.niv_spe_dep.nbr_etudiants}}</span>
+                                                <i class="fas fa-users stat-icon ms-1"></i>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="stat-cell subjects">
+                                                <span class="stat-number">{{x.niv_spe_dep.nbr_matieres_s1}}</span>
+                                                <i class="fas fa-book stat-icon ms-1"></i>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="{% url 'depa:list_absences_niveau' x.niv_spe_dep.id x.semestre.numero %}"
+                                               class="btn btn-outline-warning btn-sm"
+                                               title="الغيابات"
+                                               data-bs-toggle="tooltip">
+                                                <i class="fas fa-user-times"></i>
+                                                <span class="ms-1">عرض</span>
+                                            </a>
+                                        </td>
+                                        <td class="text-center actions-cell">
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'depa:timeTable_Niv' x.niv_spe_dep.id x.semestre.numero %}"
+                                                   class="btn btn-outline-primary btn-sm"
+                                                   title="استعمال الزمن"
+                                                   data-bs-toggle="tooltip">
+                                                    <i class="fas fa-table"></i>
+                                                </a>
+                                                <button class="btn btn-outline-success btn-sm"
+                                                        onclick="viewDetails('{{x.id}}')"
+                                                        title="التفاصيل"
+                                                        data-bs-toggle="tooltip">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- السداسي الثاني -->
+                <div class="semester-section mt-4" id="semesterS2">
+                    <div class="semester-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="semester-title">
+                                <i class="fas fa-calendar-check me-2"></i>
+                                السداسي الثاني
+                                <span class="badge bg-info ms-2">{{all_NivSpeDep_S2.count}} مستوى</span>
+                            </h5>
+                            <button class="btn btn-sm btn-outline-light" onclick="toggleSemester('S2')">
+                                <i class="fas fa-eye" id="toggleIconS2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container" id="tableS2">
+                        <div class="table-responsive">
+                            <table class="table table-modern table-hover mb-0">
+                                <thead class="table-header sticky-top">
+                                    <tr>
+                                        <th class="text-center" style="width: 60px;">#</th>
+                                        <th style="min-width: 120px;">المستوى</th>
+                                        <th style="min-width: 200px;">التخصص</th>
+                                        <th class="text-center" style="width: 100px;">الإصلاح</th>
+                                        <th style="min-width: 150px;">المسار</th>
+                                        <th class="text-center" style="width: 90px;">الطلبة</th>
+                                        <th class="text-center" style="width: 90px;">المواد</th>
+                                        <th class="text-center" style="width: 90px;">الغيابات</th>
+                                        <th class="text-center" style="width: 120px;">العمليات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for x in all_NivSpeDep_S2 %}
+                                    <tr class="niveau-row align-middle" 
+                                        data-semester="S2" 
+                                        data-niveau="{{x.niv_spe_dep.niveau}}" 
+                                        data-reforme="{{x.niv_spe_dep.specialite.reforme}}"
+                                        data-students="{{x.niv_spe_dep.nbr_etudiants}}"
+                                        data-subjects="{{x.niv_spe_dep.nbr_matieres_s2}}">
+                                        <td class="text-center">
+                                            <span class="row-number fw-bold text-primary">{{forloop.counter}}</span>
+                                        </td>
+                                        <td class="niveau-cell">
+                                            <div class="niveau-info">
+                                                <div class="niveau-name fw-bold text-dark">{{x.niv_spe_dep.niveau}}</div>
+                                                <small class="text-muted d-flex align-items-center">
+                                                    <i class="fas fa-calendar me-1"></i>السداسي الثاني
+                                                </small>
+                                            </div>
+                                        </td>
+                                        <td class="specialite-cell">
+                                            <div class="specialite-info">
+                                                <div class="specialite-name fw-semibold text-dark mb-1">{{x.niv_spe_dep.specialite}}</div>
+                                                {% if x.niv_spe_dep.specialite.identification %}
+                                                <small class="text-muted">{{x.niv_spe_dep.specialite.identification|truncatechars:40}}</small>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge reforme-badge fs-6 {% if x.niv_spe_dep.specialite.reforme == 'LMD' %}bg-success{% else %}bg-info{% endif %}">
+                                                {{x.niv_spe_dep.specialite.reforme}}
+                                            </span>
+                                        </td>
+                                        <td class="parcours-cell">
+                                            {% if x.niv_spe_dep.specialite.parcours %}
+                                                <span class="text-dark">{{x.niv_spe_dep.specialite.parcours}}</span>
+                                            {% else %}
+                                                <span class="text-muted fst-italic">غير محدد</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="stat-cell students">
+                                                <span class="stat-number">{{x.niv_spe_dep.nbr_etudiants}}</span>
+                                                <i class="fas fa-users stat-icon ms-1"></i>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="stat-cell subjects">
+                                                <span class="stat-number">{{x.niv_spe_dep.nbr_matieres_s2}}</span>
+                                                <i class="fas fa-book stat-icon ms-1"></i>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="{% url 'depa:list_absences_niveau' x.niv_spe_dep.id x.semestre.numero %}"
+                                               class="btn btn-outline-warning btn-sm"
+                                               title="الغيابات"
+                                               data-bs-toggle="tooltip">
+                                                <i class="fas fa-user-times"></i>
+                                                <span class="ms-1">عرض</span>
+                                            </a>
+                                        </td>
+                                        <td class="text-center actions-cell">
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'depa:timeTable_Niv' x.niv_spe_dep.id x.semestre.numero %}"
+                                                   class="btn btn-outline-primary btn-sm"
+                                                   title="استعمال الزمن"
+                                                   data-bs-toggle="tooltip">
+                                                    <i class="fas fa-table"></i>
+                                                </a>
+                                                <button class="btn btn-outline-success btn-sm"
+                                                        onclick="viewDetails('{{x.id}}')"
+                                                        title="التفاصيل"
+                                                        data-bs-toggle="tooltip">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ملخص الإحصائيات -->
+                <div class="summary-section mt-4">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="stat-card total">
+                                <div class="stat-icon">
+                                    <i class="fas fa-layer-group"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="totalNiveaux">{{all_NivSpeDep.count}}</div>
+                                    <div class="stat-label">إجمالي المستويات</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card students">
+                                <div class="stat-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="totalStudents">-</div>
+                                    <div class="stat-label">إجمالي الطلبة</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card subjects">
+                                <div class="stat-icon">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="totalSubjects">-</div>
+                                    <div class="stat-label">إجمالي المواد</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card reforms">
+                                <div class="stat-icon">
+                                    <i class="fas fa-graduation-cap"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="reformsCount">-</div>
+                                    <div class="stat-label">أنواع الإصلاحات</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initializePage();
+    calculateStatistics();
+    initializeTooltips();
+});
+
+function initializeTooltips() {
+    // Initialize Bootstrap tooltips
+    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+}
+
+function showSemester(semester) {
+    const s1 = document.getElementById('semesterS1');
+    const s2 = document.getElementById('semesterS2');
+    const btnS1 = document.getElementById('btnS1');
+    const btnS2 = document.getElementById('btnS2');
+    const btnAll = document.getElementById('btnAll');
+    
+    // Reset button states
+    [btnS1, btnS2, btnAll].forEach(btn => btn.classList.remove('active'));
+    
+    switch(semester) {
+        case 'S1':
+            s1.style.display = 'block';
+            s2.style.display = 'none';
+            btnS1.classList.add('active');
+            break;
+        case 'S2':
+            s1.style.display = 'none';
+            s2.style.display = 'block';
+            btnS2.classList.add('active');
+            break;
+        case 'all':
+            s1.style.display = 'block';
+            s2.style.display = 'block';
+            btnAll.classList.add('active');
+            break;
+    }
+    calculateStatistics();
+}
+
+function toggleSemester(semester) {
+    const table = document.getElementById(`table${semester}`);
+    const icon = document.getElementById(`toggleIcon${semester}`);
+    
+    if (table.style.display === 'none') {
+        table.style.display = 'block';
+        icon.className = 'fas fa-eye';
+    } else {
+        table.style.display = 'none';
+        icon.className = 'fas fa-eye-slash';
+    }
+}
+
+function calculateStatistics() {
+    const visibleRows = document.querySelectorAll('.niveau-row');
+    
+    let totalStudents = 0;
+    let totalSubjects = 0;
+    const reforms = new Set();
+    
+    visibleRows.forEach(row => {
+        // Check if the row's parent semester is visible
+        const parentSemester = row.closest('.semester-section');
+        if (parentSemester && parentSemester.style.display !== 'none') {
+            totalStudents += parseInt(row.dataset.students) || 0;
+            totalSubjects += parseInt(row.dataset.subjects) || 0;
+            reforms.add(row.dataset.reforme);
+        }
+    });
+    
+    document.getElementById('totalNiveaux').textContent = getVisibleRowsCount();
+    document.getElementById('totalStudents').textContent = totalStudents.toLocaleString();
+    document.getElementById('totalSubjects').textContent = totalSubjects.toLocaleString();
+    document.getElementById('reformsCount').textContent = reforms.size;
+}
+
+function getVisibleRowsCount() {
+    const visibleRows = document.querySelectorAll('.niveau-row');
+    let count = 0;
+    
+    visibleRows.forEach(row => {
+        const parentSemester = row.closest('.semester-section');
+        if (parentSemester && parentSemester.style.display !== 'none') {
+            count++;
+        }
+    });
+    
+    return count;
+}
+
+function initializePage() {
+    // Initialize with default state
+    showSemester('all');
+}
+
+function viewDetails(id) {
+    console.log('عرض تفاصيل المستوى:', id);
+    // Add your view details logic here
+    // Example: window.location.href = `/niveau/${id}/details/`;
+}
+
+function exportData() {
+    try {
+        // Get the current active semester
+        const btnS1 = document.getElementById('btnS1');
+        const btnS2 = document.getElementById('btnS2');
+        const btnAll = document.getElementById('btnAll');
+        
+        let activeSemester = 'all';
+        if (btnS1.classList.contains('active')) {
+            activeSemester = 'S1';
+        } else if (btnS2.classList.contains('active')) {
+            activeSemester = 'S2';
+        }
+        
+        // Collect data from visible tables
+        const data = [];
+        const tables = activeSemester === 'all' ? ['tableS1', 'tableS2'] : [`table${activeSemester}`];
+        
+        tables.forEach(tableId => {
+            const table = document.getElementById(tableId);
+            if (table && table.style.display !== 'none') {
+                const rows = table.querySelectorAll('tbody .niveau-row');
+                
+                rows.forEach(row => {
+                    const semester = row.dataset.semester;
+                    const niveau = row.querySelector('.niveau-name').textContent.trim();
+                    const specialite = row.querySelector('.specialite-name').textContent.trim();
+                    const reforme = row.dataset.reforme;
+                    const parcours = row.querySelector('.parcours-cell span').textContent.trim();
+                    const students = row.dataset.students;
+                    const subjects = row.dataset.subjects;
+                    
+                    data.push({
+                        'السداسي': semester === 'S1' ? 'السداسي الأول' : 'السداسي الثاني',
+                        'المستوى': niveau,
+                        'التخصص': specialite,
+                        'الإصلاح': reforme,
+                        'المسار': parcours === 'غير محدد' ? '' : parcours,
+                        'عدد الطلبة': students,
+                        'عدد المواد': subjects
+                    });
+                });
+            }
+        });
+        
+        if (data.length === 0) {
+            alert('لا توجد بيانات للتصدير');
+            return;
+        }
+        
+        // Convert to CSV
+        const csvContent = convertToCSV(data);
+        
+        // Create download link
+        const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `قائمة_المستويات_الدراسية_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            alert('متصفحك لا يدعم تحميل الملفات');
+        }
+        
+        console.log('تم تصدير البيانات بنجاح');
+        
+    } catch (error) {
+        console.error('خطأ في تصدير البيانات:', error);
+        alert('حدث خطأ أثناء تصدير البيانات');
+    }
+}
+
+function convertToCSV(data) {
+    if (data.length === 0) return '';
+    
+    const headers = Object.keys(data[0]);
+    const csvRows = [];
+    
+    // Add headers
+    csvRows.push(headers.join(','));
+    
+    // Add data rows
+    for (const row of data) {
+        const values = headers.map(header => {
+            const value = row[header] || '';
+            // Escape commas and quotes
+            return `"${value.toString().replace(/"/g, '""')}"`;
+        });
+        csvRows.push(values.join(','));
+    }
+    
+    return csvRows.join('\n');
+}
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Variables CSS pour une cohérence des couleurs */
+:root {
+    --primary-color: #007bff;
+    --success-color: #28a745;
+    --info-color: #17a2b8;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --dark-color: #343a40;
+    --light-color: #f8f9fa;
+    --border-color: #e9ecef;
+    --shadow-light: 0 2px 10px rgba(0, 0, 0, 0.05);
+    --shadow-medium: 0 4px 15px rgba(0, 0, 0, 0.1);
+    --border-radius: 8px;
+    --transition: all 0.3s ease;
+}
+
+/* Header section amélioré */
+.header-section {
+    background: linear-gradient(135deg, var(--light-color), #ffffff);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--primary-color);
+    box-shadow: var(--shadow-light);
+}
+
+.stats-row {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Sections de semestre améliorées */
+.semester-section {
+    margin-bottom: 2.5rem;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-medium);
+}
+
+.semester-header {
+    background: linear-gradient(135deg, #495057, #6c757d);
+    color: white;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 0;
+    border-bottom: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.semester-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+/* Tableaux optimisés pour la lisibilité */
+.table-container {
+    background: white;
+    overflow: hidden;
+}
+
+.table-modern {
+    margin: 0;
+    font-size: 0.9rem;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-header {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table-header th {
+    border: none;
+    padding: 1rem 0.75rem;
+    font-weight: 700;
+    color: var(--dark-color);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    white-space: nowrap;
+}
+
+.table-header th::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary-color), transparent);
+}
+
+/* Lignes de tableau optimisées */
+.niveau-row {
+    transition: var(--transition);
+    border-bottom: 1px solid #f0f0f0;
+    background: white;
+}
+
+.niveau-row:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.niveau-row:nth-child(even) {
+    background-color: #fbfcfd;
+}
+
+.niveau-row:nth-child(even):hover {
+    background-color: #f0f4f8;
+}
+
+.niveau-row td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+    border: none;
+    border-right: 1px solid #f5f5f5;
+}
+
+.niveau-row td:last-child {
+    border-right: none;
+}
+
+/* Cellules spécialisées */
+.niveau-cell, .specialite-cell {
+    min-width: 180px;
+}
+
+.niveau-info, .specialite-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.niveau-name, .specialite-name {
+    font-weight: 600;
+    color: var(--dark-color);
+    font-size: 0.95rem;
+    line-height: 1.3;
+}
+
+.specialite-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Badges améliorés */
+.reforme-badge {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.85rem;
+    font-weight: 600;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.reforme-badge.bg-success {
+    background: linear-gradient(135deg, #28a745, #20c997) !important;
+}
+
+.reforme-badge.bg-info {
+    background: linear-gradient(135deg, #17a2b8, #6610f2) !important;
+}
+
+/* Cellule de parcours */
+.parcours-cell {
+    max-width: 180px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Cellules de statistiques améliorées */
+.stat-cell {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    border-radius: 25px;
+    font-weight: 600;
+    min-width: 70px;
+    transition: var(--transition);
+}
+
+.stat-cell:hover {
+    transform: scale(1.05);
+}
+
+.stat-cell.students {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    color: #1565c0;
+    border: 1px solid #90caf9;
+}
+
+.stat-cell.subjects {
+    background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+}
+
+.stat-number {
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.stat-icon {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+/* Actions optimisées */
+.actions-cell {
+    width: 120px;
+    padding: 0.75rem !important;
+}
+
+.btn-group .btn {
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: var(--transition);
+    border: 1px solid;
+}
+
+.btn-group .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-outline-primary:hover {
+    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+}
+
+.btn-outline-success:hover {
+    background: linear-gradient(135deg, var(--success-color), #1e7e34);
+}
+
+/* Numéros de ligne */
+.row-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+/* Statistiques résumé améliorées */
+.summary-section {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    box-shadow: var(--shadow-light);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--info-color));
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-medium);
+}
+
+.stat-card.total::before {
+    background: linear-gradient(90deg, #007bff, #0056b3);
+}
+
+.stat-card.students::before {
+    background: linear-gradient(90deg, #28a745, #1e7e34);
+}
+
+.stat-card.subjects::before {
+    background: linear-gradient(90deg, #ffc107, #e0a800);
+}
+
+.stat-card.reforms::before {
+    background: linear-gradient(90deg, #6f42c1, #5a2d91);
+}
+
+.stat-card .stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card.total .stat-icon {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+}
+
+.stat-card.students .stat-icon {
+    background: linear-gradient(135deg, #28a745, #1e7e34);
+}
+
+.stat-card.subjects .stat-icon {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+}
+
+.stat-card.reforms .stat-icon {
+    background: linear-gradient(135deg, #6f42c1, #5a2d91);
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--dark-color);
+    margin-bottom: 0.25rem;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* État vide amélioré */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    border-radius: var(--border-radius);
+    border: 2px dashed var(--border-color);
+}
+
+.empty-icon {
+    font-size: 5rem;
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+    opacity: 0.7;
+}
+
+.empty-title {
+    color: var(--dark-color);
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.empty-text {
+    color: #6c757d;
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+}
+
+/* Contrôles de formulaire améliorés */
+.form-control, .form-select {
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: var(--transition);
+    padding: 0.75rem 1rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+/* Boutons améliorés */
+.btn {
+    border-radius: 8px;
+    font-weight: 600;
+    transition: var(--transition);
+    padding: 0.75rem 1.25rem;
+    border-width: 2px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn.active {
+    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    border-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color), #1e7e34);
+    border-color: var(--success-color);
+    color: white;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #1e7e34, #155724);
+    border-color: #155724;
+    color: white;
+}
+
+/* Responsive amélioré */
+@media (max-width: 1400px) {
+    .specialite-name {
+        font-size: 0.85rem;
+    }
+    
+    .table-modern {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 1200px) {
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .btn-group {
+        width: 100%;
+    }
+    
+    .btn-group .btn {
+        flex: 1;
+    }
+    
+    .table-header th {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .niveau-row td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .table-modern {
+        font-size: 0.8rem;
+    }
+    
+    .niveau-name, .specialite-name {
+        font-size: 0.85rem;
+    }
+    
+    .stat-cell {
+        padding: 0.5rem 0.75rem;
+        min-width: 60px;
+    }
+    
+    .stat-number {
+        font-size: 0.85rem;
+    }
+    
+    .stat-card {
+        padding: 1.25rem;
+        gap: 1rem;
+    }
+    
+    .stat-card .stat-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 0.75rem;
+    }
+    
+    .header-section {
+        padding: 1.25rem;
+    }
+    
+    .semester-header {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 0.75rem;
+        text-align: center;
+    }
+    
+    .table-header th {
+        padding: 0.6rem 0.4rem;
+        font-size: 0.75rem;
+    }
+    
+    .niveau-row td {
+        padding: 0.6rem 0.4rem;
+    }
+    
+    .niveau-cell, .specialite-cell {
+        min-width: 140px;
+    }
+    
+    .parcours-cell {
+        max-width: 120px;
+        font-size: 0.75rem;
+    }
+    
+    .actions-cell {
+        width: 100px;
+    }
+    
+    .btn-group .btn {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+        gap: 0.75rem;
+    }
+    
+    .stat-card .stat-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 1.25rem;
+    }
+    
+    .stat-value {
+        font-size: 1.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .table-responsive {
+        border-radius: 6px;
+        font-size: 0.75rem;
+    }
+    
+    .summary-section {
+        padding: 1.25rem;
+    }
+    
+    .semester-header .d-flex {
+        flex-direction: column;
+        gap: 0.75rem;
+        text-align: center;
+    }
+    
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.6rem;
+    }
+    
+    .row-number {
+        width: 25px;
+        height: 25px;
+        font-size: 0.7rem;
+    }
+    
+    .reforme-badge {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.7rem;
+    }
+}
+
+/* Sticky header pour les grands tableaux */
+.table-responsive {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Animations améliorées */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.niveau-row {
+    animation: fadeInUp 0.3s ease;
+}
+
+.stat-card {
+    animation: fadeInUp 0.4s ease;
+}
+
+/* Amélioration de l'accessibilité */
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible {
+    outline: 3px solid rgba(0, 123, 255, 0.5);
+    outline-offset: 2px;
+}
+
+/* Indicateur de chargement */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 0.8s linear infinite;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* Scrollbar personnalisée */
+.table-responsive::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #ced4da, #adb5bd);
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #adb5bd, #6c757d);
+}
+
+/* Print styles optimisés */
+@media print {
+    .header-actions,
+    .summary-section {
+        display: none !important;
+    }
+    
+    .table-container {
+        box-shadow: none;
+        border: 2px solid #000;
+    }
+    
+    .table-modern th {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+        border: 1px solid #000;
+    }
+    
+    .table-modern td {
+        border: 1px solid #000;
+    }
+    
+    .semester-header {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+        border: 2px solid #000;
+    }
+    
+    .niveau-row {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    
+    .semester-section {
+        break-after: page;
+    }
+}
+
+/* Tooltips personnalisés */
+.tooltip {
+    font-size: 0.8rem;
+}
+
+.tooltip-inner {
+    background: linear-gradient(135deg, var(--dark-color), #495057);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+}
+
+/* Focus ring amélioré */
+*:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+</style>
+{% endblock %}

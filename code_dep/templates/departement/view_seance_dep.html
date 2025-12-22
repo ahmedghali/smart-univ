@@ -1,0 +1,691 @@
+{% extends 'departement/base_Dep.html' %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<div class="container-fluid p-3" style="background-color: #f8f9fa;">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-10 col-xl-9">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-info text-white">
+          <h4 class="mb-0">
+            <i class="fas fa-eye me-2"></i>
+            تفاصيل الحصة الدراسية
+          </h4>
+          <small class="text-light">عرض معلومات الحصة - وضع القراءة فقط</small>
+        </div>
+        
+        <div class="card-body" style="background-color: #f8f9fa;">
+          <!-- معلومات الفصل -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="text-muted mb-3 border-bottom pb-2">
+                <i class="fas fa-chalkboard-teacher me-2"></i>
+                معلومات الفصل
+              </h5>
+              <div class="class-info-card">
+                <h6 class="class-title">{{my_Sea.classe.matiere}}</h6>
+                <div class="class-meta">
+                  <span class="meta-item">
+                    <i class="fas fa-calendar ms-1"></i>
+                    السداسي {{my_Sea.classe.semestre|default:"غير محدد"}} 
+                  </span>
+                  <span class="meta-item">
+                    <i class="fas fa-map-marker-alt ms-1"></i> 
+                    {{my_Sea.classe.lieu|default:"غير محدد"}}
+                  </span>
+                  <span class="meta-item">
+                    <i class="fas fa-tag ms-1"></i>
+                    {{my_Sea.classe.type|default:"غير محدد"}}
+                  </span>
+                  <span class="meta-item">
+                    <i class="fas fa-users ms-1"></i>
+                    {{my_Sea.classe.niv_spe_dep_sg|default:"غير محدد"}}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: Date et Temps -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="text-muted mb-3 border-bottom pb-2">
+                <i class="fas fa-clock me-2"></i>
+                التوقيت والتاريخ
+              </h5>
+              <div class="info-container">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <div class="info-field">
+                      <label class="field-label">
+                        <i class="fas fa-calendar-day me-2 text-primary"></i>
+                        تاريخ الحصة
+                      </label>
+                      <div class="field-value">
+                        {{my_Sea.date|date:"d/m/Y"|default:"غير محدد"}}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="info-field">
+                      <label class="field-label">
+                        <i class="fas fa-clock me-2 text-primary"></i>
+                        وقت الحصة
+                      </label>
+                      <div class="field-value">
+                        {{my_Sea.temps|default:"غير محدد"}}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: عنوان الحصة -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="text-muted mb-3 border-bottom pb-2">
+                <i class="fas fa-heading me-2"></i>
+                تفاصيل الحصة
+              </h5>
+              <div class="info-container">
+                <div class="info-field">
+                  <label class="field-label">
+                    <i class="fas fa-bookmark me-2 text-primary"></i>
+                    عنوان الحصة
+                  </label>
+                  <div class="field-value">
+                    {{my_Sea.intitule|default:"غير محدد"}}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: حالة الحصة -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="text-muted mb-3 border-bottom pb-2">
+                <i class="fas fa-check-circle me-2"></i>
+                حالة الحصة
+              </h5>
+              <div class="info-container">
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <div class="status-display {% if my_Sea.fait %}status-active status-success{% endif %}">
+                      <div class="status-icon">
+                        <i class="fas fa-check"></i>
+                      </div>
+                      <div class="status-content">
+                        <div class="status-title">تمت الحصة</div>
+                        <div class="status-value">
+                          {% if my_Sea.fait %}
+                            <span class="badge bg-success">نعم</span>
+                          {% else %}
+                            <span class="badge bg-secondary">لا</span>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="status-display {% if my_Sea.remplacer %}status-active status-warning{% endif %}">
+                      <div class="status-icon">
+                        <i class="fas fa-sync"></i>
+                      </div>
+                      <div class="status-content">
+                        <div class="status-title">حصة تعويضية</div>
+                        <div class="status-value">
+                          {% if my_Sea.remplacer %}
+                            <span class="badge bg-warning">نعم</span>
+                          {% else %}
+                            <span class="badge bg-secondary">لا</span>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="status-display {% if my_Sea.annule %}status-active status-danger{% endif %}">
+                      <div class="status-icon">
+                        <i class="fas fa-times"></i>
+                      </div>
+                      <div class="status-content">
+                        <div class="status-title">الحصة ملغاة</div>
+                        <div class="status-value">
+                          {% if my_Sea.annule %}
+                            <span class="badge bg-danger">نعم</span>
+                          {% else %}
+                            <span class="badge bg-secondary">لا</span>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: إحصائيات الحضور -->
+          {% if my_Sea.list_abs_etudiant_generee %}
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="text-muted mb-3 border-bottom pb-2">
+                <i class="fas fa-chart-bar me-2"></i>
+                إحصائيات الحضور
+              </h5>
+              <div class="info-container">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <div class="attendance-stat">
+                      <div class="stat-icon bg-danger">
+                        <i class="fas fa-user-times text-white"></i>
+                      </div>
+                      <div class="stat-content">
+                        <div class="stat-number">{{my_Sea.nbr_absence|default:"0"}}</div>
+                        <div class="stat-label">إجمالي الغيابات</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="attendance-stat">
+                      <div class="stat-icon bg-info">
+                        <i class="fas fa-user-check text-white"></i>
+                      </div>
+                      <div class="stat-content">
+                        <div class="stat-number">{{my_Sea.nbr_absence_justifiee|default:"0"}}</div>
+                        <div class="stat-label">الغيابات المبررة</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Section: الملاحظات -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="text-muted mb-3 border-bottom pb-2">
+                <i class="fas fa-sticky-note me-2"></i>
+                الملاحظات
+              </h5>
+              <div class="info-container">
+                <div class="info-field">
+                  <label class="field-label">
+                    <i class="fas fa-comment me-2 text-primary"></i>
+                    ملاحظات المدرس
+                  </label>
+                  <div class="field-value notes-content">
+                    {% if my_Sea.obs %}
+                      {{my_Sea.obs}}
+                    {% else %}
+                      <span class="text-muted">لا توجد ملاحظات</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Actions -->
+          <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+            <a href="{% url 'depa:list_Seance_Ens' clas_id=my_Sea.classe.id %}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-2"></i>
+              العودة إلى قائمة الحصص
+            </a>
+            
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-primary btn-sm" onclick="printPage()">
+                <i class="fas fa-print me-1"></i>
+                طباعة
+              </button>
+              {% if my_Sea.list_abs_etudiant_generee %}
+              <a href="#" class="btn btn-outline-info btn-sm">
+                <i class="fas fa-users me-1"></i>
+                عرض قائمة الحضور
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript pour améliorer l'UX -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animation lors du chargement
+    const card = document.querySelector('.card');
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+        card.style.transition = 'all 0.5s ease';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+    }, 100);
+
+    // Animation des sections
+    const sections = document.querySelectorAll('.info-container, .status-display');
+    sections.forEach((section, index) => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(15px)';
+        
+        setTimeout(() => {
+            section.style.transition = 'all 0.4s ease';
+            section.style.opacity = '1';
+            section.style.transform = 'translateY(0)';
+        }, 200 + (index * 100));
+    });
+});
+
+function printPage() {
+    window.print();
+}
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Conteneur d'information */
+.info-container {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Informations du cours */
+.class-info-card {
+    background: linear-gradient(135deg, #e8f4f8 0%, #f0f8ff 100%);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #bee5eb;
+}
+
+.class-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.class-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #495057;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 0.6rem 1.2rem;
+    border-radius: 25px;
+    border: 1px solid rgba(0,0,0,0.1);
+    font-weight: 500;
+}
+
+.meta-item i {
+    color: #17a2b8;
+}
+
+/* Champs d'information */
+.info-field {
+    margin-bottom: 1.5rem;
+}
+
+.info-field:last-child {
+    margin-bottom: 0;
+}
+
+.field-label {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.field-value {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-size: 1.05rem;
+    color: #2c3e50;
+    font-weight: 500;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+}
+
+.notes-content {
+    min-height: 80px;
+    align-items: flex-start;
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
+
+/* Affichage des statuts */
+.status-display {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    height: 100%;
+}
+
+.status-display:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.status-display.status-active {
+    transform: scale(1.02);
+}
+
+.status-display.status-active.status-success {
+    border-color: #28a745;
+    background: linear-gradient(135deg, #f8fff9 0%, #e8f5e8 100%);
+}
+
+.status-display.status-active.status-warning {
+    border-color: #ffc107;
+    background: linear-gradient(135deg, #fffbf0 0%, #fff3cd 100%);
+}
+
+.status-display.status-active.status-danger {
+    border-color: #dc3545;
+    background: linear-gradient(135deg, #fff5f5 0%, #f8d7da 100%);
+}
+
+.status-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    background: #6c757d;
+    color: white;
+}
+
+.status-display.status-active.status-success .status-icon {
+    background: #28a745;
+}
+
+.status-display.status-active.status-warning .status-icon {
+    background: #ffc107;
+}
+
+.status-display.status-active.status-danger .status-icon {
+    background: #dc3545;
+}
+
+.status-content {
+    text-align: center;
+}
+
+.status-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.status-value .badge {
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+}
+
+/* Statistiques de présence */
+.attendance-stat {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.attendance-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 500;
+    margin-top: 0.25rem;
+}
+
+/* Boutons */
+.btn {
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.btn-outline-secondary {
+    color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.btn-outline-primary {
+    color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-outline-primary:hover {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.btn-outline-info {
+    color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.btn-outline-info:hover {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+    color: white;
+}
+
+/* Badge styles */
+.badge {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .class-meta {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .meta-item {
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .info-container {
+        padding: 1rem;
+    }
+    
+    .status-display {
+        margin-bottom: 1rem;
+        padding: 1rem;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    .attendance-stat {
+        padding: 1rem;
+        gap: 0.75rem;
+    }
+    
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .d-flex.justify-content-between .btn,
+    .d-flex.gap-2 {
+        width: 100%;
+    }
+
+    .d-flex.gap-2 {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .card-header h4 {
+        font-size: 1.2rem;
+    }
+
+    .field-value {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+}
+
+/* Animation de chargement */
+.card {
+    transition: all 0.5s ease;
+}
+
+.info-container,
+.status-display {
+    transition: all 0.4s ease;
+}
+
+/* Titres de section */
+.text-muted {
+    color: #6c757d !important;
+    font-weight: 600;
+}
+
+.border-bottom {
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+/* Couleurs des icônes */
+.text-primary {
+    color: #007bff !important;
+}
+
+/* Mode impression */
+@media print {
+    .card-header,
+    .border-bottom,
+    .btn,
+    .d-flex.justify-content-between {
+        display: none !important;
+    }
+    
+    .info-container,
+    .status-display {
+        box-shadow: none;
+        break-inside: avoid;
+    }
+    
+    .status-display:hover {
+        transform: none !important;
+    }
+    
+    .badge {
+        background: transparent !important;
+        border: 1px solid #333 !important;
+        color: #333 !important;
+    }
+}
+
+/* Focus states */
+.btn:focus {
+    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+}
+
+/* Amélioration de l'accessibilité */
+.status-display {
+    outline: none;
+}
+
+.status-display:focus-within {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+</style>
+{% endblock %}

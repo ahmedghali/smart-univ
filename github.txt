@@ -1,0 +1,19 @@
+git remote -v
+git add .
+git commit -m "list Ens Dep"
+git push -u origin main
+
+
+
+
+
+
+
+
+
+# Option 1: Mettre à jour l'URL
+git remote set-url origin https://github.com/ahmedghali/AdaptFace.git
+
+# Option 2: Ou supprimer et recréer
+git remote remove origin
+git remote add origin https://github.com/ahmedghali/AdaptFace.git

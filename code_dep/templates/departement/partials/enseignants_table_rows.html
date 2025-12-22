@@ -1,0 +1,51 @@
+{% for x in all_Ens_Dep_Per %}
+<tr style="white-space: nowrap">
+  <td>{{forloop.counter}}</td>
+  <td>{{x.enseignant.nom_ar}} {{x.enseignant.prenom_ar}}</td>
+  <td><span class="badge bg-success">دائم</span></td>
+  <td><a href="{% url 'depa:emploi_Ens' x.enseignant.id %}" class="text-danger font-weight-bold">الدروس</a></td>
+  <td class="text-center"><a href="{% url 'depa:fichePedagogique_Ens_Dep' x.enseignant.id %}" class="text-primary fw-bold">F.P</a></td>
+  
+  {% if x.est_inscrit %}
+  <td class="text-center"><span class="badge bg-info">مسجل</span></td>
+  {% else %}
+  <td class="text-center">
+    <button class="btn btn-sm btn-secondary">
+      <a class="text-decoration-none text-light" href="{% url 'depa:inscription_Ens' x.enseignant.id %}">تسجيل</a>
+    </button>
+  </td>
+  {% endif %}
+
+  <td class="text-center">
+    {% if x.est_inscrit %}
+    <form action="{% url 'depa:delete_Ens_Platform' x.enseignant.id %}" style="display: inline;">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm">
+        <i class="fa-regular fa-trash-can" style="color: #000000;"></i>
+      </button>
+    </form>
+    {% else %}
+    <i class="fa-solid fa-pen-to-square" style="color: #a39f9f;"></i>
+    {% endif %}
+  </td>
+
+  <td class="text-center">
+    <a href="{% url 'depa:profile_Ens_Dep' x.enseignant.id %}">
+      <i class="fa-solid fa-glasses" style="color: #2039d6;"></i>
+    </a>
+  </td>
+  
+  <td class="text-center">
+    {% if x.statut != 'Permanent' %}
+    <form action="{% url 'depa:delete_Enseignant' x.id %}" style="display: inline;">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm">
+        <i class="fa-regular fa-trash-can" style="color: #b21f1f;"></i>
+      </button>
+    </form>
+    {% else %}
+    <i class="fa-regular fa-trash-can" style="color: #a39f9f;"></i>
+    {% endif %}
+  </td>
+</tr>
+{% endfor %}

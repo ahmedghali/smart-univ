@@ -1,0 +1,388 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  {% if title %}
+  <title>{{title}} - الجامعة الذكية</title>
+  {% else %}
+  <title>الجامعة الذكية</title>
+  {% endif %}
+
+  <!-- Global static -->
+  <link rel="shortcut icon" type="text/css" href="{% static '/images/logo-no-background.ico' %}">
+  <link rel="stylesheet" type="text/css" href="{% static '/css/all.min.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static '/css/bootstrap.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static '/css/timeTable.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static '/css/department_improvements.css' %}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  
+
+  <style>
+    /* Corrections Mobile */
+    @media (max-width: 991.98px) {
+      /* Navbar horizontal visible sur mobile */
+      .navbar-collapse {
+        background-color: #17a2b8;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 0.5rem;
+      }
+
+      .navbar-nav {
+        width: 100%;
+      }
+
+      .navbar-nav .nav-item {
+        text-align: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+      }
+
+      .navbar-nav .nav-item:last-child {
+        border-bottom: none;
+      }
+
+      /* Bouton toggler plus visible */
+      .navbar-toggler {
+        border: 2px solid white;
+        padding: 0.5rem 0.75rem;
+      }
+
+      .navbar-toggler-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+      }
+
+      /* Container full width sur mobile */
+      .container {
+        padding: 0;
+        max-width: 100%;
+      }
+
+      /* Main content ajusté */
+      main {
+        margin-top: 0;
+        padding: 0.5rem;
+      }
+
+      .myFacDep {
+        font-size: 0.9rem;
+        padding: 0.75rem !important;
+      }
+
+      /* Messages optimisés */
+      .message-success {
+        margin: 0.5rem !important;
+        font-size: 0.9rem;
+      }
+
+      /* Sidebar overlay z-index */
+      .sidebar-overlay {
+        z-index: 998;
+      }
+
+      #sidebar {
+        z-index: 999;
+      }
+    }
+
+    /* Amélioration du toggler Bootstrap */
+    .navbar-toggler:focus {
+      box-shadow: 0 0 0 0.25rem rgba(255,255,255,0.25);
+    }
+  </style>
+
+  {% block extra_css %}
+  {% endblock %}
+</head>
+
+<body>
+  <div class="container">
+    <!-- Overlay pour mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Horizontal navbar -->
+    <nav class="navbar navbar-expand-lg bg-dark navbar-dark bg-info">
+      <div class="container-fluid">
+        <!-- Bouton menu latéral (sidebar) -->
+        <button class="navbar-toggler me-2" type="button" id="sidebarToggle" aria-label="Toggle sidebar">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Titre visible sur mobile -->
+        <span class="navbar-brand d-lg-none mb-0 h5 text-white">القسم</span>
+
+        <!-- Bouton menu horizontal -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Menu horizontal -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'depa:dashboard_Dep' %}">
+                <i class="fas fa-home"></i> لوحة التحكم
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'depa:profile_Dep' %}">
+                <i class="fas fa-info-circle"></i> معلومات عن القسم
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'auth:logout' %}">
+                <i class="fas fa-sign-out-alt"></i> خروج
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- VERTICAL navbar -->
+    <div id="sidebar" class="sidebar">
+      <div class="myName text-center m-0 p-0">
+        <i class="fas fa-user-tie ps-1"></i> رئيس القسم 
+      </div>
+
+      <ul class="nav flex-column p-0 m-0 text-center">
+        <nav class='col-sm-auto animated bounceInDown bg-info' style="padding-right: 2% !important;">
+          
+          <!-- SECTION ENSEIGNANTS -->
+          <li class='sub-menu'>
+            <a href='#' onclick="toggleSubmenu(this)">
+              <i class="fas fa-chalkboard-teacher"></i> الأساتذة
+              <div class='fa fa-caret-down right'></div>
+            </a>
+            <ul>
+              <li>
+                <a class="vnav-link text-center text-light" href="{% url 'depa:list_enseignants_dep' %}">
+                  <i class="fas fa-list ps-1"></i> قائمة الأساتذة
+                </a>
+              </li>
+              <li>
+                <a class="vnav-link text-center text-light" href="{% url 'depa:heures_enseignants_dep' %}">
+                  <i class="fas fa-clock ps-1"></i> ساعات العمل
+                </a>
+              </li>
+              <li>
+                <a class="vnav-link text-center text-light" href="{% url 'depa:new_Enseignant' %}">
+                  <i class="fas fa-plus ps-1"></i> إضافة أستاذ
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- SECTION ÉTUDIANTS -->
+          <li class='sub-menu'>
+            <a href='#' onclick="toggleSubmenu(this)">
+              <i class="fas fa-user-graduate"></i> الطلبة
+              <div class='fa fa-caret-down right'></div>
+            </a>
+            <ul>
+              <li>
+                <a class="vnav-link text-center text-light" href="{% url 'depa:list_etudiants' %}">
+                  <i class="fas fa-list"></i> القائمة
+                </a>
+              </li>
+              <li>
+                <a class="vnav-link text-center text-light" href="{% url 'depa:import_etudiants' %}">
+                  <i class="fas fa-upload"></i> إضافة
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- SECTION INFRASTRUCTURE -->
+          <li class='sub-menu'>
+            <a href='#' onclick="toggleSubmenu(this)">
+              <i class="fas fa-building"></i> البنية التحتية
+              <div class='fa fa-caret-down right'></div>
+            </a>
+            <ul>
+              <li>
+                <a class="vnav-link text-center text-light" href="{% url 'depa:list_Mat_Niv' %}">
+                  <i class="fas fa-book ps-1"></i> المواد
+                </a>
+              </li>
+              <li>
+                <a class="vnav-link text-center text-light" href="{% url 'depa:list_Specialite_Dep' %}">
+                  <i class="fas fa-graduation-cap ps-1"></i> التخصصات
+                </a>
+              </li>
+              <li>
+                <a class="vnav-link text-center text-light" href="{% url 'depa:list_NivSpeDep' %}">
+                  <i class="fas fa-layer-group ps-1"></i> المستويات
+                </a>
+              </li>
+              <li>
+                <a class="vnav-link text-center text-light" href="{% url 'depa:list_Amphi_Dep' %}">
+                  <i class="fas fa-theater-masks ps-1"></i> المدرجات
+                </a>
+              </li>
+              <li>
+                <a class="vnav-link text-center text-light" href="{% url 'depa:list_Salle_Dep' %}">
+                  <i class="fas fa-door-open ps-1"></i> القاعات
+                </a>
+              </li>
+              <li>
+                <a class="vnav-link text-center text-light" href="{% url 'depa:list_Labo_Dep' %}">
+                  <i class="fas fa-flask ps-1"></i> المخابر
+                </a>
+              </li>
+              
+            </ul>
+          </li>
+
+
+
+          <!-- SECTION EMPLOI DU TEMPS -->
+          <li class='sub-menu'> 
+            <a href='#' onclick="toggleSubmenu(this)">
+              <i class="fas fa-calendar-alt"></i> <small>إستعمال الزمن</small>
+              <div class='fa fa-caret-down right'></div>
+            </a>
+            <ul>
+              <li>
+                <a class="vnav-link text-center text-light" href="{% url 'depa:add_classe' %}">
+                  <i class="fas fa-cogs ps-1"></i> إضافة حصة
+                </a>
+              </li>
+              <li>
+                <a class="vnav-link text-center text-light" href="{% url 'depa:import_emploi' %}">
+                  <i class="fas fa-clock ps-1"></i> إضافة الحصص
+                </a>
+              </li>
+            </ul>
+          </li>
+
+        </nav>
+      </ul>
+    </div>
+
+    <!-- MAIN -->
+    <main>
+      <div class="myFacDep text-light px-1">
+        <i class="fas fa-university me-2"></i>
+        كلية {{my_Fac}} > قسم <b>{{my_Dep}}</b>
+      </div>
+      
+      {% if messages %}
+        {% for message in messages %}
+          <div class="message-success m-3" {% if message.tags %} class="{{ message.tags }}"{% endif %}>
+            <i class="fas fa-check-circle me-2"></i>
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+      
+      <div class="m-3">
+        {% block content %}
+        {% endblock %}
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="col-md text-center text-light pb-1">
+        <small>
+          <i class="fas fa-copyright me-1"></i>
+          جميع الحقوق محفوظة . G.A-<span id="year"></span>
+        </small>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="{% static '/js/jquery-3.7.1.min.js' %}"></script>
+  <script src="{% static '/js/bootstrap.bundle.js' %}"></script>
+  <script src="{% static '/js/all.min.js' %}"></script>
+  <script src="{% static '/js/menuSidebar.js' %}"></script>
+  <script src="{% static '/js/scriptDate.js' %}"></script> 
+  <script src="{% static '/js/delay_message.js' %}"></script>
+  <script src="{% static '/js/js_FacDepEns.js' %}"></script>
+  <script src="{% static 'js/edit_classe_modal.js' %}"></script>
+  <!-- Bootstrap 5 JS Bundle (avec Popper) -->
+    
+    <!-- jQuery (optionnel, pour compatibilité) -->
+
+  <script>
+    // Menu mobile toggle
+    document.addEventListener('DOMContentLoaded', function() {
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+
+      if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+          sidebar.classList.toggle('show');
+          overlay.classList.toggle('show');
+        });
+      }
+
+      if (overlay) {
+        overlay.addEventListener('click', function() {
+          sidebar.classList.remove('show');
+          overlay.classList.remove('show');
+        });
+      }
+
+      // Fermer le menu horizontal après clic sur un lien (mobile)
+      const navLinks = document.querySelectorAll('#navbarNav .nav-link');
+      const navbarCollapse = document.getElementById('navbarNav');
+      
+      navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+          if (window.innerWidth < 992) {
+            const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse);
+            if (bsCollapse) {
+              bsCollapse.hide();
+            }
+          }
+        });
+      });
+
+      // Auto-close messages
+      setTimeout(function() {
+        const messages = document.querySelectorAll('.message-success');
+        messages.forEach(function(msg) {
+          msg.style.opacity = '0';
+          msg.style.transform = 'translateY(-10px)';
+          setTimeout(() => msg.remove(), 300);
+        });
+      }, 4000);
+    });
+
+    // Submenu toggle
+    function toggleSubmenu(element) {
+      event.preventDefault();
+      const parent = element.closest('.sub-menu');
+      const isActive = parent.classList.contains('active');
+      
+      // Fermer tous les sous-menus
+      document.querySelectorAll('.sub-menu.active').forEach(menu => {
+        menu.classList.remove('active');
+      });
+      
+      // Ouvrir le sous-menu cliqué si il n'était pas ouvert
+      if (!isActive) {
+        parent.classList.add('active');
+      }
+    }
+  </script>
+
+  {% block extra_scripts %}
+  {% endblock %}
+   {% block extra_js %}{% endblock %}
+</body>
+
+</html>

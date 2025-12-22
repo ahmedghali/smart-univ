@@ -1,0 +1,401 @@
+{% extends 'departement/base_Dep.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="grey_zone m-1 p-2 col-lg-8">
+    <h4 class="border-bottom border-danger text-dark mb-3">إضافة إستعمال الزمن</h4>
+    
+    <div class="comment p-2">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="row g-2 mb-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">الإصلاح:</label>
+                    <select id="refs" name="reforme" class="form-select">
+                        <option disabled selected>-----إختر الإصلاح-----</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">المستوى:</label>
+                    <select id="nivs" name="niveau" class="form-select">
+                        <option disabled selected>-----إختر المستوى-----</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">التخصص:</label>
+                    <select id="spts" name="specialite" class="form-select">
+                        <option disabled selected>-----إختر التخصص-----</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">السداسي:</label>
+                    <select id="semestres" name="semestre" class="form-select">
+                        <option disabled selected>-----إختر السداسي-----</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="excel_file" class="form-label fw-bold">ملف Excel:</label>
+                <input type="file" name="excel_file" id="excel_file" class="form-control" accept=".xlsx,.xls" required>
+                <div class="form-text">الأعمدة المطلوبة: Jour، Séance، Matiere، Enseignant، مكان واحد</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-upload"></i> تحميل إستعمال الزمن
+            </button>
+        </form>
+
+        <!-- Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'success' %}
+                    <div class="alert alert-success mt-3">
+                        <h6><i class="fas fa-check-circle"></i> تم الاستيراد بنجاح</h6>
+                        {{ message }}
+                    </div>
+                {% elif message.tags == 'error' %}
+                    <div class="alert alert-danger mt-3">
+                        <h6><i class="fas fa-exclamation-triangle"></i> خطأ في الاستيراد</h6>
+                        {{ message }}
+                    </div>
+                {% elif message.tags == 'warning' %}
+                    <div class="alert alert-warning mt-3">
+                        <h6><i class="fas fa-exclamation-circle"></i> تحذير</h6>
+                        {{ message }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+
+<!-- دليل الاستيراد -->
+<div class="grey_zone m-1 p-3 col-lg-11">
+    <div class="card border-info">
+        <div class="card-header bg-info text-white">
+            <h6 class="mb-0"><i class="fas fa-info-circle"></i> دليل استيراد إستعمال الزمن</h6>
+        </div>
+        <div class="card-body">
+            
+            <!-- هيكل الملف -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6 class="text-primary"><i class="fas fa-table"></i> الأعمدة المطلوبة:</h6>
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-dark">
+                            <tr><th>العمود</th><th>حالة</th><th>مثال</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-danger">
+                                <td><strong>Jour</strong></td>
+                                <td><span class="badge bg-danger">إجباري</span></td>
+                                <td>Samedi</td>
+                            </tr>
+                            <tr class="table-danger">
+                                <td><strong>Séance</strong></td>
+                                <td><span class="badge bg-danger">إجباري</span></td>
+                                <td>3</td>
+                            </tr>
+                            <tr class="table-danger">
+                                <td><strong>Matiere</strong></td>
+                                <td><span class="badge bg-danger">إجباري</span></td>
+                                <td>Informatique 1</td>
+                            </tr>
+                            <tr class="table-danger">
+                                <td><strong>Enseignant</strong></td>
+                                <td><span class="badge bg-danger">إجباري</span></td>
+                                <td>GHALI</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>Groupes</strong></td>
+                                <td><span class="badge bg-warning">اختياري*</span></td>
+                                <td>4</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>Section</strong></td>
+                                <td><span class="badge bg-warning">اختياري*</span></td>
+                                <td>2</td>
+                            </tr>
+                            <tr class="table-success">
+                                <td><strong>Type</strong></td>
+                                <td><span class="badge bg-success">افتراضي Cours</span></td>
+                                <td>TP</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>Amphi</strong></td>
+                                <td><span class="badge bg-warning">مكان**</span></td>
+                                <td>A</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>Salle</strong></td>
+                                <td><span class="badge bg-warning">مكان**</span></td>
+                                <td>3</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>Labo</strong></td>
+                                <td><span class="badge bg-warning">مكان**</span></td>
+                                <td>12</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <small class="text-muted">
+                        * إما Groupes أو Section<br>
+                        ** مكان واحد فقط
+                    </small>
+                </div>
+                
+                <div class="col-md-6">
+                    <h6 class="text-success"><i class="fas fa-clock"></i> جدول مواقيت الحصص:</h6>
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-secondary">
+                            <tr><th>رقم الحصة</th><th>التوقيت</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>1</td><td>08:00 - 09:30</td></tr>
+                            <tr><td>2</td><td>09:40 - 11:10</td></tr>
+                            <tr><td>3</td><td>11:20 - 12:50</td></tr>
+                            <tr><td>4</td><td>13:10 - 14:40</td></tr>
+                            <tr><td>5</td><td>14:50 - 16:20</td></tr>
+                            <tr><td>6</td><td>16:30 - 18:00</td></tr>
+                        </tbody>
+                    </table>
+                    
+                    <h6 class="text-info mt-3"><i class="fas fa-calendar"></i> الأيام المقبولة:</h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <ul class="list-unstyled small">
+                                <li>• Samedi</li>
+                                <li>• Dimanche</li>
+                                <li>• Lundi</li>
+                            </ul>
+                        </div>
+                        <div class="col-6">
+                            <ul class="list-unstyled small">
+                                <li>• Mardi</li>
+                                <li>• Mercredi</li>
+                                <li>• Jeudi</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- مثال عملي -->
+            <h6 class="text-primary"><i class="fas fa-file-excel"></i> مثال لمحتوى الملف:</h6>
+            <div class="table-responsive mb-3">
+                <table class="table table-sm table-bordered table-striped">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Jour</th><th>Séance</th><th>Matiere</th><th>Enseignant</th><th>Groupes</th><th>Section</th><th>Type</th><th>Amphi</th><th>Salle</th><th>Labo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Samedi</td><td>3</td><td>Informatique 1</td><td>GHALI</td><td></td><td>2</td><td>Cours</td><td>A</td><td></td><td></td>
+                        </tr>
+                        <tr>
+                            <td>Samedi</td><td>4</td><td>Informatique 1</td><td>GHALI</td><td>4</td><td></td><td>TP</td><td></td><td></td><td>12</td>
+                        </tr>
+                        <tr>
+                            <td>Dimanche</td><td>6</td><td>Informatique 1</td><td>GHALI</td><td>2</td><td></td><td>TP</td><td></td><td></td><td>12</td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td>Lundi</td><td>1</td><td>Mathématiques</td><td>BOUDIAF</td><td>1</td><td></td><td></td><td></td><td>5</td><td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- قواعد مهمة -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="alert alert-danger p-2">
+                        <h6><i class="fas fa-times-circle"></i> ممنوع:</h6>
+                        <ul class="mb-0 small">
+                            <li>ترك الحقول الإجبارية فارغة</li>
+                            <li>ملء Groupes و Section معاً</li>
+                            <li>ملء أكثر من مكان واحد</li>
+                            <li>استخدام أرقام حصص خارج 1-6</li>
+                            <li>أسماء أيام غير صحيحة</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert alert-success p-2">
+                        <h6><i class="fas fa-check-circle"></i> مطلوب:</h6>
+                        <ul class="mb-0 small">
+                            <li>أسماء الأعمدة بالضبط كما هو محدد</li>
+                            <li>التأكد من وجود المواد والأساتذة</li>
+                            <li>التأكد من وجود الأماكن في النظام</li>
+                            <li>حفظ الملف بصيغة .xlsx</li>
+                            <li>تجنب التعارضات في المواقيت</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- تحميل النموذج -->
+            <div class="text-center mt-3">
+                <button class="btn btn-outline-primary btn-sm" onclick="downloadTemplate()">
+                    <i class="fas fa-download"></i> تحميل نموذج Excel
+                </button>
+                <small class="d-block text-muted mt-1">يحتوي على أمثلة عملية جاهزة للتعديل</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .btn, .form-control, form, .card-header, .alert-danger, .alert-success {
+            display: none !important;
+        }
+        .alert-info { border: 2px solid #000 !important; }
+    }
+    .badge { font-size: 0.75em; }
+    .table-sm th, .table-sm td { padding: 0.25rem; }
+    .myLabelList { min-width: 80px; }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'departement/js/list_matiere.js' %}" defer></script>
+
+<script>
+// Variables pour les URLs
+var refsUrl = "{{ refs_url }}";
+var nivsUrl = "{{ nivs_url }}";
+var sptsUrl = "{{ spts_url }}";
+var semestresUrl = "{{ semestres_url }}";
+
+// تحميل نموذج Excel
+function downloadTemplate() {
+    const content = "Jour,Séance,Matiere,Enseignant,Groupes,Section,Type,Amphi,Salle,Labo\n" +
+                   "Samedi,3,Informatique 1,GHALI,,2,Cours,A,,\n" +
+                   "Samedi,4,Informatique 1,GHALI,4,,TP,,,12\n" +
+                   "Dimanche,6,Informatique 1,GHALI,2,,TP,,,12\n" +
+                   "Lundi,1,Mathématiques,BOUDIAF,1,,TD,,5,\n" +
+                   "Mardi,2,Physique,BENALI,,1,Cours,B,,\n" +
+                   "Mercredi,5,Chimie,MOHAMMED,3,,TP,,,15\n";
+    
+    const blob = new Blob(['\ufeff' + content], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'نموذج_استعمال_الزمن.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+    
+    // رسالة تأكيد
+    setTimeout(() => {
+        alert('تم تحميل النموذج بنجاح! يمكنك الآن تعديله وإضافة بيانات إستعمال الزمن.');
+    }, 500);
+}
+
+// تحقق من الملف
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('excel_file');
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const validTypes = ['.xlsx', '.xls'];
+                const fileExt = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+                
+                if (!validTypes.includes(fileExt)) {
+                    alert('يرجى اختيار ملف Excel (.xlsx أو .xls)');
+                    this.value = '';
+                } else if (file.size > 5 * 1024 * 1024) {
+                    alert('حجم الملف كبير جداً (أكثر من 5 ميجابايت)');
+                    this.value = '';
+                } else {
+                    // إظهار معاينة الملف
+                    const fileSize = (file.size / 1024).toFixed(1);
+                    const preview = document.createElement('div');
+                    preview.className = 'alert alert-info mt-2';
+                    preview.innerHTML = `
+                        <i class="fas fa-file-excel me-2"></i>
+                        <strong>ملف محدد:</strong> ${file.name} (${fileSize} KB)
+                        <button type="button" class="btn-close float-end" onclick="this.parentElement.remove()"></button>
+                    `;
+                    
+                    // إزالة المعاينة السابقة
+                    const existingPreview = this.parentNode.querySelector('.alert-info');
+                    if (existingPreview) existingPreview.remove();
+                    
+                    this.parentNode.insertBefore(preview, this.nextSibling);
+                }
+            }
+        });
+    }
+    
+    // تأثيرات بصرية للجداول
+    const tableRows = document.querySelectorAll('.table-striped tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.01)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
+});
+
+// تحسين تجربة إرسال النموذج
+document.querySelector('form').addEventListener('submit', function(e) {
+    const reforme = document.getElementById('refs').value;
+    const niveau = document.getElementById('nivs').value;
+    const specialite = document.getElementById('spts').value;
+    const semestre = document.getElementById('semestres').value;
+    const file = document.getElementById('excel_file').files[0];
+    
+    if (!reforme || reforme.includes('-----')) {
+        alert('يرجى اختيار الإصلاح');
+        e.preventDefault();
+        return false;
+    }
+    
+    if (!niveau || niveau.includes('-----')) {
+        alert('يرجى اختيار المستوى');
+        e.preventDefault();
+        return false;
+    }
+    
+    if (!specialite || specialite.includes('-----')) {
+        alert('يرجى اختيار التخصص');
+        e.preventDefault();
+        return false;
+    }
+    
+    if (!semestre || semestre.includes('-----')) {
+        alert('يرجى اختيار السداسي');
+        e.preventDefault();
+        return false;
+    }
+    
+    if (!file) {
+        alert('يرجى اختيار ملف Excel');
+        e.preventDefault();
+        return false;
+    }
+    
+    // رسالة تحميل
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري التحميل...';
+    submitBtn.disabled = true;
+    
+    // في حالة عدم الاستجابة خلال 30 ثانية
+    setTimeout(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }, 30000);
+});
+</script>
+{% endblock %}

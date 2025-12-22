@@ -1,0 +1,309 @@
+{% extends 'departement/base_Dep.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="grey_zone m-1 p-2 col-lg-8">
+    <h4 class="border-bottom border-danger text-dark mb-3">إضافة الطلبة</h4>
+    
+    <div class="comment p-2"> 
+        <form name="import_form" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="row g-2 mb-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">الإصلاح:</label>
+                    <select id="refs" name="reforme" class="form-select">
+                        <option disabled selected>-----إختر الإصلاح-----</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">المستوى:</label>
+                    <select id="nivs" name="niveau" class="form-select">
+                        <option disabled selected>-----إختر المستوى-----</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">الفوج:</label>
+                    <select id="niv_spe_dep_sg" name="niv_spe_dep_sg" class="form-select">
+                        <option disabled selected>-----إختر الفوج-----</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="excel_file" class="form-label fw-bold">ملف Excel:</label>
+                <input type="file" id="excel_file" name="excel_file" class="form-control" accept=".xlsx,.xls" required>
+                <div class="form-text">الأعمدة المطلوبة: اللقب، الإسم، الرقم التسلسلي</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-upload"></i> استيراد الطلاب
+            </button>
+        </form>
+
+        <!-- Messages -->
+        {% if success %}
+            <div class="alert alert-success mt-3">
+                <h6><i class="fas fa-check-circle"></i> تم الاستيراد بنجاح</h6>
+                {{ success|linebreaks }}
+            </div>
+        {% endif %}
+        
+        {% if nouveaux_utilisateurs %}
+            <div class="alert alert-info mt-3">
+                <h6><i class="fas fa-users"></i> معلومات تسجيل الدخول للطلاب الجدد</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>الرقم التسلسلي</th>
+                                <th>اسم المستخدم</th>
+                                <th>كلمة المرور</th>
+                                <th>البريد الإلكتروني</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in nouveaux_utilisateurs %}
+                            <tr>
+                                <td>{{user.nom}}</td>
+                                <td>{{user.matricule}}</td>
+                                <td><code>{{user.username}}</code></td>
+                                <td><code>{{user.password}}</code></td>
+                                <td><small>{{user.email}}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-2">
+                    <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
+                        <i class="fas fa-print"></i> طباعة
+                    </button>
+                    <button class="btn btn-sm btn-outline-success" onclick="copyCredentials()">
+                        <i class="fas fa-copy"></i> نسخ
+                    </button>
+                </div>
+            </div>
+        {% endif %}
+        
+        {% if error %}
+            <div class="alert alert-danger mt-3">
+                <h6><i class="fas fa-exclamation-triangle"></i> خطأ في الاستيراد</h6>
+                {{ error|linebreaks }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- دليل الاستيراد -->
+<div class="grey_zone m-1 p-3 col-lg-11">
+    <div class="card border-info">
+        <div class="card-header bg-info text-white">
+            <h6 class="mb-0"><i class="fas fa-info-circle"></i> دليل استيراد الطلبة</h6>
+        </div>
+        <div class="card-body">
+            
+            <!-- هيكل الملف -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6 class="text-primary"><i class="fas fa-table"></i> الأعمدة المطلوبة:</h6>
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-dark">
+                            <tr><th>العمود</th><th>حالة</th><th>مثال</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-danger">
+                                <td><strong>اللقب</strong></td>
+                                <td><span class="badge bg-warning">اختياري</span></td>
+                                <td>بن عيسى</td>
+                            </tr>
+                            <tr class="table-danger">
+                                <td><strong>الإسم</strong></td>
+                                <td><span class="badge bg-warning">اختياري</span></td>
+                                <td>محمد</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>Nom</strong></td>
+                                <td><span class="badge bg-danger">إجباري</span></td>
+                                <td>Ben Issa</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>Prénom</strong></td>
+                                <td><span class="badge bg-danger">إجباري</span></td>
+                                <td>Mohamed</td>
+                            </tr>
+                            <tr class="table-danger">
+                                <td><strong>الرقم التسلسلي</strong></td>
+                                <td><span class="badge bg-danger">إجباري</span></td>
+                                <td>202312345</td>
+                            </tr>
+                            <tr class="table-info">
+                                <td><strong>رقم التسجيل</strong></td>
+                                <td><span class="badge bg-info">اختياري</span></td>
+                                <td>INS2023001</td>
+                            </tr>
+                            <tr class="table-success">
+                                <td><strong>الجنس</strong></td>
+                                <td><span class="badge bg-success">افتراضي M</span></td>
+                                <td>M أو F</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="col-md-6">
+                    <h6 class="text-success"><i class="fas fa-cogs"></i> ما يتم إنشاؤه تلقائياً:</h6>
+                    <div class="card border-light mb-2">
+                        <div class="card-body p-2">
+                            <h6 class="card-title text-primary">اسم المستخدم:</h6>
+                            <code>nom.prenom.matricule</code>
+                            <small class="d-block text-muted">مثال: benissa.mohamed.202312</small>
+                        </div>
+                    </div>
+                    <div class="card border-light mb-2">
+                        <div class="card-body p-2">
+                            <h6 class="card-title text-warning">كلمة المرور:</h6>
+                            <code>Nom + آخر 3 أرقام</code>
+                            <small class="d-block text-muted">مثال: Benissa345</small>
+                        </div>
+                    </div>
+                    <div class="card border-light">
+                        <div class="card-body p-2">
+                            <h6 class="card-title text-success">البريد الإلكتروني:</h6>
+                            <code>nom.prenom.matricule@univ-ouargla.dz</code>
+                            <small class="d-block text-muted">مثال: benissa.mohamed.202312@univ-ouargla.dz</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- مثال عملي -->
+            <h6 class="text-primary"><i class="fas fa-file-excel"></i> مثال لمحتوى الملف:</h6>
+            <div class="table-responsive mb-3">
+                <table class="table table-sm table-bordered table-striped">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>اللقب</th><th>الإسم</th><th>Nom</th><th>Prénom</th><th>الرقم التسلسلي</th><th>رقم التسجيل</th><th>الجنس</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>بن عيسى</td><td>محمد</td><td>Ben Issa</td><td>Mohamed</td><td>202312345</td><td>INS2023001</td><td>M</td>
+                        </tr>
+                        <tr>
+                            <td>العلوي</td><td>فاطمة</td><td>Alaoui</td><td>Fatima</td><td>202312346</td><td>INS2023002</td><td>F</td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td>الجزائري</td><td>أحمد</td><td></td><td></td><td>202312347</td><td></td><td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- قواعد مهمة -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="alert alert-danger p-2">
+                        <h6><i class="fas fa-times-circle"></i> ممنوع:</h6>
+                        <ul class="mb-0 small">
+                            <li>ترك الحقول الإجبارية فارغة</li>
+                            <li>تكرار الرقم التسلسلي</li>
+                            <li>تغيير أسماء الأعمدة</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert alert-success p-2">
+                        <h6><i class="fas fa-check-circle"></i> مطلوب:</h6>
+                        <ul class="mb-0 small">
+                            <li>حفظ الملف بصيغة .xlsx</li>
+                            <li>طباعة معلومات الدخول فوراً</li>
+                            <li>توزيع المعلومات بشكل آمن</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- تحميل النموذج -->
+            <div class="text-center mt-3">
+                <button class="btn btn-outline-primary btn-sm" onclick="downloadTemplate()">
+                    <i class="fas fa-download"></i> تحميل نموذج Excel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .btn, .form-control, form, .card-header, .alert-danger, .alert-success {
+            display: none !important;
+        }
+        .alert-info { border: 2px solid #000 !important; }
+    }
+    .badge { font-size: 0.75em; }
+    .table-sm th, .table-sm td { padding: 0.25rem; }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'departement/js/import_etudiants.js' %}" defer></script>
+
+<script>
+// Variables
+var refsUrl = "{% url 'departement:get_reformes_json' %}";
+var nivsUrl = "{% url 'departement:get_niveaux_json' reforme_id=0 %}";
+var nivSpeDepSgUrl = "{% url 'departement:get_niv_spe_dep_sg_json' niveau_id=0 %}";
+
+// Copier les informations
+function copyCredentials() {
+    let text = "معلومات تسجيل الدخول للطلاب الجدد:\n\n";
+    {% if nouveaux_utilisateurs %}
+        {% for user in nouveaux_utilisateurs %}
+            text += "• {{user.nom}} ({{user.matricule}}): {{user.username}} / {{user.password}}\n";
+        {% endfor %}
+    {% endif %}
+    
+    navigator.clipboard.writeText(text).then(() => {
+        alert('تم نسخ المعلومات بنجاح!');
+    });
+}
+
+// تحميل نموذج
+function downloadTemplate() {
+    const content = "اللقب,الإسم,Nom,Prénom,الرقم التسلسلي,رقم التسجيل,الجنس\n" +
+                   "بن عيسى,محمد,Ben Issa,Mohamed,202312345,INS2023001,M\n" +
+                   "العلوي,فاطمة,Alaoui,Fatima,202312346,INS2023002,F\n" +
+                   "الجزائري,أحمد,,,202312347,,\n";
+    
+    const blob = new Blob(['\ufeff' + content], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'نموذج_استيراد_الطلبة.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
+
+// تحقق من الملف
+document.getElementById('excel_file').addEventListener('change', function() {
+    const file = this.files[0];
+    if (file) {
+        const validTypes = ['.xlsx', '.xls'];
+        const fileExt = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+        
+        if (!validTypes.includes(fileExt)) {
+            alert('يرجى اختيار ملف Excel (.xlsx أو .xls)');
+            this.value = '';
+        } else if (file.size > 10 * 1024 * 1024) {
+            alert('حجم الملف كبير جداً (أكثر من 10 ميجابايت)');
+            this.value = '';
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,654 @@
+{% extends 'departement/base_Dep.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="container-fluid px-3 py-2">
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-10">
+            
+            <!-- En-tête compact -->
+            <div class="header-compact mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1 text-dark fw-bold">
+                            <i class="fas fa-user-edit me-2"></i>
+                            تعديل الملف الشخصي للطالب
+                        </h4>
+                        {% if my_Etu %}
+                        <small class="text-muted">{{my_Etu.nom_ar}} {{my_Etu.prenom_ar}} - {{my_Etu.matricule}}</small>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="history.back()">
+                            <i class="fas fa-arrow-left me-1"></i>إلغاء
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" id="etuUpdateForm">
+                {% csrf_token %}
+                
+                <div class="row g-3">
+                    
+                    <!-- Colonne gauche -->
+                    <div class="col-lg-6">
+                        
+                        <!-- المعلومات الأساسية -->
+                        <div class="form-section mb-3">
+                            <h6 class="section-header">
+                                <i class="fas fa-id-card me-2"></i>المعلومات الأساسية
+                            </h6>
+                            <div class="form-grid">
+                                <div class="form-group-compact">
+                                    <label class="form-label-compact">حضرة:</label>
+                                    {{ Etu_form.civilite }}
+                                </div>
+                                <div class="form-group-compact">
+                                    <label class="form-label-compact">اللقب (عربي):</label>
+                                    {{ Etu_form.nom_ar }}
+                                </div>
+                                <div class="form-group-compact">
+                                    <label class="form-label-compact">الاسم (عربي):</label>
+                                    {{ Etu_form.prenom_ar }}
+                                </div>
+                                <div class="form-group-compact">
+                                    <label class="form-label-compact">اللقب (فرنسي):</label>
+                                    {{ Etu_form.nom_fr }}
+                                </div>
+                                <div class="form-group-compact">
+                                    <label class="form-label-compact">الاسم (فرنسي):</label>
+                                    {{ Etu_form.prenom_fr }}
+                                </div>
+                                <div class="form-group-compact">
+                                    <label class="form-label-compact">رقم التسجيل:</label>
+                                    {{ Etu_form.matricule }}
+                                </div>
+                                <div class="form-group-compact">
+                                    <label class="form-label-compact">رقم التسجيل الداخلي:</label>
+                                    {{ Etu_form.num_ins }}
+                                </div>
+                                <div class="form-group-compact">
+                                    <label class="form-label-compact">الجنس:</label>
+                                    {{ Etu_form.sexe }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- المعلومات الشخصية -->
+                        <div class="form-section mb-3">
+                            <h6 class="section-header">
+                                <i class="fas fa-user me-2"></i>المعلومات الشخصية
+                            </h6>
+                            <div class="form-grid">
+                                <div class="form-group-compact">
+                                    <label class="form-label-compact">تاريخ الميلاد:</label>
+                                    {{ Etu_form.date_nais }}
+                                </div>
+                                <div class="form-group-compact">
+                                    <label class="form-label-compact">الحالة العائلية:</label>
+                                    {{ Etu_form.sit_fam }}
+                                </div>
+                                <div class="form-group-compact">
+                                    <label class="form-label-compact">سنة البكالوريا:</label>
+                                    {{ Etu_form.bac_annee }}
+                                </div>
+                                <div class="form-group-compact full-width">
+                                    <label class="form-label-compact">العنوان:</label>
+                                    {{ Etu_form.adresse }}
+                                </div>
+                                <div class="form-group-compact">
+                                    <label class="form-label-compact">الولاية:</label>
+                                    {{ Etu_form.wilaya }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- معلومات الاتصال -->
+                        <div class="form-section">
+                            <h6 class="section-header">
+                                <i class="fas fa-phone me-2"></i>معلومات الاتصال
+                            </h6>
+                            <div class="form-grid">
+                                <div class="form-group-compact">
+                                    <label class="form-label-compact">الجوال 1:</label>
+                                    {{ Etu_form.tel_mobile1 }}
+                                </div>
+                                <div class="form-group-compact">
+                                    <label class="form-label-compact">الجوال 2:</label>
+                                    {{ Etu_form.tel_mobile2 }}
+                                </div>
+                                <div class="form-group-compact">
+                                    <label class="form-label-compact">الهاتف الثابت:</label>
+                                    {{ Etu_form.tel_fix }}
+                                </div>
+                                <div class="form-group-compact">
+                                    <label class="form-label-compact">الفاكس:</label>
+                                    {{ Etu_form.fax }}
+                                </div>
+                                <div class="form-group-compact full-width">
+                                    <label class="form-label-compact">الإيميل الشخصي:</label>
+                                    {{ Etu_form.email_perso }}
+                                </div>
+                                <div class="form-group-compact full-width">
+                                    <label class="form-label-compact">الإيميل المهني:</label>
+                                    {{ Etu_form.email_prof }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Colonne droite -->
+                    <div class="col-lg-6">
+                        
+                        <!-- المعلومات الأكاديمية -->
+                        <div class="form-section mb-3">
+                            <h6 class="section-header">
+                                <i class="fas fa-graduation-cap me-2"></i>المعلومات الأكاديمية
+                            </h6>
+                            <div class="form-grid">
+                                <div class="form-group-compact full-width">
+                                    <label class="form-label-compact">المستوى، التخصص، القسم، والفوج:</label>
+                                    {{ Etu_form.niv_spe_dep_sg }}
+                                </div>
+                                <div class="form-group-compact">
+                                    <label class="form-label-compact">
+                                        <input type="checkbox" name="delegue" {% if Etu_form.delegue.value %}checked{% endif %} class="me-2">
+                                        طالب مندوب
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- حالة التسجيل في المنصات -->
+                        <div class="form-section mb-3">
+                            <h6 class="section-header">
+                                <i class="fas fa-desktop me-2"></i>حالة التسجيل في المنصات
+                            </h6>
+                            <div class="checkbox-grid">
+                                <div class="checkbox-item">
+                                    <label class="checkbox-label">
+                                        {{ Etu_form.inscrit_progres }}
+                                        <span class="ms-2">منصة Progres</span>
+                                    </label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <label class="checkbox-label">
+                                        {{ Etu_form.inscrit_moodle }}
+                                        <span class="ms-2">منصة MOODLE</span>
+                                    </label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <label class="checkbox-label">
+                                        {{ Etu_form.inscrit_sndl }}
+                                        <span class="ms-2">منصة SNDL</span>
+                                    </label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <label class="checkbox-label">
+                                        {{ Etu_form.inscrit_univ }}
+                                        <span class="ms-2">المنصة الجامعية</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الحالة الأكاديمية -->
+                        <div class="form-section mb-3">
+                            <h6 class="section-header">
+                                <i class="fas fa-user-clock me-2"></i>الحالة الأكاديمية
+                            </h6>
+                            <div class="checkbox-grid">
+                                <div class="checkbox-item">
+                                    <label class="checkbox-label">
+                                        {{ Etu_form.en_vac_aca }}
+                                        <span class="ms-2">عطلة أكاديمية</span>
+                                    </label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <label class="checkbox-label">
+                                        {{ Etu_form.en_maladie }}
+                                        <span class="ms-2">عطلة مرضية</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الروابط الأكاديمية -->
+                        <div class="form-section mb-3">
+                            <h6 class="section-header">
+                                <i class="fas fa-link me-2"></i>الروابط الأكاديمية
+                            </h6>
+                            <div class="form-grid">
+                                <div class="form-group-compact full-width">
+                                    <label class="form-label-compact">
+                                        <i class="fab fa-google text-danger me-2"></i>Google Scholar:
+                                    </label>
+                                    {{ Etu_form.google_scholar }}
+                                </div>
+                                <div class="form-group-compact full-width">
+                                    <label class="form-label-compact">
+                                        <i class="fab fa-researchgate text-info me-2"></i>ResearchGate:
+                                    </label>
+                                    {{ Etu_form.researchgate }}
+                                </div>
+                                <div class="form-group-compact full-width">
+                                    <label class="form-label-compact">
+                                        <i class="fab fa-orcid text-success me-2"></i>ORCID ID:
+                                    </label>
+                                    {{ Etu_form.orcid_id }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- وسائل التواصل الاجتماعي -->
+                        <div class="form-section">
+                            <h6 class="section-header">
+                                <i class="fas fa-share-alt me-2"></i>وسائل التواصل الاجتماعي
+                            </h6>
+                            <div class="form-grid">
+                                <div class="form-group-compact full-width">
+                                    <label class="form-label-compact">
+                                        <i class="fab fa-linkedin text-primary me-2"></i>LinkedIn:
+                                    </label>
+                                    {{ Etu_form.linkedin }}
+                                </div>
+                                <div class="form-group-compact full-width">
+                                    <label class="form-label-compact">
+                                        <i class="fab fa-facebook text-primary me-2"></i>Facebook:
+                                    </label>
+                                    {{ Etu_form.facebook }}
+                                </div>
+                                <div class="form-group-compact full-width">
+                                    <label class="form-label-compact">
+                                        <i class="fab fa-x-twitter text-dark me-2"></i>X (Twitter):
+                                    </label>
+                                    {{ Etu_form.x_twitter }}
+                                </div>
+                                <div class="form-group-compact full-width">
+                                    <label class="form-label-compact">
+                                        <i class="fab fa-tiktok text-dark me-2"></i>TikTok:
+                                    </label>
+                                    {{ Etu_form.tiktok }}
+                                </div>
+                                <div class="form-group-compact full-width">
+                                    <label class="form-label-compact">
+                                        <i class="fab fa-telegram text-info me-2"></i>Telegram:
+                                    </label>
+                                    {{ Etu_form.telegram }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons d'action -->
+                <div class="form-actions mt-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                            <i class="fas fa-times me-2"></i>إلغاء
+                        </button>
+                        
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-save me-2"></i>حفظ التغييرات
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript pour améliorer l'UX -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('etuUpdateForm');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    // Animation lors du chargement
+    const sections = document.querySelectorAll('.form-section');
+    sections.forEach((section, index) => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            section.style.transition = 'all 0.3s ease';
+            section.style.opacity = '1';
+            section.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Validation et feedback lors de la soumission
+    form.addEventListener('submit', function(e) {
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري الحفظ...';
+        submitBtn.disabled = true;
+        
+        // Validation basique
+        const requiredFields = form.querySelectorAll('input[required], select[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>حفظ التغييرات';
+            submitBtn.disabled = false;
+            
+            // Scroll vers le premier champ invalide
+            const firstInvalid = form.querySelector('.is-invalid');
+            if (firstInvalid) {
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstInvalid.focus();
+            }
+        }
+    });
+    
+    // Amélioration des champs de date
+    const dateInputs = form.querySelectorAll('input[type="date"], input[type="datetime-local"]');
+    dateInputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.style.transform = 'scale(1.02)';
+        });
+        
+        input.addEventListener('blur', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
+    
+    // Validation en temps réel pour les emails
+    const emailInputs = form.querySelectorAll('input[type="email"]');
+    emailInputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.value && !this.value.includes('@')) {
+                this.classList.add('is-invalid');
+                this.insertAdjacentHTML('afterend', '<div class="invalid-feedback">صيغة البريد الإلكتروني غير صحيحة</div>');
+            } else {
+                this.classList.remove('is-invalid');
+                const feedback = this.nextElementSibling;
+                if (feedback && feedback.classList.contains('invalid-feedback')) {
+                    feedback.remove();
+                }
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Header compact */
+.header-compact {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    border-left: 4px solid #28a745;
+}
+
+/* Sections de formulaire */
+.form-section {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.section-header {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 0.95rem;
+}
+
+/* Grille de formulaire compacte */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+}
+
+.form-group-compact {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group-compact.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-label-compact {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.875rem;
+    margin-bottom: 0.375rem;
+    display: flex;
+    align-items: center;
+}
+
+/* Champs de formulaire */
+.form-control,
+.form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    background-color: #fff;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    outline: none;
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+}
+
+.invalid-feedback {
+    color: #dc3545;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+/* Grille de checkboxes */
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.5rem;
+}
+
+.checkbox-item {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.checkbox-item:hover {
+    background: #e9ecef;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: #495057;
+    margin: 0;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: 0.5rem;
+    transform: scale(1.1);
+}
+
+/* Actions du formulaire */
+.form-actions {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+/* Boutons */
+.btn {
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn-lg {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #218838, #1cc88a);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-outline-secondary {
+    border: 2px solid #6c757d;
+    color: #6c757d;
+    background: transparent;
+}
+
+.btn-outline-secondary:hover {
+    background: #6c757d;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .checkbox-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions .d-flex {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-compact .d-flex {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .form-section {
+        padding: 0.75rem;
+    }
+    
+    .section-header {
+        font-size: 0.9rem;
+    }
+    
+    .form-label-compact {
+        font-size: 0.8rem;
+    }
+    
+    .form-control,
+    .form-select {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.6rem;
+    }
+}
+
+/* Couleurs des icônes sociales */
+.fab.fa-google { color: #4285f4 !important; }
+.fab.fa-researchgate { color: #00d0af !important; }
+.fab.fa-orcid { color: #a6ce39 !important; }
+.fab.fa-linkedin { color: #0077b5 !important; }
+.fab.fa-facebook { color: #1877f2 !important; }
+.fab.fa-x-twitter { color: #000000 !important; }
+.fab.fa-tiktok { color: #fe2c55 !important; }
+.fab.fa-telegram { color: #0088cc !important; }
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-section {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+/* États de chargement */
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Amélioration des champs de sélection */
+.form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+}
+
+/* Focus visible pour l'accessibilité */
+.form-control:focus-visible,
+.form-select:focus-visible,
+.btn:focus-visible {
+    outline: 2px solid #28a745;
+    outline-offset: 2px;
+}
+
+/* Amélioration des champs URL */
+input[type="url"] {
+    direction: ltr;
+    text-align: left;
+}
+
+/* Styles pour les messages de validation */
+.form-control.is-valid {
+    border-color: #28a745;
+}
+
+.form-control.is-valid:focus {
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+</style>
+{% endblock %}

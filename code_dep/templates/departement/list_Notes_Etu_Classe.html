@@ -1,0 +1,455 @@
+{% extends 'departement/base_Dep.html' %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<div class="grey_zone m-1 p-2">
+  <!-- En-tête de la page -->
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <div>
+      <h5 class="border-bottom border-info text-dark font-weight-bold mb-2">
+        <i class="fas fa-graduation-cap"></i>
+        نقاط طلاب: {{ titre_00 }}
+      </h5>
+      <h6 class="oneBorder mb-1">
+        المادة: <span class="text-info fw-bold">{{ titre_01 }}</span>
+        <small class="text-muted">({{ my_Clas.type }})</small>
+      </h6>
+      <h6 class="mb-1">
+        الأستاذ: <span class="text-secondary fw-bold">{{ enseignant_info.nom_ar }} {{ enseignant_info.prenom_ar }}</span>
+      </h6>
+    </div>
+    <div>
+      <a href="{% url 'depa:emploi_Ens' enseignant_info.id %}" class="btn btn-outline-secondary btn-sm me-1">
+        <i class="fas fa-arrow-left"></i> العودة للجدول
+      </a>
+      <a href="{% url 'depa:export_notes_classe' my_Clas.id %}" class="btn btn-info btn-sm">
+        <i class="fas fa-download"></i> تصدير Excel
+      </a>
+    </div>
+  </div>
+
+  <!-- Statistiques de la classe - Version compacte -->
+  {% if statistiques %}
+  <div class="card mb-2">
+    <div class="card-body py-2">
+      <div class="row text-center g-2">
+        <div class="col-2">
+          <small class="text-primary fw-bold d-block">{{ statistiques.nombre_etudiants }}</small>
+          <small class="text-muted" style="font-size: 0.7rem;">طلاب</small>
+        </div>
+        <div class="col-2">
+          <small class="text-info fw-bold d-block">{{ statistiques.moyenne_classe }}</small>
+          <small class="text-muted" style="font-size: 0.7rem;">معدل</small>
+        </div>
+        <div class="col-2">
+          <small class="text-success fw-bold d-block">{{ statistiques.note_max }}</small>
+          <small class="text-muted" style="font-size: 0.7rem;">أعلى</small>
+        </div>
+        <div class="col-2">
+          <small class="text-danger fw-bold d-block">{{ statistiques.note_min }}</small>
+          <small class="text-muted" style="font-size: 0.7rem;">أقل</small>
+        </div>
+        <div class="col-2">
+          <small class="text-success fw-bold d-block">{{ statistiques.nombre_admis }}</small>
+          <small class="text-muted" style="font-size: 0.7rem;">ناجح</small>
+        </div>
+        <div class="col-2">
+          <small class="text-info fw-bold d-block">{{ statistiques.taux_reussite }}%</small>
+          <small class="text-muted" style="font-size: 0.7rem;">نجاح</small>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Contrôles d'affichage -->
+  <div class="mb-2 d-flex justify-content-between align-items-center">
+    <div class="d-flex flex-wrap align-items-center">
+      <small class="fw-bold me-2">إظهار:</small>
+      <label class="compact-checkbox"><input type="checkbox" id="toggle-index" checked> #</label>
+      <label class="compact-checkbox"><input type="checkbox" id="toggle-nom_ar" checked> اللقب</label>
+      <label class="compact-checkbox"><input type="checkbox" id="toggle-prenom_ar" checked> الاسم</label>
+      <label class="compact-checkbox"><input type="checkbox" id="toggle-nom_fr" checked> Nom</label>
+      <label class="compact-checkbox"><input type="checkbox" id="toggle-prenom_fr" checked> Prénom</label>
+      <label class="compact-checkbox"><input type="checkbox" id="toggle-notes" checked> النقاط</label>
+      <label class="compact-checkbox"><input type="checkbox" id="toggle-mention" checked> التقييم</label>
+      <label class="compact-checkbox"><input type="checkbox" id="toggle-obs" checked> ملاحظات</label>
+    </div>
+    <div>
+      <span class="badge bg-info">عرض فقط - لا يمكن التعديل</span>
+    </div>
+  </div>
+
+  <!-- Table des notes (lecture seule) -->
+  <div class="table-responsive">
+    <table class="table table-striped table-hover table-sm table-bordered align-middle compact-table" id="notes-table">
+      <thead class="table-info">
+        <tr class="compact-header">
+          <th data-col="index" class="toggle-col text-center p-1">#</th>
+          <th data-col="nom_ar" class="toggle-col sortable p-1">اللقب</th>
+          <th data-col="prenom_ar" class="toggle-col sortable p-1">الاسم</th>
+          <th data-col="nom_fr" class="toggle-col sortable p-1">Nom</th>
+          <th data-col="prenom_fr" class="toggle-col sortable p-1">Prénom</th>
+          <th data-col="notes" class="toggle-col text-center p-1">حضور<br><small>(0-5)</small></th>
+          <th data-col="notes" class="toggle-col text-center p-1">مشاركة<br><small>(0-5)</small></th>
+          <th data-col="notes" class="toggle-col text-center p-1">امتحان 1<br><small>(0-5)</small></th>
+          <th data-col="notes" class="toggle-col text-center p-1">امتحان 2<br><small>(0-5)</small></th>
+          <th data-col="notes" class="toggle-col text-center p-1">إضافية<br><small>تلقائي</small></th>
+          <th data-col="notes" class="toggle-col text-center p-1 bg-warning"><strong>النهائية<br><small>(0-20)</small></strong></th>
+          <th data-col="notes" class="toggle-col text-center p-1">%حضور</th>
+          <th data-col="mention" class="toggle-col text-center p-1">التقييم</th>
+          <th data-col="obs" class="toggle-col text-center p-1">ملاحظات</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for note in all_Notes_Classe %}
+          <tr data-nom_ar="{{ note.etudiant.nom_ar|default:''|lower }}" 
+              data-prenom_ar="{{ note.etudiant.prenom_ar|default:''|lower }}" 
+              data-nom_fr="{{ note.etudiant.nom_fr|default:''|lower }}" 
+              data-prenom_fr="{{ note.etudiant.prenom_fr|default:''|lower }}"
+              data-note_finale="{{ note.note_finale }}"
+              class="compact-row">
+            
+            <!-- Informations étudiant -->
+            <td data-col="index" class="toggle-col text-center p-1">
+              <small>{{ forloop.counter }}</small>
+            </td>
+            <td data-col="nom_ar" class="toggle-col p-1">
+              <small>{{ note.etudiant.nom_ar|default:'-' }}</small>
+            </td>
+            <td data-col="prenom_ar" class="toggle-col p-1">
+              <small>{{ note.etudiant.prenom_ar|default:'-' }}</small>
+            </td>
+            <td data-col="nom_fr" class="toggle-col p-1">
+              <small>{{ note.etudiant.nom_fr|default:'-' }}</small>
+            </td>
+            <td data-col="prenom_fr" class="toggle-col p-1">
+              <small>{{ note.etudiant.prenom_fr|default:'-' }}</small>
+            </td>
+            
+            <!-- Note de présence (lecture seule) -->
+            <td data-col="notes" class="toggle-col text-center p-1">
+              <span class="note-readonly {% if note.note_presence >= 4 %}text-success{% elif note.note_presence >= 2 %}text-warning{% else %}text-danger{% endif %}">
+                <small><strong>{{ note.note_presence|floatformat:2 }}</strong></small>
+              </span>
+            </td>
+            
+            <!-- Note de participation (lecture seule) -->
+            <td data-col="notes" class="toggle-col text-center p-1">
+              <span class="note-readonly {% if note.note_participe_HW >= 4 %}text-success{% elif note.note_participe_HW >= 2 %}text-warning{% else %}text-danger{% endif %}">
+                <small><strong>{{ note.note_participe_HW|floatformat:2 }}</strong></small>
+              </span>
+            </td>
+            
+            <!-- Note de contrôle (lecture seule) -->
+            <td data-col="notes" class="toggle-col text-center p-1">
+              <span class="note-readonly {% if note.note_controle_1 >= 8 %}text-success{% elif note.note_controle_1 >= 5 %}text-warning{% else %}text-danger{% endif %}">
+                <small><strong>{{ note.note_controle_1|floatformat:2 }}</strong></small>
+              </span>
+            </td>
+            
+            <!-- Note de contrôle (lecture seule) -->
+            <td data-col="notes" class="toggle-col text-center p-1">
+              <span class="note-readonly {% if note.note_controle_2 >= 8 %}text-success{% elif note.note_controle_2 >= 5 %}text-warning{% else %}text-danger{% endif %}">
+                <small><strong>{{ note.note_controle_2|floatformat:2 }}</strong></small>
+              </span>
+            </td>
+            
+            <!-- Points supplémentaires (lecture seule) -->
+            <td data-col="notes" class="toggle-col text-center p-1">
+              <div class="d-flex justify-content-center compact-bonus">
+                <div class="bonus-compact me-1" title="مشاركة: {{ note.total_sup_seance|floatformat:2 }}">
+                  <small class="text-success fw-bold">{{ note.total_sup_seance|floatformat:1 }}</small>
+                </div>
+              </div>
+            </td>
+            
+            <!-- Note finale -->
+            <td data-col="notes" class="toggle-col text-center p-1 bg-light">
+              <strong class="{% if note.note_finale >= 10 %}text-success{% else %}text-danger{% endif %}">
+                <small>{{ note.note_finale|floatformat:2 }}</small>
+              </strong>
+            </td>
+            
+            <!-- Taux de présence -->
+            <td data-col="notes" class="toggle-col text-center p-1">
+              <small class="{% if note.taux_presence_pourcentage >= 75 %}text-success{% elif note.taux_presence_pourcentage >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                {{ note.taux_presence_pourcentage }}%
+              </small>
+            </td>
+            
+            <!-- Mention -->
+            <td data-col="mention" class="toggle-col text-center p-1">
+              <span class="badge badge-compact
+                {% if note.mention == 'ممتاز' %}bg-success
+                {% elif note.mention == 'جيد جداً' %}bg-info
+                {% elif note.mention == 'جيد' %}bg-primary
+                {% elif note.mention == 'مقبول' %}bg-warning
+                {% else %}bg-danger{% endif %}">
+                <small>{{ note.mention }}</small>
+              </span>
+            </td>
+            
+            <!-- Observations (lecture seule) -->
+            <td data-col="obs" class="toggle-col p-1">
+              <small class="text-muted">{{ note.obs|default:'-' }}</small>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="13" class="text-center p-2">
+              <small class="text-muted">
+                <i class="fas fa-info-circle"></i>
+                لا توجد نقاط مسجلة بعد
+              </small>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Scripts pour l'affichage et le tri -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let table = document.getElementById('notes-table');
+    let tbody = table.getElementsByTagName('tbody')[0];
+    let ths = table.getElementsByTagName('th');
+    let sortDirection = {};
+
+    // Afficher/masquer les colonnes
+    let toggleCheckboxes = document.querySelectorAll('input[id^="toggle-"]');
+    toggleCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            let col = this.id.replace('toggle-', '');
+            let elements = document.querySelectorAll(`[data-col="${col}"]`);
+            elements.forEach(el => el.style.display = this.checked ? '' : 'none');
+        });
+    });
+
+    // Tri dynamique
+    for (let th of ths) {
+        if (th.classList.contains('sortable')) {
+            th.style.cursor = 'pointer';
+            th.addEventListener('click', function() {
+                let key = this.getAttribute('data-sort') || this.getAttribute('data-col');
+                let rows = Array.from(tbody.getElementsByTagName('tr'));
+                sortDirection[key] = !sortDirection[key];
+
+                rows.sort((a, b) => {
+                    let aValue = a.getAttribute(`data-${key}`) || '0';
+                    let bValue = b.getAttribute(`data-${key}`) || '0';
+                    
+                    if (key === 'note_finale') {
+                        aValue = parseFloat(aValue) || 0;
+                        bValue = parseFloat(bValue) || 0;
+                    } else {
+                        aValue = aValue.toLowerCase();
+                        bValue = bValue.toLowerCase();
+                    }
+                    
+                    if (aValue < bValue) return sortDirection[key] ? -1 : 1;
+                    if (aValue > bValue) return sortDirection[key] ? 1 : -1;
+                    return 0;
+                });
+
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        }
+    }
+});
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Table ultra-compacte pour lecture seule */
+.compact-table {
+    line-height: 1.2;
+}
+
+.compact-table th,
+.compact-table td {
+    padding: 0.2rem 0.3rem !important;
+    vertical-align: middle;
+    border: 1px solid #dee2e6;
+    height: 35px !important;
+    max-height: 35px !important;
+}
+
+.compact-header th {
+    font-weight: 600;
+    height: 50px !important;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.compact-row {
+    height: 35px !important;
+    max-height: 35px !important;
+}
+
+/* Notes en lecture seule */
+.note-readonly {
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    display: inline-block;
+    min-width: 40px;
+    text-align: center;
+}
+
+/* Bonus compacts */
+.compact-bonus {
+    align-items: center;
+    gap: 3px;
+}
+
+.bonus-compact {
+    min-width: 22px;
+    text-align: center;
+}
+
+/* Badge compact */
+.badge-compact {
+    font-size: 0.6rem !important;
+    padding: 0.2rem 0.4rem !important;
+    line-height: 1.1;
+}
+
+/* Checkboxes compactes */
+.compact-checkbox {
+    font-size: 0.75rem !important;
+    margin-right: 8px !important;
+    margin-bottom: 0 !important;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.compact-checkbox input[type="checkbox"] {
+    margin-right: 3px;
+    transform: scale(0.9);
+}
+
+/* Hover optimisé */
+.table-hover tbody tr:hover {
+    background-color: #e8f4f8 !important;
+}
+
+/* Style général compact */
+.grey_zone {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+}
+
+.oneBorder {
+    border-left: 3px solid #17a2b8;
+    padding-left: 8px;
+}
+
+/* Card compact */
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-body {
+    padding: 0.5rem !important;
+}
+
+/* Thead sticky */
+thead th {
+    position: sticky;
+    top: 0;
+    background-color: #17a2b8 !important;
+    z-index: 10;
+}
+
+/* Amélioration des en-têtes */
+.compact-header th small {
+    display: block;
+    font-weight: 400;
+    opacity: 0.9;
+}
+
+/* Sortable cursor */
+.sortable:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .compact-table {
+        font-size: 0.65rem;
+    }
+    
+    .compact-table th,
+    .compact-table td {
+        padding: 0.1rem 0.2rem !important;
+        height: 30px !important;
+    }
+    
+    .compact-header th {
+        height: 45px !important;
+    }
+    
+    .note-readonly {
+        min-width: 30px;
+        padding: 0.1rem 0.2rem;
+        font-size: 0.6rem;
+    }
+    
+    .compact-checkbox {
+        font-size: 0.65rem !important;
+        margin-right: 5px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .compact-table th,
+    .compact-table td {
+        padding: 0.1rem !important;
+        height: 28px !important;
+        font-size: 0.6rem;
+    }
+    
+    .compact-header th {
+        font-size: 0.6rem;
+        height: 40px !important;
+    }
+    
+    .note-readonly {
+        min-width: 25px;
+        font-size: 0.55rem;
+    }
+}
+
+/* Couleurs pour les notes */
+.text-success { color: #198754 !important; }
+.text-warning { color: #ffc107 !important; }
+.text-danger { color: #dc3545 !important; }
+.text-info { color: #0dcaf0 !important; }
+
+/* Background colors */
+.bg-success { background-color: #198754 !important; }
+.bg-warning { background-color: #ffc107 !important; }
+.bg-danger { background-color: #dc3545 !important; }
+
+.bg-primary { background-color: #0d6efd !important; }
+
+/* Performance optimizations */
+.compact-table * {
+    transition: none !important;
+}
+
+/* Minimal spacing */
+.mb-1 { margin-bottom: 0.25rem !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.me-1 { margin-right: 0.25rem !important; }
+.p-1 { padding: 0.25rem !important; }
+</style>
+{% endblock %}

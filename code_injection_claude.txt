@@ -1,0 +1,10 @@
+dans le code_dep dans la racine, je veux ajouter la page html:
+D:\PROJETCS\smart-univ\code_dep\templates\departement\list_enseignants_dep.html
+dans mon projet actuel sur:
+D:\PROJETCS\smart-univ\apps\academique\departement\templates\departement
+gardant le meme principe de style
+aussi:
+noublie pas le code de la page sur views trouver dans:
+D:\PROJETCS\smart-univ\code_dep\views.py
+de l'injecter dans mon projet actuel sur:
+D:\PROJETCS\smart-univ\apps\academique\departement\views.py

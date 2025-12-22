@@ -1,0 +1,83 @@
+{% extends 'departement/base_Dep.html' %}
+{% block content %}
+
+<div class="container-fluid p-3" style="background-color: #f8f9fa;">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-danger text-white">
+          <h4 class="mb-0">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            خطأ في النظام
+          </h4>
+        </div>
+        
+        <div class="card-body text-center" style="background-color: #f8f9fa;">
+          <div class="error-icon mb-4">
+            <i class="fas fa-exclamation-circle fa-5x text-danger"></i>
+          </div>
+          
+          <div class="error-message mb-4">
+            <h5 class="text-danger mb-3">حدث خطأ أثناء معالجة طلبك</h5>
+            <p class="text-muted">{{ error_message|default:"حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى." }}</p>
+          </div>
+          
+          <div class="error-actions">
+            <a href="{% url 'depa:dashboard_Dep' %}" class="btn btn-primary me-2">
+              <i class="fas fa-home me-1"></i>
+              العودة إلى لوحة التحكم
+            </a>
+            <button onclick="history.back()" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-1"></i>
+              العودة للصفحة السابقة
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.error-icon {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.card {
+    border-top: 4px solid #dc3545;
+}
+
+.error-message {
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #f8d7da;
+}
+
+.btn {
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+</style>
+{% endblock %}

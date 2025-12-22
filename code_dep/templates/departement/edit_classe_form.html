@@ -1,0 +1,272 @@
+{% if error %}
+<div class="alert alert-danger">
+    <i class="fas fa-exclamation-circle"></i> {{ error }}
+</div>
+{% else %}
+
+<form method="post" id="editClasseForm-{{classe.id}}" onsubmit="submitEditForm(event, {{classe.id}})">
+    {% csrf_token %}
+    
+    <div class="alert alert-info mb-3">
+        <i class="fas fa-info-circle"></i>
+        <strong>الحصة الحالية:</strong> {{classe.matiere.nom_fr}} - {{classe.get_jour_display}} {{classe.get_temps_display}}
+    </div>
+    
+    {% if classe.seance_created %}
+    <div class="alert alert-warning mb-3">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>تحذير:</strong> هذه الحصة تحتوي على حصص مسجلة. سيتم حذف الحصص غير المكتملة تلقائياً عند التعديل.
+    </div>
+    {% endif %}
+    
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="id_semestre_{{classe.id}}" class="form-label">السداسي <span class="text-danger">*</span></label>
+            <select name="semestre" id="id_semestre_{{classe.id}}" class="form-select" required>
+                <option value="">--- اختر السداسي ---</option>
+                {% for semestre in semestres %}
+                <option value="{{semestre.id}}" {% if classe.semestre.id == semestre.id %}selected{% endif %}>
+                    السداسي {{semestre.numero}}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <label for="id_matiere_{{classe.id}}" class="form-label">المادة <span class="text-danger">*</span></label>
+            <select name="matiere" id="id_matiere_{{classe.id}}" class="form-select" required>
+                <option value="">--- اختر المادة ---</option>
+                {% for matiere in matieres %}
+                <option value="{{matiere.id}}" {% if classe.matiere.id == matiere.id %}selected{% endif %}>
+                    {{matiere}}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="id_enseignant_{{classe.id}}" class="form-label">الأستاذ <span class="text-danger">*</span></label>
+            <select name="enseignant" id="id_enseignant_{{classe.id}}" class="form-select" required>
+                <option value="">--- اختر الأستاذ ---</option>
+                {% for ens in enseignants %}
+                <option value="{{ens.id}}" {% if classe.enseignant.id == ens.id %}selected{% endif %}>
+                    {{ens.enseignant.nom_ar}} {{ens.enseignant.prenom_ar}}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <label for="id_niv_spe_dep_sg_{{classe.id}}" class="form-label">المجموعة <span class="text-danger">*</span></label>
+            <select name="niv_spe_dep_sg" id="id_niv_spe_dep_sg_{{classe.id}}" class="form-select" required>
+                <option value="">--- اختر المجموعة ---</option>
+                {% for groupe in groupes %}
+                <option value="{{groupe.id}}" {% if classe.niv_spe_dep_sg.id == groupe.id %}selected{% endif %}>
+                    {% if groupe.section and groupe.groupe %}
+                        {{groupe.section.nom_ar}} - {{groupe.groupe.nom_ar}}
+                    {% elif groupe.section %}
+                        قطاع: {{groupe.section.nom_ar}}
+                    {% elif groupe.groupe %}
+                        فوج: {{groupe.groupe.nom_ar}}
+                    {% else %}
+                        جميع الطلبة
+                    {% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label for="id_jour_{{classe.id}}" class="form-label">اليوم <span class="text-danger">*</span></label>
+            <select name="jour" id="id_jour_{{classe.id}}" class="form-select" required>
+                <option value="">--- اختر اليوم ---</option>
+                {% for jour_val, jour_label in jours %}
+                <option value="{{jour_val}}" {% if classe.jour == jour_val %}selected{% endif %}>
+                    {{jour_label}}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <label for="id_temps_{{classe.id}}" class="form-label">التوقيت <span class="text-danger">*</span></label>
+            <select name="temps" id="id_temps_{{classe.id}}" class="form-select" required>
+                <option value="">--- اختر التوقيت ---</option>
+                {% for temps_val, temps_label in temps %}
+                <option value="{{temps_val}}" {% if classe.temps == temps_val %}selected{% endif %}>
+                    {{temps_label}}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <label for="id_type_{{classe.id}}" class="form-label">نوع الحصة <span class="text-danger">*</span></label>
+            <select name="type" id="id_type_{{classe.id}}" class="form-select" required>
+                <option value="">--- اختر النوع ---</option>
+                {% for type_val, type_label in types %}
+                <option value="{{type_val}}" {% if classe.type == type_val %}selected{% endif %}>
+                    {{type_label}}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label for="id_lieu_type_{{classe.id}}" class="form-label">نوع المكان <span class="text-danger">*</span></label>
+        <select name="lieu_type" id="id_lieu_type_{{classe.id}}" class="form-select" required>
+            <option value="">--- اختر نوع المكان ---</option>
+            <option value="amphi" {% if lieu_type == 'amphi' %}selected{% endif %}>مدرج</option>
+            <option value="salle" {% if lieu_type == 'salle' %}selected{% endif %}>قاعة</option>
+            <option value="labo" {% if lieu_type == 'labo' %}selected{% endif %}>مخبر</option>
+        </select>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="id_lieu_id_{{classe.id}}" class="form-label">المكان <span class="text-danger">*</span></label>
+        <select name="lieu_id" id="id_lieu_id_{{classe.id}}" class="form-select" required>
+            <option value="">--- اختر نوع المكان أولاً ---</option>
+            
+            {% for amphi in amphitheatres %}
+            <option value="{{amphi.id}}" 
+                    {% if lieu_type == 'amphi' and lieu_id == amphi.id %}selected{% endif %}>
+                مدرج {{amphi.amphi.numero}}
+            </option>
+            {% endfor %}
+            
+            {% for salle in salles %}
+            <option value="{{salle.id}}"
+                    {% if lieu_type == 'salle' and lieu_id == salle.id %}selected{% endif %}>
+                قاعة {{salle.salle.numero}}
+            </option>
+            {% endfor %}
+            
+            {% for labo in labos %}
+            <option value="{{labo.id}}"
+                    {% if lieu_type == 'labo' and lieu_id == labo.id %}selected{% endif %}>
+                مخبر {{labo.laboratoire.numero}}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
+    
+    <div class="mb-3">
+        <label for="id_observation_{{classe.id}}" class="form-label">ملاحظات</label>
+        <textarea name="observation" id="id_observation_{{classe.id}}" class="form-control" rows="3">{{classe.observation}}</textarea>
+    </div>
+    
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times"></i> إلغاء
+        </button>
+        <button type="submit" class="btn btn-warning">
+            <i class="fas fa-save"></i> تعديل
+        </button>
+    </div>
+</form>
+
+<script>
+jQuery(document).ready(function($) {
+    var classeId = '{{classe.id}}';
+    
+    // ========================================
+    // FILTRAGE DES MATIÈRES PAR SEMESTRE
+    // ========================================
+    var matieresData = [
+        {% for matiere in all_matieres %}
+        {
+            id: {{matiere.id}}, 
+            nom: '{{matiere.nom_fr|escapejs}}', 
+            semestre: {{matiere.semestre.numero}},
+            selected: {% if classe.matiere.id == matiere.id %}true{% else %}false{% endif %}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    var $semestreSelect = $('#id_semestre_' + classeId);
+    var $matiereSelect = $('#id_matiere_' + classeId);
+    
+    $semestreSelect.on('change', function() {
+        var semestreNumero = parseInt($(this).find('option:selected').text().match(/\d+/)[0]);
+        
+        $matiereSelect.html('<option value="">--- اختر المادة ---</option>');
+        
+        if (semestreNumero) {
+            $.each(matieresData, function(i, matiere) {
+                if (matiere.semestre === semestreNumero) {
+                    var option = $('<option></option>')
+                        .attr('value', matiere.id)
+                        .text(matiere.nom);
+                    
+                    if (matiere.selected) {
+                        option.attr('selected', 'selected');
+                    }
+                    
+                    $matiereSelect.append(option);
+                }
+            });
+        }
+    });
+    
+    // ========================================
+    // FILTRAGE DES LIEUX PAR TYPE
+    // ========================================
+    var lieuxData = {
+        amphi: [
+            {% for amphi in amphitheatres %}
+            {id: {{amphi.id}}, nom: 'مدرج {{amphi.amphi.numero}}', selected: {% if lieu_type == 'amphi' and lieu_id == amphi.id %}true{% else %}false{% endif %}}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        salle: [
+            {% for salle in salles %}
+            {id: {{salle.id}}, nom: 'قاعة {{salle.salle.numero}}', selected: {% if lieu_type == 'salle' and lieu_id == salle.id %}true{% else %}false{% endif %}}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        labo: [
+            {% for labo in labos %}
+            {id: {{labo.id}}, nom: 'مخبر {{labo.laboratoire.numero}}', selected: {% if lieu_type == 'labo' and lieu_id == labo.id %}true{% else %}false{% endif %}}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    };
+    
+    var $typeSelect = $('#id_lieu_type_' + classeId);
+    var $lieuSelect = $('#id_lieu_id_' + classeId);
+    
+    $typeSelect.on('change', function() {
+        var type = $(this).val();
+        
+        $lieuSelect.html('<option value="">--- اختر المكان ---</option>');
+        
+        if (type && lieuxData[type]) {
+            $.each(lieuxData[type], function(i, lieu) {
+                var option = $('<option></option>')
+                    .attr('value', lieu.id)
+                    .text(lieu.nom);
+                
+                if (lieu.selected) {
+                    option.attr('selected', 'selected');
+                }
+                
+                $lieuSelect.append(option);
+            });
+        }
+    });
+    
+    // ========================================
+    // INITIALISATION
+    // ========================================
+    $semestreSelect.trigger('change');
+    {% if lieu_type %}
+    $typeSelect.trigger('change');
+    {% endif %}
+});
+</script>
+{% endif %}

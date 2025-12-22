@@ -1,0 +1,727 @@
+{% load static %}
+{% load custom_filters %}
+
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  {% if title %}
+  <title>{{title}}</title>
+  {% else %}
+  <title>الجامعة الذكية</title>
+  {% endif %}
+
+  <!-- Global static -->
+  <link rel="shortcut icon" type="text/css" href="{% static '/images/logo-no-background.ico' %}">
+  <link rel="stylesheet" type="text/css" href="{% static '/css/all.min.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static '/css/bootstrap.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static '/css/baseInterface_pdf.css' %}">
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
+  
+  /* Modern styles */
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Cairo', Arial, sans-serif !important;
+    font-size: 12px !important;
+    line-height: 1.4;
+    background: #f8f9fa;
+    margin: 0;
+    padding: 15px;
+  }
+  
+  .main-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 15px;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  /* Print button styles */
+  .print-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .print-button:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  }
+  
+  .print-button svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  /* Header styles */
+  .header-section {
+    background: white;
+    color: #343a40;
+    border: none;
+    border-radius: 6px;
+    padding: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .logo-section {
+    flex: 0 0 ;
+    order: 3; /* Place logo on the right in RTL */
+  }
+  
+  .logo-section img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: none;
+    background: white;
+    padding: 2px;
+  }
+  
+  .university-info {
+    flex: 1;
+    text-align: center;
+    padding: 0 15px;
+    order: 2;
+  }
+  
+  .university-info h5 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #343a40;
+    line-height: 1.1;
+  }
+  
+  .university-info h6 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 400;
+    color: #6c757d;
+    line-height: 1.1;
+  }
+  
+  .academic-year {
+    font-size: 12px;
+    color: #6c757d;
+  }
+  
+  /* Title section */
+  .title-section {
+    background: rgb(246, 247, 248);
+    color: #343a40;
+    text-align: center;
+    padding: 3px;
+    border: none;
+    border-radius: 3px;
+    margin-bottom: 3px;
+  }
+  
+  .title-section h4 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  
+  /* Teacher info */
+  .teacher-info {
+    background: white;
+    color: #343a40;
+    padding: 6px 15px;
+    border: none;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  .teacher-info span {
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 20px;
+  }
+  
+  .teacher-info .label {
+    font-weight: 700;
+    margin-left: 5px;
+  }
+  
+  /* Content area */
+  .content-area {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .semester-container {
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 3px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 10px;
+  }
+  
+  .semester-header {
+    background: #e9ecef;
+    color: #343a40;
+    padding: 8px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 700;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .semester-content {
+    display: flex;
+  }
+  
+  .table-section {
+    flex: 1;
+    padding: 8px;
+    overflow-x: auto;
+  }
+  
+  .volume-section {
+    flex: 0 0 160px;
+    background: #f8f9fa;
+    padding: 8px;
+    border-left: 2px solid #dee2e6;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .volume-section h6 {
+    margin: 2px 0;
+    font-size: 10px;
+    font-weight: 600;
+    color: #343a40;
+    line-height: 1.2;
+  }
+  
+  .volume-section .total {
+    font-size: 12px;
+    font-weight: 700;
+    color: #343a40;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 3px;
+    margin-bottom: 5px;
+  }
+  
+  /* Modern table */
+  .modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8px;
+    background: white;
+  }
+  
+  .modern-table th {
+    background: #f8f9fa !important;
+    color: #000000 !important;
+    padding: 3px 2px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 7px;
+    border: 1px solid #dee2e6;
+    white-space: nowrap;
+    line-height: 1.1;
+  }
+  
+  .modern-table td {
+    padding: 4px 2px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    font-size: 8px;
+    background: white;
+  }
+  
+  .modern-table tr:nth-child(even) td {
+    background: #f8f9fa;
+  }
+  
+  /* Signatures - Updated without borders */
+  .signatures {
+    background: transparent;
+    color: #343a40;
+    border: none;
+    border-radius: 0;
+    padding: 4px;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-around;
+    font-weight: 600;
+    font-size: 15px;
+    font-weight: bold;
+  }
+  
+  .signature-box {
+    text-align: center;
+    padding: 15px 5px;
+    border: none;
+    border-radius: 0;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+  }
+
+  /* Print styles - VERTICAL */
+  @media print {
+    @page {
+      size: A4 portrait;
+      margin: 5mm;
+    }
+    
+    /* Hide print button when printing */
+    .print-button {
+      display: none !important;
+    }
+    
+    body {
+      background: white !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      font-size: 9px !important;
+      color: black !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      width: 100% !important;
+    }
+    
+    .main-container {
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      height: auto !important;
+      background: white !important;
+      border: none !important;
+      page-break-inside: avoid !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 5mm !important;
+      margin: 0 !important;
+      transform: none !important;
+    }
+    
+    .header-section,
+    .title-section,
+    .teacher-info,
+    .semester-header,
+    .volume-section,
+    .semester-container {
+      background: white !important;
+      color: black !important;
+      border: none !important;
+      box-shadow: none !important;
+      page-break-inside: avoid !important;
+      margin-bottom: 3mm !important;
+    }
+    
+    .signatures {
+      background: transparent !important;
+      border: none !important;
+      page-break-inside: avoid !important;
+    }
+    
+    .signature-box {
+      background: transparent !important;
+      border: none !important;
+      min-height: 50px !important;
+      font-size: 12px !important;
+      padding: 10px 3px !important;
+    }
+    
+    .semester-container {
+      background: white !important;
+      border: 1px solid #dee2e6 !important;
+      border-radius: 3px !important;
+      box-shadow: none !important;
+      page-break-inside: avoid !important;
+    }
+    
+    .semester-header {
+      background: #e9ecef !important;
+      color: #343a40 !important;
+      border-bottom: 1px solid #dee2e6 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      padding: 4px !important;
+      font-size: 14px !important;
+    }
+    
+    .volume-section {
+      background: #f8f9fa !important;
+      border-left: 1px solid #dee2e6 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      flex: 0 0 140px !important;
+    }
+    
+    .modern-table {
+      font-size: 7px !important;
+    }
+    
+    .modern-table th {
+      background: #f8f9fa !important;
+      color: black !important;
+      border: 1px solid #dee2e6 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      padding: 2px 1px !important;
+      font-size: 6px !important;
+    }
+    
+    .modern-table td {
+      background: white !important;
+      color: black !important;
+      border: 1px solid #dee2e6 !important;
+      padding: 2px 1px !important;
+      font-size: 7px !important;
+    }
+    
+    .modern-table tr:nth-child(even) td {
+      background: #f8f9fa !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    
+    .volume-section .total {
+      color: #343a40 !important;
+      border-bottom: 1px solid #dee2e6 !important;
+    }
+    
+    .logo-section img {
+      border: none !important;
+      width: 100px !important;
+      height: 100px !important;
+    }
+    
+    .content-area {
+      height: auto !important;
+      gap: 5px !important;
+    }
+    
+    /* Force tout sur une page */
+    * {
+      page-break-inside: avoid !important;
+    }
+    
+    .semester-container {
+      max-height: none !important;
+      height: auto !important;
+      flex: none !important;
+    }
+    
+    .semester-content {
+      height: auto !important;
+    }
+    
+    .university-info h5 {
+      font-size: 14px !important;
+    }
+    
+    .university-info h6 {
+      font-size: 11px !important;
+    }
+    
+    .title-section h4 {
+      font-size: 16px !important;
+    }
+    
+    .teacher-info span {
+      font-size: 10px !important;
+    }
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 1200px) {
+    .teacher-info {
+      font-size: 11px;
+    }
+    
+    .volume-section {
+      flex: 0 0 180px;
+    }
+  }
+  
+  @media (max-width: 767px) {
+    .header-section {
+      flex-direction: column;
+      text-align: center;
+    }
+    
+
+    
+    .logo-section {
+      order: 1;
+    }
+    
+    .print-button {
+      top: 10px;
+      left: 10px;
+      padding: 8px 16px;
+      font-size: 12px;
+    }
+  }
+</style>
+
+</head>
+
+<body>
+  
+  <!-- Print Button -->
+  <button class="print-button" onclick="window.print()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+    </svg>
+    طباعة
+  </button>
+  
+  {% if all_classes == 0 %}
+  <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #e9ecef; color: #343a40; padding: 30px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border: 2px solid #dee2e6;">
+    <h2 style="margin: 0; font-size: 24px; text-align: center;">لا حصص → لا بطاقة بيداغوجية</h2>
+  </div>
+  {% else %}
+
+  <div class="main-container">
+    <!-- Header moderne -->
+    <div>
+      <div class="row">
+        <div class="col col-md university-info">
+          <h5>وزارة التعليم العالي والبحث العلمي</h5>
+          <h5>{{univ}}</h5>
+          <h5>كلية {{my_Fac}} - قسم {{my_Dep}}</h5>
+        </div>
+      </div>
+
+
+
+        <div class="col-3 logo-section">
+            <img src="{% static '/images/logoOuargla.png' %}" alt="Logo Univ-Ouargla">
+          </div>
+        
+        <div class="col-6">
+        </div>
+        
+        
+
+      </div>
+      
+
+
+    <!-- Titre principal -->
+    <div class="title-section">
+      <h4>بطاقة المتابعة البيداغوجية للأستاذ</h4>
+      <div class="academic-year mb-2">
+          <div>السنة الجامعية</div>
+          <div style="font-weight: 700; font-size: 13px;">2026/2025</div>
+        </div>
+    </div>
+
+    <!-- Informations enseignant -->
+    <div class="teacher-info">
+      <span><span class="label">الأستاذ:</span>{{myEns.enseignant.nom_ar}} {{myEns.enseignant.prenom_ar}}</span>
+      <span><span class="label">الرتبة:</span>{{myEns.enseignant.grade}}</span>
+      <span><span class="label">الاختصاص:</span>{{myEns.enseignant.specialite_ar}}</span>
+      <span><span class="label">الصفة:</span>{{myEns.get_statut_display}}</span>
+    </div>
+
+    <!-- Zone de contenu principal -->
+    <div class="content-area">
+      <!-- Premier Semestre -->
+      <div class="semester-container">
+        <div class="semester-header">
+          السداسي الأول
+        </div>
+        <div class="semester-content">
+          <div class="table-section">
+            <table class="modern-table">
+              <thead>
+                <tr>
+                  <th>الرقم</th>
+                  <th>اسم المقياس</th>
+                  <th>الوحدة</th>
+                  <th>اليوم</th>
+                  <th>الحصة</th>
+                  <th>المكان</th>
+                  <th>المستوى</th>
+                  <th>المجموعة</th>
+                  <th>التخصص</th>
+                  <th>النوع</th>
+                  <th>الحجم الساعي</th>
+                  <th>الملاحظة</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for x in all_Classe_Ens_S1 %}
+                  <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td style="font-weight: 600;">{{x.matiere.nom_fr}}</td>
+                    <td>{{x.matiere.unite.nom_ar}}</td>
+                    <td>{{x.get_jour_display}}</td>
+                    <td>{{x.temps}}</td>
+                    <td>{% if x.lieu %}{{x.lieu}}{% else %}-{% endif %}</td>
+                    
+                    <td>{{x.niv_spe_dep_sg.niv_spe_dep.niveau}} - {{x.niv_spe_dep_sg.niv_spe_dep.specialite.reforme}}</td>
+                    
+                    <td>{% if x.type == 'Cours' %} {{x.niv_spe_dep_sg.section.nom_ar}} 
+                      {% else %}{{x.niv_spe_dep_sg.section.nom_ar}}.{{x.niv_spe_dep_sg.groupe.nom_ar}} {% endif %}</td>
+                    
+                    <td>{{x.niv_spe_dep_sg.niv_spe_dep.specialite.nom_ar}}</td>
+                    <td style="font-weight: 600;">{{x.type}}</td>
+                    <td style="font-weight: 700;">
+                      {% if x.type == 'Cours' %}2.25
+                      {% elif x.type == 'TD' %}1.5
+                      {% elif x.type == 'TP' %}1.5{% endif %}
+                    </td>
+                    <td>{{x.observation|default:"-"}}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="volume-section">
+            <h6 class="total">مجموع الحجم الساعي: {{vol_hor_Total_S1}}</h6>
+            <h6>الدروس: {{vol_hor_cours_S1}}</h6>
+            <h6>الأعمال الموجهة: {{vol_hor_TD_S1}}</h6>
+            <h6>الأعمال التطبيقية: {{vol_hor_TP_S1}}</h6>
+            <div style="margin-top: 8px; padding: 4px; background: #ffffff; border: 1px solid #dee2e6; border-radius: 4px;">
+              <h6 style="font-weight: 700; font-size: 9px; margin: 1px 0;">إحصائيات:</h6>
+              <h6 style="font-size: 9px; margin: 1px 0;">عدد الحصص: {{all_Classe_Ens_S1|length}}</h6>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deuxième Semestre -->
+      <div class="semester-container">
+        <div class="semester-header">
+          السداسي الثاني
+        </div>
+        <div class="semester-content">
+          <div class="table-section">
+            <table class="modern-table">
+              <thead>
+                <tr>
+                  <th>الرقم</th>
+                  <th>اسم المقياس</th>
+                  <th>الوحدة</th>
+                  <th>اليوم</th>
+                  <th>الحصة</th>
+                  <th>المكان</th>
+                  <th>المستوى</th>
+                  <th>المجموعة</th>
+                  <th>التخصص</th>
+                  <th>النوع</th>
+                  <th>الحجم الساعي</th>
+                  <th>الملاحظة</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for x in all_Classe_Ens_S2 %}
+                  <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td style="font-weight: 600;">{{x.matiere.nom_fr}}</td>
+                    <td>{{x.matiere.unite.nom_ar}}</td>
+                    <td>{{x.get_jour_display}}</td>
+                    <td>{{x.temps}}</td>
+                    <td>{% if x.lieu %}{{x.lieu}}{% else %}-{% endif %}</td>
+
+                    <td>{{x.niv_spe_dep_sg.niv_spe_dep.niveau}} - {{x.niv_spe_dep_sg.niv_spe_dep.specialite.reforme}}</td>
+                    
+                    <td>{% if x.type == 'Cours' %} {{x.niv_spe_dep_sg.section.nom_ar}} 
+                      {% else %}{{x.niv_spe_dep_sg.section.nom_ar}}.{{x.niv_spe_dep_sg.groupe.nom_ar}} {% endif %}</td>
+
+                    <td>{{x.niv_spe_dep_sg.niv_spe_dep.specialite.nom_ar}}</td>
+                    <td style="font-weight: 600;">{{x.type}}</td>
+                    <td style="font-weight: 700;">
+                      {% if x.type == 'Cours' %}2.25
+                      {% elif x.type == 'TD' %}1.5
+                      {% elif x.type == 'TP' %}1.5{% endif %}
+                    </td>
+                    <td>{{x.observation|default:"-"}}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="volume-section">
+            <h6 class="total">مجموع الحجم الساعي: {{vol_hor_Total_S2}}</h6>
+            <h6>الدروس: {{vol_hor_cours_S2}}</h6>
+            <h6>الأعمال الموجهة: {{vol_hor_TD_S2}}</h6>
+            <h6>الأعمال التطبيقية: {{vol_hor_TP_S2}}</h6>
+            <div style="margin-top: 8px; padding: 4px; background: #ffffff; border: 1px solid #dee2e6; border-radius: 4px;">
+              <h6 style="font-weight: 700; font-size: 9px; margin: 1px 0;">إحصائيات:</h6>
+              <h6 style="font-size: 9px; margin: 1px 0;">عدد الحصص: {{all_Classe_Ens_S2|length}}</h6>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Total général juste après le 2ème tableau -->
+      <div style="background: white; padding: 2px; text-align: center; border-top: 1px solid #dee2e6; margin-top: 2px;">
+        <h6 style="margin: 0; font-size: 14px; font-weight: 700; color: #343a40;">
+          المجموع العام (السداسي 01 + السداسي 02) = {{vol_hor_Total_General}}
+        </h6>
+      </div>
+    </div>
+
+    <!-- Signatures - Without borders -->
+    <div class="signatures">
+      <div class="signature-box">الأستاذ</div>
+      <div class="signature-box">رئيس القسم</div>
+      <div class="signature-box">عميد الكلية</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Scripts -->
+  <script src="{% static '/js/jquery-3.7.1.min.js' %}" defer></script>
+  <script src="{% static '/js/bootstrap.bundle.js' %}" defer></script>
+  <script src="{% static '/js/all.min.js' %}" defer></script>
+  <script src="{% static '/js/scriptDate.js' %}" defer></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      console.log('Fiche pédagogique chargée avec bouton d\'impression');
+    });
+  </script>
+
+</body>
+
+</html>

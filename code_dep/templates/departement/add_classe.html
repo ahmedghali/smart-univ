@@ -1,0 +1,239 @@
+{% extends 'departement/base_Dep.html' %}
+{% load static %}
+
+{% block content %}
+<div class="grey_zone m-1 p-3 col-lg-10">
+    <h4 class="border-bottom border-danger text-dark mb-3">
+        <i class="fas fa-plus-circle"></i> إضافة حصة جديدة
+    </h4>
+    
+    <form method="post" id="addClasseForm">
+        {% csrf_token %}
+        
+        <!-- Informations de base -->
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-info-circle"></i> المعلومات الأساسية
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="id_semestre" class="form-label">السداسي <span class="text-danger">*</span></label>
+                        <select name="semestre" id="id_semestre" class="form-select" required>
+                            <option value="">--- اختر السداسي ---</option>
+                            {% for semestre in semestres %}
+                            <option value="{{semestre.id}}" data-numero="{{semestre.numero}}">
+                                السداسي {{semestre.numero}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="id_matiere" class="form-label">المادة <span class="text-danger">*</span></label>
+                        <select name="matiere" id="id_matiere" class="form-select" required>
+                            <option value="">--- اختر المادة ---</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="id_enseignant" class="form-label">الأستاذ <span class="text-danger">*</span></label>
+                        <select name="enseignant" id="id_enseignant" class="form-select" required>
+                            <option value="">--- اختر الأستاذ ---</option>
+                            {% for ens in enseignants %}
+                            <option value="{{ens.id}}">
+                                {{ens.enseignant.nom_ar}} {{ens.enseignant.prenom_ar}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="id_niv_spe_dep_sg" class="form-label">المجموعة <span class="text-danger">*</span></label>
+                        <select name="niv_spe_dep_sg" id="id_niv_spe_dep_sg" class="form-select" required>
+                            <option value="">--- اختر المجموعة ---</option>
+                            {% for groupe in groupes %}
+                            <option value="{{groupe.id}}">
+                                {% if groupe.section and groupe.groupe %}
+                                    {{groupe}}
+                                {% elif groupe.section %}
+                                    قطاع: {{groupe.section.nom_ar}}
+                                {% elif groupe.groupe %}
+                                    فوج: {{groupe.groupe.nom_ar}}
+                                {% else %}
+                                    جميع الطلبة
+                                {% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Horaire et Type -->
+        <div class="card mb-3">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-clock"></i> التوقيت والنوع
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="id_jour" class="form-label">اليوم <span class="text-danger">*</span></label>
+                        <select name="jour" id="id_jour" class="form-select" required>
+                            <option value="">--- اختر اليوم ---</option>
+                            {% for jour_val, jour_label in jours %}
+                            <option value="{{jour_val}}">{{jour_label}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label for="id_temps" class="form-label">التوقيت <span class="text-danger">*</span></label>
+                        <select name="temps" id="id_temps" class="form-select" required>
+                            <option value="">--- اختر التوقيت ---</option>
+                            {% for temps_val, temps_label in temps %}
+                            <option value="{{temps_val}}">{{temps_label}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label for="id_type" class="form-label">نوع الحصة <span class="text-danger">*</span></label>
+                        <select name="type" id="id_type" class="form-select" required>
+                            <option value="">--- اختر النوع ---</option>
+                            {% for type_val, type_label in types %}
+                            <option value="{{type_val}}">{{type_label}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Lieu -->
+        <div class="card mb-3">
+            <div class="card-header bg-warning text-dark">
+                <i class="fas fa-map-marker-alt"></i> المكان
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="id_lieu_type" class="form-label">نوع المكان <span class="text-danger">*</span></label>
+                        <select name="lieu_type" id="id_lieu_type" class="form-select" required>
+                            <option value="">--- اختر نوع المكان ---</option>
+                            <option value="amphi">مدرج</option>
+                            <option value="salle">قاعة</option>
+                            <option value="labo">مخبر</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="id_lieu_id" class="form-label">المكان <span class="text-danger">*</span></label>
+                        <select name="lieu_id" id="id_lieu_id" class="form-select" required>
+                            <option value="">--- اختر نوع المكان أولاً ---</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Observation -->
+        <div class="mb-3">
+            <label for="id_observation" class="form-label">ملاحظات</label>
+            <textarea name="observation" id="id_observation" class="form-control" rows="3" placeholder="أضف أي ملاحظات إضافية هنا..."></textarea>
+        </div>
+        
+        <!-- Buttons -->
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-save"></i> حفظ الحصة
+            </button>
+            <button type="reset" class="btn btn-secondary btn-lg">
+                <i class="fas fa-redo"></i> إعادة تعيين
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+jQuery(document).ready(function($) {
+    // ========================================
+    // FILTRAGE DES MATIÈRES PAR SEMESTRE
+    // ========================================
+    var matieresData = [
+        {% for matiere in all_matieres %}
+        {
+            id: {{matiere.id}}, 
+            nom: '{{matiere|escapejs}}', 
+            semestre: {{matiere.semestre.numero}}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    var $semestreSelect = $('#id_semestre');
+    var $matiereSelect = $('#id_matiere');
+    
+    $semestreSelect.on('change', function() {
+        var selectedOption = $(this).find('option:selected');
+        var semestreNumero = parseInt(selectedOption.data('numero'));
+        
+        $matiereSelect.html('<option value="">--- اختر المادة ---</option>');
+        
+        if (semestreNumero) {
+            $.each(matieresData, function(i, matiere) {
+                if (matiere.semestre === semestreNumero) {
+                    var option = $('<option></option>')
+                        .attr('value', matiere.id)
+                        .text(matiere.nom);
+                    $matiereSelect.append(option);
+                }
+            });
+        }
+    });
+    
+    // ========================================
+    // FILTRAGE DES LIEUX PAR TYPE
+    // ========================================
+    var lieuxData = {
+        amphi: [
+            {% for amphi in amphitheatres %}
+            {id: {{amphi.id}}, nom: 'مدرج {{amphi.amphi.numero}}'}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        salle: [
+            {% for salle in salles %}
+            {id: {{salle.id}}, nom: 'قاعة {{salle.salle.numero}}'}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        labo: [
+            {% for labo in labos %}
+            {id: {{labo.id}}, nom: 'مخبر {{labo.laboratoire.numero}}'}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    };
+    
+    var $typeSelect = $('#id_lieu_type');
+    var $lieuSelect = $('#id_lieu_id');
+    
+    $typeSelect.on('change', function() {
+        var type = $(this).val();
+        
+        $lieuSelect.html('<option value="">--- اختر المكان ---</option>');
+        
+        if (type && lieuxData[type]) {
+            $.each(lieuxData[type], function(i, lieu) {
+                var option = $('<option></option>')
+                    .attr('value', lieu.id)
+                    .text(lieu.nom);
+                $lieuSelect.append(option);
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

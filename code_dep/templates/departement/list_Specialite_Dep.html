@@ -1,0 +1,726 @@
+{% extends 'departement/base_Dep.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="container-fluid px-3 py-2">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            
+            <!-- En-tête avec statistiques -->
+            <div class="header-section mb-3">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div class="header-title">
+                        <h4 class="mb-1 text-dark fw-bold">
+                            <i class="fas fa-list-alt me-2"></i>
+                            قائمة التخصصات
+                        </h4>
+                        <div class="stats-compact">
+                            <span class="badge bg-primary">
+                                <i class="fas fa-graduation-cap me-1"></i>
+                                المجموع: {{all_Specialite_Dep.count}}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-sm btn-outline-primary" onclick="exportTable()">
+                            <i class="fas fa-download me-1"></i>تصدير
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="printTable()">
+                            <i class="fas fa-print me-1"></i>طباعة
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {% if all_Specialite_Dep.count == 0 %}
+                <!-- حالة عدم وجود بيانات -->
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h5 class="empty-title">لا توجد تخصصات</h5>
+                    <p class="empty-text">لم يتم إضافة أي تخصصات بعد</p>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>إضافة تخصص جديد
+                    </button>
+                </div>
+            {% else %}
+
+                <!-- بحث وفلترة -->
+                <div class="search-section mb-3">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <div class="search-box">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" id="searchInput" class="form-control" placeholder="البحث في التخصصات...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="reformeFilter" class="form-select">
+                                <option value="">جميع الإصلاحات</option>
+                                <option value="LMD">LMD</option>
+                                <option value="Classique">كلاسيكي</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                                <i class="fas fa-times me-1"></i>مسح الفلاتر
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- الجدول المحسن -->
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table class="table table-modern" id="specialiteTable">
+                            <thead class="table-header">
+                                <tr>
+                                    <th class="sortable" data-sort="number">
+                                        <span>#</span>
+                                        <i class="fas fa-sort sort-icon"></i>
+                                    </th>
+                                    <th class="sortable" data-sort="nom_ar">
+                                        <span>التخصص</span>
+                                        <i class="fas fa-sort sort-icon"></i>
+                                    </th>
+                                    <th class="sortable" data-sort="nom_fr">
+                                        <span>Spécialité</span>
+                                        <i class="fas fa-sort sort-icon"></i>
+                                    </th>
+                                    <th class="sortable" data-sort="code">
+                                        <span>الكود</span>
+                                        <i class="fas fa-sort sort-icon"></i>
+                                    </th>
+                                    <th class="sortable" data-sort="reforme">
+                                        <span>الإصلاح</span>
+                                        <i class="fas fa-sort sort-icon"></i>
+                                    </th>
+                                    <th class="sortable" data-sort="identification">
+                                        <span>التعريف</span>
+                                        <i class="fas fa-sort sort-icon"></i>
+                                    </th>
+                                    <th class="no-sort">العمليات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="table-body">
+                                {% for x in all_Specialite_Dep %}
+                                <tr class="table-row" data-id="{{x.id}}">
+                                    <td class="text-center">
+                                        <span class="row-number">{{forloop.counter}}</span>
+                                    </td>
+                                    <td class="specialite-name">
+                                        <div class="specialite-info">
+                                            <div class="name-ar fw-bold">{{x.nom_ar}}</div>
+                                            {% if x.code %}
+                                            <small class="text-muted">كود: {{x.code}}</small>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="specialite-name-fr">{{x.nom_fr}}</td>
+                                    <td class="text-center">
+                                        {% if x.code %}
+                                            <span class="badge bg-secondary">{{x.code}}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge reforme-badge {% if x.reforme == 'LMD' %}bg-success{% else %}bg-info{% endif %}">
+                                            {{x.reforme}}
+                                        </span>
+                                    </td>
+                                    <td class="identification-cell">
+                                        <div class="identification-content">
+                                            {{x.identification|truncatechars:50}}
+                                            {% if x.identification|length > 50 %}
+                                                <button class="btn btn-link btn-sm p-0 ms-1" 
+                                                        onclick="showFullText('{{x.identification|escapejs}}')"
+                                                        title="عرض النص كاملاً">
+                                                    <i class="fas fa-expand-alt"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="actions-cell">
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    onclick="viewSpecialite({{x.id}})"
+                                                    title="عرض التفاصيل">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" 
+                                                    onclick="editSpecialite({{x.id}})"
+                                                    title="تعديل">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    onclick="deleteSpecialite({{x.id}})"
+                                                    title="حذف">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- معلومات التصفح -->
+                <div class="pagination-info mt-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="showing-info">
+                            <small class="text-muted">
+                                عرض <span id="showingStart">1</span> - <span id="showingEnd">{{all_Specialite_Dep.count}}</span> 
+                                من <span id="totalRows">{{all_Specialite_Dep.count}}</span> تخصص
+                            </small>
+                        </div>
+                        <div class="table-controls">
+                            <select id="rowsPerPage" class="form-select form-select-sm">
+                                <option value="10">10 صفوف</option>
+                                <option value="25" selected>25 صف</option>
+                                <option value="50">50 صف</option>
+                                <option value="100">100 صف</option>
+                                <option value="-1">الكل</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal لعرض النص الكامل -->
+<div class="modal fade" id="textModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">تفاصيل التعريف</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="fullTextContent"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // إعداد البحث
+    const searchInput = document.getElementById('searchInput');
+    const reformeFilter = document.getElementById('reformeFilter');
+    const table = document.getElementById('specialiteTable');
+    
+    if (searchInput && table) {
+        // البحث في الوقت الفعلي
+        searchInput.addEventListener('input', function() {
+            filterTable();
+        });
+        
+        reformeFilter.addEventListener('change', function() {
+            filterTable();
+        });
+        
+        // إعداد الترتيب
+        setupSorting();
+    }
+});
+
+function filterTable() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const reformeFilter = document.getElementById('reformeFilter').value;
+    const rows = document.querySelectorAll('#specialiteTable tbody tr');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        const nomAr = row.querySelector('.specialite-name .name-ar').textContent.toLowerCase();
+        const nomFr = row.querySelector('.specialite-name-fr').textContent.toLowerCase();
+        const code = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+        const reforme = row.querySelector('.reforme-badge').textContent.trim();
+        
+        const matchesSearch = nomAr.includes(searchTerm) || 
+                            nomFr.includes(searchTerm) || 
+                            code.includes(searchTerm);
+        const matchesReforme = !reformeFilter || reforme === reformeFilter;
+        
+        if (matchesSearch && matchesReforme) {
+            row.style.display = '';
+            visibleCount++;
+            row.querySelector('.row-number').textContent = visibleCount;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    updateShowingInfo(visibleCount);
+}
+
+function updateShowingInfo(visibleCount) {
+    document.getElementById('showingEnd').textContent = visibleCount;
+    document.getElementById('totalRows').textContent = visibleCount;
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('reformeFilter').value = '';
+    filterTable();
+}
+
+function setupSorting() {
+    const sortableHeaders = document.querySelectorAll('.sortable');
+    
+    sortableHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            const sortType = this.dataset.sort;
+            sortTable(sortType, this);
+        });
+    });
+}
+
+function sortTable(sortType, header) {
+    const table = document.getElementById('specialiteTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const isAscending = header.classList.contains('sort-asc');
+    
+    // إزالة classes الترتيب من جميع الرؤوس
+    document.querySelectorAll('.sortable').forEach(h => {
+        h.classList.remove('sort-asc', 'sort-desc');
+    });
+    
+    // ترتيب الصفوف
+    rows.sort((a, b) => {
+        let aVal, bVal;
+        
+        switch(sortType) {
+            case 'number':
+                aVal = parseInt(a.querySelector('.row-number').textContent);
+                bVal = parseInt(b.querySelector('.row-number').textContent);
+                break;
+            case 'nom_ar':
+                aVal = a.querySelector('.name-ar').textContent;
+                bVal = b.querySelector('.name-ar').textContent;
+                break;
+            case 'nom_fr':
+                aVal = a.querySelector('.specialite-name-fr').textContent;
+                bVal = b.querySelector('.specialite-name-fr').textContent;
+                break;
+            case 'code':
+                aVal = a.querySelector('td:nth-child(4)').textContent;
+                bVal = b.querySelector('td:nth-child(4)').textContent;
+                break;
+            case 'reforme':
+                aVal = a.querySelector('.reforme-badge').textContent;
+                bVal = b.querySelector('.reforme-badge').textContent;
+                break;
+            default:
+                return 0;
+        }
+        
+        if (aVal < bVal) return isAscending ? 1 : -1;
+        if (aVal > bVal) return isAscending ? -1 : 1;
+        return 0;
+    });
+    
+    // إضافة class الترتيب
+    header.classList.add(isAscending ? 'sort-desc' : 'sort-asc');
+    
+    // إعادة ترتيب الصفوف في الجدول
+    rows.forEach(row => tbody.appendChild(row));
+    
+    // تحديث أرقام الصفوف
+    updateRowNumbers();
+}
+
+function updateRowNumbers() {
+    const visibleRows = document.querySelectorAll('#specialiteTable tbody tr[style=""], #specialiteTable tbody tr:not([style])');
+    visibleRows.forEach((row, index) => {
+        row.querySelector('.row-number').textContent = index + 1;
+    });
+}
+
+function showFullText(text) {
+    document.getElementById('fullTextContent').textContent = text;
+    new bootstrap.Modal(document.getElementById('textModal')).show();
+}
+
+function viewSpecialite(id) {
+    // إضافة منطق عرض التفاصيل
+    console.log('عرض تفاصيل التخصص:', id);
+}
+
+function editSpecialite(id) {
+    // إضافة منطق التعديل
+    console.log('تعديل التخصص:', id);
+}
+
+function deleteSpecialite(id) {
+    if (confirm('هل أنت متأكد من حذف هذا التخصص؟')) {
+        // إضافة منطق الحذف
+        console.log('حذف التخصص:', id);
+    }
+}
+
+function exportTable() {
+    // منطق التصدير
+    console.log('تصدير الجدول');
+}
+
+function printTable() {
+    window.# print();
+}
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Header section */
+.header-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.25rem;
+    border-left: 4px solid #007bff;
+}
+
+.header-title h4 {
+    color: #2c3e50;
+    margin: 0;
+}
+
+.stats-compact {
+    margin-top: 0.5rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Section de recherche */
+.search-section {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+}
+
+.search-box {
+    position: relative;
+}
+
+.search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    z-index: 5;
+}
+
+.search-box .form-control {
+    padding-left: 2.5rem;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.search-box .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Conteneur du tableau */
+.table-container {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Tableau moderne */
+.table-modern {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.table-header {
+    background: linear-gradient(135deg, #495057, #6c757d);
+    color: white;
+}
+
+.table-header th {
+    border: none;
+    padding: 1rem 0.75rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    vertical-align: middle;
+}
+
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.sortable:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sort-icon {
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+}
+
+.sortable.sort-asc .sort-icon {
+    transform: rotate(180deg);
+    opacity: 1;
+}
+
+.sortable.sort-desc .sort-icon {
+    transform: rotate(0deg);
+    opacity: 1;
+}
+
+/* Corps du tableau */
+.table-body tr {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.table-body tr:hover {
+    background-color: #f8f9fa;
+    transform: translateX(2px);
+}
+
+.table-body td {
+    padding: 0.875rem 0.75rem;
+    vertical-align: middle;
+    border: none;
+}
+
+/* Cellule du nom de spécialité */
+.specialite-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.name-ar {
+    color: #2c3e50;
+    font-size: 0.95rem;
+}
+
+/* Badges */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 4px;
+}
+
+.reforme-badge {
+    font-weight: 500;
+}
+
+/* Cellule d'identification */
+.identification-cell {
+    max-width: 200px;
+}
+
+.identification-content {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+/* Actions */
+.actions-cell {
+    width: 140px;
+}
+
+.btn-group .btn {
+    padding: 0.375rem 0.5rem;
+    border-radius: 4px;
+}
+
+.btn-group .btn:not(:last-child) {
+    margin-right: 0.25rem;
+}
+
+/* État vide */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+.empty-title {
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.empty-text {
+    color: #6c757d;
+    margin-bottom: 2rem;
+}
+
+/* Informations de pagination */
+.pagination-info {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e9ecef;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .header-section .d-flex {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .search-section .row {
+        margin: 0;
+    }
+    
+    .table-responsive {
+        border-radius: 8px;
+    }
+    
+    .table-modern {
+        font-size: 0.8rem;
+    }
+    
+    .identification-cell {
+        max-width: 150px;
+    }
+    
+    .actions-cell {
+        width: 120px;
+    }
+    
+    .btn-group .btn {
+        padding: 0.25rem 0.375rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-actions {
+        width: 100%;
+    }
+    
+    .header-actions .btn {
+        flex: 1;
+    }
+    
+    .search-section .col-md-3,
+    .search-section .col-md-6 {
+        margin-bottom: 0.5rem;
+    }
+    
+    .pagination-info .d-flex {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+    
+    .table-modern th,
+    .table-modern td {
+        padding: 0.5rem 0.375rem;
+    }
+    
+    .specialite-info {
+        font-size: 0.8rem;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .btn-group .btn {
+        margin: 0;
+    }
+}
+
+/* Amélioration de l'accessibilité */
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* Animation pour les filtres */
+.table-body tr {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Styles pour l'impression */
+@media print {
+    .header-actions,
+    .search-section,
+    .pagination-info,
+    .actions-cell {
+        display: none !important;
+    }
+    
+    .table-container {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+    
+    .table-modern th {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+    }
+}
+
+/* Modal améliorer */
+.modal-content {
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 8px 8px 0 0;
+}
+
+.modal-footer {
+    border-top: 1px solid #e9ecef;
+    background: #f8f9fa;
+}
+</style>
+{% endblock %}

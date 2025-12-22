@@ -1,0 +1,47 @@
+<div class="text-center mb-4">
+    {% if danger_level == 'high' %}
+    <i class="fas fa-exclamation-triangle text-danger" style="font-size: 48px;"></i>
+    {% else %}
+    <i class="fas fa-question-circle text-warning" style="font-size: 48px;"></i>
+    {% endif %}
+</div>
+
+<h5 class="text-center mb-4">{{ message }}</h5>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h6 class="card-title">معلومات الحصة:</h6>
+        <ul class="list-unstyled mb-0">
+            <li><strong>المادة:</strong> {{ classe.matiere.nom_fr }}</li>
+            <li><strong>الأستاذ:</strong> {{ classe.enseignant.enseignant.get_full_name }}</li>
+            <li><strong>اليوم:</strong> {{ classe.get_jour_display }}</li>
+            <li><strong>التوقيت:</strong> {{ classe.get_temps_display }}</li>
+            <li><strong>النوع:</strong> {{ classe.get_type_display }}</li>
+            {% if classe.lieu %}
+            <li><strong>المكان:</strong> {{ classe.lieu }}</li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+
+{% if has_seances %}
+<div class="alert alert-danger">
+    <i class="fas fa-exclamation-circle"></i>
+    <strong>{{ warning_text }}</strong>
+    <p class="mb-0 mt-2">سيتم حذف:</p>
+    <ul class="mb-0">
+        <li>{{ nbr_seances }} حصة مسجلة</li>
+        <li>جميع سجلات الغيابات المرتبطة</li>
+        <li>جميع البيانات المتعلقة بهذه الحصة</li>
+    </ul>
+</div>
+{% endif %}
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        <i class="fas fa-times"></i> إلغاء
+    </button>
+    <button type="button" class="btn btn-danger" onclick="confirmDelete({{classe.id}})">
+        <i class="fas fa-trash"></i> تأكيد الحذف
+    </button>
+</div>

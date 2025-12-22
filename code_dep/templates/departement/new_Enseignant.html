@@ -1,0 +1,352 @@
+{% extends 'departement/base_Dep.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<!-- 1. Import d'enseignant d'un autre département (EN HAUT) -->
+<div class="grey_zone m-1 p-2 col-lg-8">
+    <h4 class="border-bottom border-danger text-dark mb-3">1 - إضافة أستاذ من قسم آخر</h4>
+    
+    <!-- Affichage de l'année universitaire courante -->
+    {% if annee_courante %}
+    <div class="alert alert-info mb-3">
+        <i class="fas fa-calendar-alt me-2"></i>
+        <strong>السنة الجامعية الحالية:</strong> {{ annee_courante.nom }}
+    </div>
+    {% endif %}
+    
+    <div class="comment p-2"> 
+        <form method="post" id="enseignantForm">
+            {% csrf_token %}
+            
+            <div class="row g-2 mb-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">السداسي:</label>
+                    <select id="semestre_import" name="semestre_import" class="form-select" required>
+                        <option disabled selected>-----اختر السداسي-----</option>
+                        <option value="1">السداسي الأول</option>
+                        <option value="2">السداسي الثاني</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">الكلية:</label>
+                    <select id="faculte" name="faculte" class="form-select">
+                        <option disabled selected>-----اختر الكلية-----</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">القسم:</label>
+                    <select id="departement" name="departement" class="form-select">
+                        <option disabled selected>-----اختر القسم-----</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">الأستاذ:</label>
+                    <select id="enseignant" name="enseignant" class="form-select">
+                        <option disabled selected>-----اختر الأستاذ-----</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" name="btn_import_Ens" class="btn btn-success">
+                <i class="fas fa-user-plus"></i> إضافة أستاذ موجود
+            </button>
+        </form>
+
+        <!-- Messages pour import enseignant -->
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'success' %}
+                    <div class="alert alert-success mt-3">
+                        <h6><i class="fas fa-check-circle"></i> تم بنجاح</h6>
+                        {{ message|linebreaks }}
+                    </div>
+                {% elif message.tags == 'error' %}
+                    <div class="alert alert-danger mt-3">
+                        <h6><i class="fas fa-exclamation-triangle"></i> خطأ</h6>
+                        {{ message|linebreaks }}
+                    </div>
+                {% elif message.tags == 'warning' %}
+                    <div class="alert alert-warning mt-3">
+                        <h6><i class="fas fa-exclamation-circle"></i> تحذير</h6>
+                        {{ message|linebreaks }}
+                    </div>
+                {% elif message.tags == 'info' %}
+                    <div class="alert alert-info mt-3">
+                        <h6><i class="fas fa-info-circle"></i> معلومة</h6>
+                        {{ message|linebreaks }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+
+<!-- 2. Import via fichier Excel (EN BAS) -->
+<div class="grey_zone m-1 p-2 col-lg-8">
+    <h4 class="border-bottom border-danger text-dark mb-3">2 - استيراد أساتذة من ملف Excel</h4>
+    
+    <div class="comment p-2"> 
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="row g-2 mb-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">السداسي:</label>
+                    <select id="semestre_vacataire" name="semestre_vacataire" class="form-select" required>
+                        <option disabled selected>-----اختر السداسي-----</option>
+                        <option value="1">السداسي الأول</option>
+                        <option value="2">السداسي الثاني</option>
+                    </select>
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label fw-bold">نوع الأستاذ:</label>
+                    <select id="statut_enseignant" name="statut_enseignant" class="form-select" required>
+                        <option disabled selected>-----اختر النوع-----</option>
+                        <option value="Permanent">مرسّم</option>
+                        <option value="Permanent & Vacataire">مرسّم و مؤقت</option>
+                        <option value="Vacataire">مؤقت</option>
+                        <option value="Associe">مشارك</option>
+                        <option value="Doctorant">طالب دكتوراه</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="file_EnsVac" class="form-label fw-bold">ملف Excel:</label>
+                <input type="file" name="file_EnsVac" id="file_EnsVac" class="form-control" accept=".xlsx,.xls" required>
+                <div class="form-text">الأعمدة المطلوبة: اللقب، الإسم، تاريخ الميلاد</div>
+            </div>
+
+            <button type="submit" name="btnNew_EnsVac" class="btn btn-primary">
+                <i class="fas fa-upload"></i> استيراد الأساتذة
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- دليل الاستيراد للأساتذة -->
+<div class="grey_zone m-1 p-3 col-lg-11">
+    <div class="card border-info">
+        <div class="card-header bg-info text-white">
+            <h6 class="mb-0"><i class="fas fa-info-circle"></i> دليل استيراد الأساتذة</h6>
+        </div>
+        <div class="card-body">
+            
+            <!-- هيكل الملف -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6 class="text-primary"><i class="fas fa-table"></i> الأعمدة المطلوبة:</h6>
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-dark">
+                            <tr><th>العمود</th><th>حالة</th><th>مثال</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-danger">
+                                <td><strong>اللقب</strong></td>
+                                <td><span class="badge bg-danger">إجباري</span></td>
+                                <td>بن علي</td>
+                            </tr>
+                            <tr class="table-danger">
+                                <td><strong>الإسم</strong></td>
+                                <td><span class="badge bg-danger">إجباري</span></td>
+                                <td>أحمد</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>Nom</strong></td>
+                                <td><span class="badge bg-warning">اختياري</span></td>
+                                <td>Ben Ali</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>Prénom</strong></td>
+                                <td><span class="badge bg-warning">اختياري</span></td>
+                                <td>Ahmed</td>
+                            </tr>
+                            <tr class="table-danger">
+                                <td><strong>تاريخ الميلاد</strong></td>
+                                <td><span class="badge bg-danger">إجباري</span></td>
+                                <td>1980-01-15</td>
+                            </tr>
+                            <tr class="table-info">
+                                <td><strong>سنة البكالوريا</strong></td>
+                                <td><span class="badge bg-info">اختياري</span></td>
+                                <td>2000</td>
+                            </tr>
+                            <tr class="table-info">
+                                <td><strong>الرقم التسلسلي</strong></td>
+                                <td><span class="badge bg-info">اختياري</span></td>
+                                <td>12345678</td>
+                            </tr>
+                            <tr class="table-info">
+                                <td><strong>الهاتف</strong></td>
+                                <td><span class="badge bg-info">اختياري</span></td>
+                                <td>0555123456</td>
+                            </tr>
+                            <tr class="table-info">
+                                <td><strong>البريد الشخصي</strong></td>
+                                <td><span class="badge bg-info">اختياري</span></td>
+                                <td>ahmed@gmail.com</td>
+                            </tr>
+                            <tr class="table-info">
+                                <td><strong>البريد المهني</strong></td>
+                                <td><span class="badge bg-info">اختياري</span></td>
+                                <td>ahmed@univ-ouargla.dz</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="col-md-6">
+                    <h6 class="text-success"><i class="fas fa-cogs"></i> ما يتم إنشاؤه تلقائياً:</h6>
+                    <div class="card border-light mb-2">
+                        <div class="card-body p-2">
+                            <h6 class="card-title text-primary">اسم المستخدم:</h6>
+                            <code>nom.prenom</code>
+                            <small class="d-block text-muted">مثال: benali.ahmed</small>
+                        </div>
+                    </div>
+                    <div class="card border-light mb-2">
+                        <div class="card-body p-2">
+                            <h6 class="card-title text-warning">كلمة المرور:</h6>
+                            <code>...Ens123</code>
+                            <small class="d-block text-muted">كلمة مرور افتراضية للجميع</small>
+                        </div>
+                    </div>
+                    <div class="card border-light">
+                        <div class="card-body p-2">
+                            <h6 class="card-title text-success">البريد الإلكتروني:</h6>
+                            <code>nom.prenom@univ-ouargla.dz</code>
+                            <small class="d-block text-muted">مثال: benali.ahmed@univ-ouargla.dz</small>
+                        </div>
+                    </div>
+
+                    <h6 class="text-info mt-3"><i class="fas fa-users"></i> أنواع الأساتذة:</h6>
+                    <ul class="list-unstyled small">
+                        <li><span class="badge bg-primary">مرسّم</span> - أستاذ دائم</li>
+                        <li><span class="badge bg-success">مؤقت</span> - أستاذ مؤقت</li>
+                        <li><span class="badge bg-warning">مشارك</span> - أستاذ مشارك</li>
+                        <li><span class="badge bg-info">طالب دكتوراه</span> - طالب دكتوراه</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- مثال عملي -->
+            <h6 class="text-primary"><i class="fas fa-file-excel"></i> مثال لمحتوى الملف:</h6>
+            <div class="table-responsive mb-3">
+                <table class="table table-sm table-bordered table-striped">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>اللقب</th><th>الإسم</th><th>Nom</th><th>Prénom</th><th>تاريخ الميلاد</th><th>سنة البكالوريا</th><th>الرقم التسلسلي</th><th>الهاتف</th><th>البريد الشخصي</th><th>البريد المهني</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>بن علي</td><td>أحمد</td><td>Ben Ali</td><td>Ahmed</td><td>1980-01-15</td><td>2000</td><td>12345678</td><td>0555123456</td><td>ahmed@gmail.com</td><td>ahmed@univ-ouargla.dz</td>
+                        </tr>
+                        <tr>
+                            <td>قادري</td><td>فاطمة</td><td>Kadri</td><td>Fatima</td><td>1985-03-22</td><td>2005</td><td>87654321</td><td>0666987654</td><td>fatima@yahoo.com</td><td>fatima@univ-ouargla.dz</td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td>محمدي</td><td>عبد الرحمن</td><td></td><td></td><td>1975-12-10</td><td></td><td></td><td></td><td></td><td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- قواعد مهمة -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="alert alert-danger p-2">
+                        <h6><i class="fas fa-times-circle"></i> ممنوع:</h6>
+                        <ul class="mb-0 small">
+                            <li>ترك الحقول الإجبارية فارغة</li>
+                            <li>تاريخ ميلاد غير صحيح</li>
+                            <li>تغيير أسماء الأعمدة</li>
+                            <li>ترك السداسي ونوع الأستاذ</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert alert-success p-2">
+                        <h6><i class="fas fa-check-circle"></i> مطلوب:</h6>
+                        <ul class="mb-0 small">
+                            <li>حفظ الملف بصيغة .xlsx</li>
+                            <li>تنسيق التاريخ: YYYY-MM-DD</li>
+                            <li>طباعة معلومات الدخول فوراً</li>
+                            <li>توزيع المعلومات بشكل آمن</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- تحميل النموذج -->
+            <div class="text-center mt-3">
+                <button class="btn btn-outline-primary btn-sm" onclick="downloadTemplate()">
+                    <i class="fas fa-download"></i> تحميل نموذج Excel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .btn, .form-control, form, .card-header, .alert-danger, .alert-success {
+            display: none !important;
+        }
+        .alert-info { border: 2px solid #000 !important; }
+    }
+    .badge { font-size: 0.75em; }
+    .table-sm th, .table-sm td { padding: 0.25rem; }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// تحميل نموذج Excel للأساتذة
+function downloadTemplate() {
+    const content = "اللقب,الإسم,Nom,Prénom,تاريخ الميلاد,سنة البكالوريا,الرقم التسلسلي,الهاتف,البريد الشخصي,البريد المهني\n" +
+                   "بن علي,أحمد,Ben Ali,Ahmed,1980-01-15,2000,12345678,0555123456,ahmed@gmail.com,ahmed@univ-ouargla.dz\n" +
+                   "قادري,فاطمة,Kadri,Fatima,1985-03-22,2005,87654321,0666987654,fatima@yahoo.com,fatima@univ-ouargla.dz\n" +
+                   "محمدي,عبد الرحمن,Mohamedi,Abderrahmane,1975-12-10,1995,11223344,0777555666,abder@hotmail.com,abder@univ-ouargla.dz\n" +
+                   "بوعلام,سارة,Boualam,Sara,1990-06-18,2010,55667788,0444333222,sara@outlook.com,sara@univ-ouargla.dz\n" +
+                   "زرقون,محمد,Zerkoun,Mohamed,1982-09-05,2002,99887766,0333444555,mohamed@gmail.com,mohamed@univ-ouargla.dz\n";
+    
+    const blob = new Blob(['\ufeff' + content], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'نموذج_استيراد_الأساتذة.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+    
+    setTimeout(() => {
+        alert('تم تحميل النموذج بنجاح! يمكنك الآن تعديله وإضافة بيانات الأساتذة.');
+    }, 500);
+}
+
+// Validation du fichier
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('file_EnsVac');
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const validTypes = ['.xlsx', '.xls'];
+                const fileExt = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+                
+                if (!validTypes.includes(fileExt)) {
+                    alert('يرجى اختيار ملف Excel (.xlsx أو .xls)');
+                    this.value = '';
+                } else if (file.size > 10 * 1024 * 1024) {
+                    alert('حجم الملف كبير جداً (أكثر من 10 ميجابايت)');
+                    this.value = '';
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

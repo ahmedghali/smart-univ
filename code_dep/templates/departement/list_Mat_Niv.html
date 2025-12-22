@@ -1,0 +1,353 @@
+{% extends 'departement/base_Dep.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="grey_zone m-1 p-2 col-lg-8">
+    <h4 class="border-bottom border-danger text-dark mb-3">إدارة المواد الدراسية</h4>
+    
+    <div class="comment p-2"> 
+        <form id="matieres_form" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="row g-2 mb-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">الإصلاح:</label>
+                    <select id="refs" name="reforme" class="form-select">
+                        <option disabled selected>-----إختر الإصلاح-----</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">المستوى:</label>
+                    <select id="nivs" name="niveau" class="form-select">
+                        <option disabled selected>-----إختر المستوى-----</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">التخصص:</label>
+                    <select id="spts" name="specialite" class="form-select">
+                        <option disabled selected>-----إختر التخصص-----</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">السداسي:</label>
+                    <select id="semestres" name="semestre" class="form-select">
+                        <option disabled selected>-----إختر السداسي-----</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Boutons d'action principaux -->
+            <div class="mb-3 d-flex gap-2">
+                <button type="button" id="btn_afficher" class="btn btn-success">
+                    <i class="fas fa-list"></i> إظهار قائمة المواد
+                </button>
+                <button type="button" id="btn_show_import" class="btn btn-primary" style="display: none;">
+                    <i class="fas fa-plus"></i> إضافة مواد جديدة
+                </button>
+            </div>
+
+            <!-- Section d'import de fichier Excel -->
+            <div class="mb-3" id="div_import_section" style="display: none;">
+                <div class="alert alert-info">
+                    <h6 class="fw-bold text-primary mb-3">
+                        <i class="fas fa-file-excel"></i> استيراد المواد من ملف Excel
+                    </h6>
+                    
+                    <div class="mb-3">
+                        <label for="file_matieres" class="form-label fw-bold">ملف Excel:</label>
+                        <input type="file" id="file_matieres" name="file_matieres" 
+                               class="form-control" accept=".xlsx,.xls" required>
+                        <div class="form-text">الأعمدة المطلوبة: الاسم بالعربية، الاسم بالفرنسية، الكود، المعامل، الكريديت، الوحدة</div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="button" id="btn_import" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> استيراد المواد
+                        </button>
+                        <button type="button" id="btn_cancel_import" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> إلغاء
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!-- Messages de statut -->
+        <div id="status_messages" class="mt-3"></div>
+    </div>
+</div>
+
+<!-- Zone d'affichage du tableau des matières -->
+<div class="grey_zone m-1 p-2" id="matieres_table_container" style="display: none;">
+    <div id="matieres_table">
+        <!-- Le tableau des matières apparaîtra ici -->
+    </div>
+</div>
+
+<!-- دليل استيراد المواد -->
+<div class="grey_zone m-1 p-3 col-lg-11" id="guide_section" style="display: none;">
+    <div class="card border-info">
+        <div class="card-header bg-info text-white">
+            <h6 class="mb-0"><i class="fas fa-info-circle"></i> دليل استيراد المواد الدراسية</h6>
+        </div>
+        <div class="card-body">
+            
+            <!-- هيكل الملف -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6 class="text-primary"><i class="fas fa-table"></i> الأعمدة المطلوبة:</h6>
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-dark">
+                            <tr><th>العمود</th><th>حالة</th><th>مثال</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-danger">
+                                <td><strong>الاسم بالعربية</strong></td>
+                                <td><span class="badge bg-danger">إجباري</span></td>
+                                <td>الرياضيات</td>
+                            </tr>
+                            <tr class="table-danger">
+                                <td><strong>الاسم بالفرنسية</strong></td>
+                                <td><span class="badge bg-danger">إجباري</span></td>
+                                <td>Mathématiques</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>الكود</strong></td>
+                                <td><span class="badge bg-warning">اختياري</span></td>
+                                <td>MATH101</td>
+                            </tr>
+                            <tr class="table-info">
+                                <td><strong>المعامل</strong></td>
+                                <td><span class="badge bg-info">اختياري</span></td>
+                                <td>3</td>
+                            </tr>
+                            <tr class="table-info">
+                                <td><strong>الكريديت</strong></td>
+                                <td><span class="badge bg-info">اختياري</span></td>
+                                <td>6</td>
+                            </tr>
+                            <tr class="table-info">
+                                <td><strong>الوحدة</strong></td>
+                                <td><span class="badge bg-info">اختياري</span></td>
+                                <td>أساسية</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="col-md-6">
+                    <h6 class="text-success"><i class="fas fa-cogs"></i> معلومات إضافية:</h6>
+                    <div class="card border-light mb-2">
+                        <div class="card-body p-2">
+                            <h6 class="card-title text-primary">المعامل:</h6>
+                            <small class="d-block text-muted">وزن المادة في الحساب النهائي للدرجات</small>
+                        </div>
+                    </div>
+                    <div class="card border-light mb-2">
+                        <div class="card-body p-2">
+                            <h6 class="card-title text-warning">الكريديت:</h6>
+                            <small class="d-block text-muted">عدد الساعات المعتمدة للمادة</small>
+                        </div>
+                    </div>
+                    <div class="card border-light">
+                        <div class="card-body p-2">
+                            <h6 class="card-title text-success">الوحدة:</h6>
+                            <small class="d-block text-muted">تصنيف المادة (أساسية، منهجية، استكشافية، أفقية)</small>
+                        </div>
+                    </div>
+
+                    <h6 class="text-info mt-3"><i class="fas fa-list"></i> أنواع الوحدات:</h6>
+                    <ul class="list-unstyled small">
+                        <li><span class="badge bg-primary">أساسية</span> - المواد الأساسية</li>
+                        <li><span class="badge bg-success">منهجية</span> - مواد المنهجية</li>
+                        <li><span class="badge bg-warning">استكشافية</span> - مواد استكشافية</li>
+                        <li><span class="badge bg-info">أفقية</span> - مواد أفقية</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- مثال عملي -->
+            <h6 class="text-primary"><i class="fas fa-file-excel"></i> مثال لمحتوى الملف:</h6>
+            <div class="table-responsive mb-3">
+                <table class="table table-sm table-bordered table-striped">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>الاسم بالعربية</th><th>الاسم بالفرنسية</th><th>الكود</th><th>المعامل</th><th>الكريديت</th><th>الوحدة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>الرياضيات</td><td>Mathématiques</td><td>MATH101</td><td>3</td><td>6</td><td>أساسية</td>
+                        </tr>
+                        <tr>
+                            <td>الفيزياء</td><td>Physique</td><td>PHYS101</td><td>3</td><td>6</td><td>أساسية</td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td>الكيمياء</td><td>Chimie</td><td></td><td>2</td><td>4</td><td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- قواعد مهمة -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="alert alert-danger p-2">
+                        <h6><i class="fas fa-times-circle"></i> ممنوع:</h6>
+                        <ul class="mb-0 small">
+                            <li>ترك الأسماء فارغة</li>
+                            <li>تكرار أسماء المواد</li>
+                            <li>تغيير أسماء الأعمدة</li>
+                            <li>استخدام رموز خاصة في الأكواد</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert alert-success p-2">
+                        <h6><i class="fas fa-check-circle"></i> مطلوب:</h6>
+                        <ul class="mb-0 small">
+                            <li>حفظ الملف بصيغة .xlsx</li>
+                            <li>التأكد من صحة أسماء المواد</li>
+                            <li>استخدام أرقام صحيحة للمعاملات</li>
+                            <li>مراجعة البيانات قبل الاستيراد</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- تحميل النموذج -->
+            <div class="text-center mt-3">
+                <button class="btn btn-outline-primary btn-sm" onclick="downloadMatieresTemplate()">
+                    <i class="fas fa-download"></i> تحميل نموذج Excel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .btn, .form-control, form, .card-header, .alert-danger, .alert-success {
+            display: none !important;
+        }
+        .alert-info { border: 2px solid #000 !important; }
+    }
+    .badge { font-size: 0.75em; }
+    .table-sm th, .table-sm td { padding: 0.25rem; }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Variables obligatoires
+    var refsUrl = "{{ refs_url }}";
+    var nivsUrl = "{{ nivs_url }}";
+    var sptsUrl = "{{ spts_url }}";
+    var semestresUrl = "{{ semestres_url }}";
+    var matieresUrl = "{{ matieres_url }}";
+    var importMatieresUrl = "{% url 'depa:import-matieres' %}";
+    
+    // Debug
+    console.log('📋 Variables définies dans le template:');
+    console.log('refsUrl:', refsUrl);
+    console.log('nivsUrl:', nivsUrl);
+    console.log('sptsUrl:', sptsUrl);
+    console.log('semestresUrl:', semestresUrl);
+    console.log('matieresUrl:', matieresUrl);
+    console.log('importMatieresUrl:', importMatieresUrl);
+
+    // تحميل نموذج Excel للمواد
+    function downloadMatieresTemplate() {
+        const content = "الاسم بالعربية,الاسم بالفرنسية,الكود,المعامل,الكريديت,الوحدة\n" +
+                       "الرياضيات,Mathématiques,MATH101,3,6,أساسية\n" +
+                       "الفيزياء,Physique,PHYS101,3,6,أساسية\n" +
+                       "الكيمياء,Chimie,CHEM101,2,4,أساسية\n" +
+                       "المنهجية,Méthodologie,METH101,2,4,منهجية\n" +
+                       "الإعلام الآلي,Informatique,INFO101,3,6,أساسية\n";
+        
+        const blob = new Blob(['\ufeff' + content], { type: 'text/csv;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'نموذج_استيراد_المواد.csv';
+        link.click();
+        URL.revokeObjectURL(link.href);
+        
+        setTimeout(() => {
+            alert('تم تحميل النموذج بنجاح! يمكنك الآن تعديله وإضافة بيانات المواد.');
+        }, 500);
+    }
+
+    // Gestion des boutons et affichage
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnAfficher = document.getElementById('btn_afficher');
+        const btnShowImport = document.getElementById('btn_show_import');
+        const btnCancelImport = document.getElementById('btn_cancel_import');
+        const divImportSection = document.getElementById('div_import_section');
+        const guideSection = document.getElementById('guide_section');
+        const matieresTableContainer = document.getElementById('matieres_table_container');
+
+        // Afficher les matières
+        btnAfficher?.addEventListener('click', function() {
+            // Vérifier que tous les champs sont sélectionnés
+            const reforme = document.getElementById('refs').value;
+            const niveau = document.getElementById('nivs').value;
+            const specialite = document.getElementById('spts').value;
+            const semestre = document.getElementById('semestres').value;
+
+            if (!reforme || !niveau || !specialite || !semestre) {
+                alert('يرجى اختيار جميع الحقول المطلوبة');
+                return;
+            }
+
+            // Afficher seulement le conteneur du tableau
+            matieresTableContainer.style.display = 'block';
+            btnShowImport.style.display = 'inline-block';
+            // NE PAS afficher le guide ici
+            
+            // Ici vous pouvez ajouter le code pour charger les matières via AJAX
+            console.log('Chargement des matières pour:', {reforme, niveau, specialite, semestre});
+        });
+
+        // Afficher la section d'import ET le guide
+        btnShowImport?.addEventListener('click', function() {
+            divImportSection.style.display = 'block';
+            guideSection.style.display = 'block'; // Afficher le guide ici
+            this.style.display = 'none';
+        });
+
+        // Annuler l'import
+        btnCancelImport?.addEventListener('click', function() {
+            divImportSection.style.display = 'none';
+            guideSection.style.display = 'none'; // Cacher le guide aussi
+            btnShowImport.style.display = 'inline-block';
+            document.getElementById('file_matieres').value = '';
+        });
+
+        // Validation du fichier
+        const fileInput = document.getElementById('file_matieres');
+        if (fileInput) {
+            fileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const validTypes = ['.xlsx', '.xls'];
+                    const fileExt = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+                    
+                    if (!validTypes.includes(fileExt)) {
+                        alert('يرجى اختيار ملف Excel (.xlsx أو .xls)');
+                        this.value = '';
+                    } else if (file.size > 5 * 1024 * 1024) {
+                        alert('حجم الملف كبير جداً (أكثر من 5 ميجابايت)');
+                        this.value = '';
+                    }
+                }
+            });
+        }
+    });
+</script>
+
+<script src="{% static './departement/js/list_matiere.js' %}" defer></script>
+{% endblock %}

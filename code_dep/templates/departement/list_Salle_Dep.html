@@ -1,0 +1,283 @@
+{% extends 'departement/base_Dep.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="container-fluid p-2">
+    <div class="row">
+        <div class="col-12">
+            
+            <!-- En-tête simple -->
+            <div class="header-simple mb-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-door-open me-2"></i>قائمة القاعات
+                        <small class="text-muted ms-2">({{all_Salle_Dep.count}})</small>
+                    </h5>
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-sm btn-outline-primary" onclick="showAll()" id="btnAll">الكل</button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="exportData()">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {% if not all_Salle_Dep %}
+                <div class="text-center p-4 bg-light rounded">
+                    <h6 class="text-muted">لا توجد قاعات</h6>
+                </div>
+            {% else %}
+
+                <!-- بحث بسيط -->
+                <div class="search-simple mb-2">
+                    <input type="text" id="searchInput" class="form-control form-control-sm" 
+                           placeholder="البحث في القاعات..." onkeyup="search()">
+                </div>
+
+
+                <!-- التقسيم حسب السداسي إذا كانت البيانات متوفرة -->
+                {% if all_Salle_Dep_S1 %}
+                <!-- السداسي الأول -->
+                <div class="table-section mb-2">
+                    <div class="section-header">
+                        السداسي الأول ({{all_Salle_Dep_S1|length}})
+                    </div>
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="40">#</th>
+                                <th>القاعة</th>
+                                <th>Salle</th>
+                                <th width="60">الرقم</th>
+                                <th width="80">استعمال الزمن</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for x in all_Salle_Dep_S1 %}
+                            <tr class="salle-row" data-name="{{x.salle.nom_ar|default:''}} {{x.salle.nom_fr|default:''}} {{x.salle.numero|default:''}}">
+                                <td class="text-center">{{forloop.counter}}</td>
+                                <td>{{x.salle.nom_ar|default:'غير محدد'}}</td>
+                                <td>{{x.salle.nom_fr|default:'Non défini'}}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary">{{x.salle.numero|default:'--'}}</span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{% url 'departement:timeTable_Salle' x.id x.semestre.numero %}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-table"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+
+                {% if all_Salle_Dep_S2 %}
+                <!-- السداسي الثاني -->
+                <div class="table-section">
+                    <div class="section-header">
+                        السداسي الثاني ({{all_Salle_Dep_S2|length}})
+                    </div>
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="40">#</th>
+                                <th>القاعة</th>
+                                <th>Salle</th>
+                                <th width="60">الرقم</th>
+                                <th width="80">استعمال الزمن</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for x in all_Salle_Dep_S2 %}
+                            <tr class="salle-row" data-name="{{x.salle.nom_ar|default:''}} {{x.salle.nom_fr|default:''}} {{x.salle.numero|default:''}}">
+                                <td class="text-center">{{forloop.counter}}</td>
+                                <td>{{x.salle.nom_ar|default:'غير محدد'}}</td>
+                                <td>{{x.salle.nom_fr|default:'Non défini'}}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary">{{x.salle.numero|default:'--'}}</span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{% url 'departement:timeTable_Salle' x.id x.semestre.numero %}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-table"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            {% endif %}
+
+            <!-- Debug info (à supprimer en production) -->
+            {% if debug %}
+            <div class="mt-3 p-2 bg-warning-subtle rounded">
+                <small>
+                    <strong>Debug:</strong><br>
+                    all_Salle_Dep: {{all_Salle_Dep|length}} éléments<br>
+                    all_Salle_Dep_S1: {{all_Salle_Dep_S1|length|default:'Non défini'}} éléments<br>
+                    all_Salle_Dep_S2: {{all_Salle_Dep_S2|length|default:'Non défini'}} éléments<br>
+                    Contexte disponible: {{all_Salle_Dep.0|default:'Aucun'}}
+                </small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function search() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const rows = document.querySelectorAll('.salle-row');
+    
+    rows.forEach(row => {
+        const text = row.dataset.name.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+    });
+}
+
+function showAll() {
+    document.querySelectorAll('.salle-row').forEach(row => {
+        row.style.display = '';
+    });
+    document.getElementById('searchInput').value = '';
+}
+
+function exportData() {
+    const rows = document.querySelectorAll('.salle-row:not([style*="display: none"])');
+    let csv = "الرقم,القاعة,Salle,الرقم\n";
+    
+    rows.forEach((row, i) => {
+        const cells = row.querySelectorAll('td');
+        csv += `${i+1},"${cells[1].textContent}","${cells[2].textContent}","${cells[3].textContent.trim()}"\n`;
+    });
+    
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `القاعات_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+}
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Header simple */
+.header-simple {
+    background: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 4px;
+    border-left: 3px solid #28a745;
+}
+
+/* Recherche simple */
+.search-simple input {
+    max-width: 300px;
+}
+
+/* Section de tableau */
+.table-section {
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid #dee2e6;
+}
+
+.section-header {
+    background: #e9ecef;
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #495057;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Tableau compact */
+.table {
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+.table th {
+    padding: 0.5rem 0.75rem;
+    border-top: none;
+    font-weight: 600;
+    background: #f8f9fa;
+}
+
+.table td {
+    padding: 0.4rem 0.75rem;
+    vertical-align: middle;
+}
+
+.table-bordered {
+    border: none;
+}
+
+.table-bordered th,
+.table-bordered td {
+    border-left: none;
+    border-right: none;
+}
+
+.table tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* Badge simple */
+.badge {
+    font-size: 0.75rem;
+}
+
+/* Boutons compacts */
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 0.5rem;
+    }
+    
+    .header-simple {
+        padding: 0.5rem;
+    }
+    
+    .section-header {
+        padding: 0.4rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .table {
+        font-size: 0.8rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.3rem 0.5rem;
+    }
+    
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.7rem;
+    }
+}
+
+/* Impression */
+@media print {
+    .header-simple .d-flex > div:last-child,
+    .search-simple {
+        display: none !important;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,1260 @@
+{% extends 'departement/base_Dep.html' %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<div class="grey_zone m-1 p-2">
+  <!-- EN-TÊTE PRINCIPAL -->
+  <div class="main-header d-flex justify-content-between align-items-center mb-3">
+    <h4 class="page-title border-bottom border-danger text-dark mb-0">
+      <i class="fas fa-list"></i>
+      قائمة أساتذة قسم {{my_Dep}} - السداسي 
+      {% if semestre_num == 1 %}الأول{% else %}الثاني{% endif %}
+    </h4>
+    
+    <!-- Boutons pour basculer entre semestres -->
+    <div class="semester-selector btn-group" role="group">
+      <a href="{% url 'depa:list_enseignants_dep' 1 %}" 
+         class="btn {% if semestre_num == 1 %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm">
+        <i class="fas fa-calendar-alt"></i>
+        السداسي الأول
+      </a>
+      <a href="{% url 'depa:list_enseignants_dep' 2 %}" 
+         class="btn {% if semestre_num == 2 %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm">
+        <i class="fas fa-calendar-alt"></i>
+        السداسي الثاني
+      </a>
+    </div>
+  </div>
+
+  <!-- Statistiques globales -->
+  <div class="statistics-section">
+    <div class="card statistics-card mb-4">
+      
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+          <i class="fas fa-chart-bar"></i>
+          إحصائيات الأساتذة
+        </h5>
+      </div>
+      
+
+
+      <div class="card-body">
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <div class="stat-card text-center p-3 bg-primary-subtle rounded">
+              <h3 class="text-primary mb-0">{{all_Ens_Dep.count}}</h3>
+              <small class="text-muted">إجمالي الأساتذة</small>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-card text-center p-3 bg-success-subtle rounded">
+              <h4 class="text-success mb-0">{{all_Ens_Dep_Per.count}}</h4>
+              <small class="text-muted">المرسمين بالقسم</small>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-card text-center p-3 bg-warning-subtle rounded">
+              <h4 class="text-warning mb-0">{{all_Ens_Dep_Vac.count|add:all_Ens_Dep_PerVac.count|add:all_Ens_Dep_Aso.count|add:all_Ens_Dep_Doc.count}}</h4>
+              <small class="text-muted">المؤقتين</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistiques par grade -->
+        <div class="row">
+          <div class="col-12">
+            <h6 class="text-muted mb-2"><i class="fas fa-graduation-cap"></i> توزيع الأساتذة حسب الرتبة:</h6>
+            <div class="row">
+              {% for stat in grade_stats %}
+              <div class="col-md-3 col-sm-6 mb-2">
+                <div class="stat-card-small text-center p-2 bg-light rounded border">
+                  <strong class="text-primary">{{stat.count}}</strong>
+                  <small class="d-block text-muted">{{stat.enseignant__grade__nom_ar|default:"غير محدد"}}</small>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Alertes pour données manquantes -->
+        {% if missing_email_count > 0 or missing_scholar_count > 0 %}
+        <div class="row mt-3">
+          <div class="col-12">
+            <div class="alert alert-warning mb-0 py-2">
+              <i class="fas fa-exclamation-triangle"></i>
+              <strong>تنبيه:</strong>
+              {% if missing_email_count > 0 %}
+                <span class="me-3">{{missing_email_count}} أستاذ بدون إيميل مهني</span>
+              {% endif %}
+              {% if missing_scholar_count > 0 %}
+                <span>{{missing_scholar_count}} أستاذ بدون Google Scholar</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        <div class="mt-2">
+        <a href="{% url 'depa:update_all_scholars' %}" class="btn btn-primary">
+          <i class="fas fa-sync"></i> تحيين عدد المنشورات العلمية للأساتذة عبر حساب Google Scholar أوتوماتيكيا !
+        </a>
+      </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Alerte création séances -->
+  {% if my_Dep.dep_creationALLseances == False %}
+  <div class="alert alert-warning creation-alert">
+    <i class="fas fa-exclamation-triangle"></i>
+    <button class="btn btn-warning ms-2">
+      <a class="text-dark text-decoration-none" href="#">
+        <i class="fas fa-plus"></i>
+        إنشاء جميع دروس الأساتذة
+      </a>
+    </button>
+  </div>
+  {% endif %}
+
+  <!-- Tableau liste des enseignants -->
+  <div class="teachers-table-section">
+    <div class="card">
+      <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0">
+          <i class="fas fa-users"></i>
+          قائمة الأساتذة التفصيلية
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover table-sm align-middle mb-0">
+            <thead class="table-dark">
+              <tr>
+                <th class="col-number">#</th>
+                <th class="col-teacher">
+                  <i class="fas fa-user"></i>
+                  الأستاذ
+                </th>
+                <th class="col-email">
+                  <i class="fas fa-envelope"></i>
+                  الإيميل المهني
+                </th>
+                <th class="col-grade">
+                  <i class="fas fa-graduation-cap"></i>
+                  الرتبة
+                </th>
+                <th class="col-speciality">
+                  <i class="fas fa-book"></i>
+                  التخصص
+                </th>
+                <th class="col-scholar">
+                  <i class="fas fa-graduation-cap"></i>
+                  Google Scholar
+                </th>
+                <!-- Dans votre tableau -->
+                <th class="col-scholar">
+                    <i class="fas fa-graduation-cap"></i>
+                    عدد المنشورات
+                </th>
+                <th class="col-status">
+                  <i class="fas fa-id-badge"></i>
+                  الحالة
+                </th>
+                <th class="col-schedule">
+                  <i class="fas fa-calendar-check"></i>
+                  استعمال الزمن
+                </th>
+                <th class="col-fp text-center">
+                  <i class="fas fa-file-alt"></i>
+                  F.P
+                </th>
+                <th class="col-registered text-center">
+                  <i class="fas fa-user-check"></i>
+                  مسجل بالمنصة
+                </th>
+                <th class="col-delete-platform text-center">
+                  <i class="fas fa-user-times"></i>
+                  حذف من المنصة
+                </th>
+                <th class="col-view text-center">
+                  <i class="fas fa-eye"></i>
+                  مشاهدة
+                </th>
+                <th class="col-delete-dept text-center">
+                  <i class="fas fa-trash"></i>
+                  حذف من القسم
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              
+              <!-- ENSEIGNANTS PERMANENTS -->
+              {% for x in all_Ens_Dep_Per %}
+              <tr class="teacher-row">
+                <td class="teacher-number">
+                  <span class="badge bg-primary">{{forloop.counter}}</span>
+                </td>
+                <td class="teacher-name">
+                  <strong>{{x.enseignant.nom_ar}} {{x.enseignant.prenom_ar}}</strong>
+                </td>
+                <td class="teacher-email">
+                  {% if x.enseignant.email_prof %}
+                    <small class="text-muted">{{x.enseignant.email_prof}}</small>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">
+                      <i class="fas fa-exclamation-triangle"></i> غير محدد
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="teacher-grade">
+                  {% if x.enseignant.grade %}
+                    <small>{{x.enseignant.grade.code}}</small>
+                  {% else %}
+                    <small class="text-muted">-</small>
+                  {% endif %}
+                </td>
+                <td class="teacher-speciality">
+                  {% if x.enseignant.specialite_fr %}
+                    <small>{{x.enseignant.specialite_fr}}</small>
+                  {% else %}
+                    <small class="text-muted">-</small>
+                  {% endif %}
+                </td>
+                <td class="teacher-scholar">
+                  {% if x.enseignant.googlescholar %}
+                    <a href="{{x.enseignant.googlescholar}}" target="_blank" class="btn btn-sm btn-outline-success">
+                      <i class="fas fa-external-link-alt"></i>
+                    </a>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">
+                      <i class="fas fa-exclamation-triangle"></i>
+                    </span>
+                  {% endif %}
+                </td>
+                <!-- Dans tbody -->
+                <td class="teacher-scholar">
+                    {% if x.enseignant.googlescholar %}
+                        <span class="badge bg-primary">
+                            <i class="fas fa-file-alt"></i>
+                            {{x.enseignant.scholar_publications_count}}
+                        </span>
+                        <a href="{% url 'depa:update_scholar_manual' x.enseignant.id %}" 
+                          class="btn btn-sm btn-outline-primary update-scholar-btn"
+                          data-teacher-name="{{x.enseignant.nom_ar}} {{x.enseignant.prenom_ar}}">
+                            <i class="fas fa-sync-alt"></i>
+                        </a>
+                    {% else %}
+                        <span class="badge bg-warning">Vide</span>
+                    {% endif %}
+                </td>
+                
+                <td class="teacher-status">
+                  <span class="badge bg-success">دائم</span>
+                </td>
+                <td class="teacher-schedule">
+                  <a href="{% url 'depa:emploi_Ens' x.enseignant.id %}?semestre={{semestre_num}}" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-calendar-alt"></i>
+                    الدروس
+                  </a>
+                </td>
+                <td class="teacher-fp text-center">
+                  <a href="{% url 'depa:fichePedagogique_Ens_Dep' x.enseignant.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-file-alt"></i>
+                    F.P
+                  </a>
+                </td>
+                
+                {% if x.est_inscrit == True %}
+                <td class="teacher-registration text-center">
+                  <span class="badge bg-info">مسجل</span>
+                </td>
+                {% else %}
+                <td class="teacher-registration text-center">
+                  <a href="{% url 'depa:inscription_Ens' x.enseignant.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-secondary">
+                    <i class="fas fa-user-plus"></i>
+                    تسجيل
+                  </a>
+                </td>
+                {% endif %}
+
+                {% if x.est_inscrit == False %}
+                <td class="teacher-platform-delete text-center">
+                  <i class="fas fa-ban text-muted"></i>
+                </td>
+                {% else %}
+                <td class="teacher-platform-delete text-center">
+                  <form action="{% url 'depa:delete_Ens_Platform' x.enseignant.id %}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من المنصة؟')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="fas fa-user-times"></i>
+                    </button>
+                  </form>
+                </td>
+                {% endif %}
+
+                <td class="teacher-view text-center">
+                  <a href="{% url 'depa:profile_Ens_Dep' x.enseignant.id %}" class="btn btn-sm btn-outline-info">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                </td>
+                <td class="teacher-dept-delete text-center">
+                  <i class="fas fa-ban text-muted"></i>
+                </td>
+              </tr>
+              {% endfor %}
+
+              <!-- ENSEIGNANTS PERMANENTS ET VACATAIRES -->
+              {% for xx in all_Ens_Dep_PerVac %}
+              <tr class="teacher-row">
+                <td class="teacher-number">
+                  <span class="badge bg-primary">{{forloop.counter|add:all_Ens_Dep_Per.count}}</span>
+                </td>
+                <td class="teacher-name">
+                  <strong>{{xx.enseignant.nom_ar}} {{xx.enseignant.prenom_ar}}</strong>
+                </td>
+                <td class="teacher-email">
+                  {% if xx.enseignant.email_prof %}
+                    <small class="text-muted">{{xx.enseignant.email_prof}}</small>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">
+                      <i class="fas fa-exclamation-triangle"></i> غير محدد
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="teacher-grade">
+                  {% if xx.enseignant.grade %}
+                    <small>{{xx.enseignant.grade.code}}</small>
+                  {% else %}
+                    <small class="text-muted">-</small>
+                  {% endif %}
+                </td>
+                <td class="teacher-speciality">
+                  {% if xx.enseignant.specialite_fr %}
+                    <small>{{xx.enseignant.specialite_fr}}</small>
+                  {% else %}
+                    <small class="text-muted">-</small>
+                  {% endif %}
+                </td>
+                <td class="teacher-scholar">
+                  {% if xx.enseignant.googlescholar %}
+                    <a href="{{xx.enseignant.googlescholar}}" target="_blank" class="btn btn-sm btn-outline-info">
+                      <i class="fas fa-external-link-alt"></i>
+                    </a>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">
+                      <i class="fas fa-exclamation-triangle"></i>
+                    </span>
+                  {% endif %}
+                </td>
+                <!-- Dans tbody -->
+                <td class="teacher-scholar">
+                    {% if x.enseignant.googlescholar %}
+                        <span class="badge bg-primary">
+                            <i class="fas fa-file-alt"></i>
+                            <span class="scholar-publications-count">{{x.enseignant.scholar_publications_count}}</span>
+                        </span>
+                        <a href="{% url 'depa:update_scholar_manual' x.enseignant.id %}" 
+                          class="btn btn-sm">
+                            <i class="fas fa-sync-alt"></i>
+                        </a>
+                    {% else %}
+                        <span class="badge bg-warning">Vide</span>
+                    {% endif %}
+                </td>
+                <td class="teacher-status">
+                  <span class="badge bg-warning text-dark">مرسم و مؤقت</span>
+                </td>
+                <td class="teacher-schedule">
+                  <a href="{% url 'depa:emploi_Ens' xx.enseignant.id %}?semestre={{semestre_num}}" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-calendar-alt"></i>
+                    الدروس
+                  </a>
+                </td>
+                <td class="teacher-fp text-center">
+                  <a href="{% url 'depa:fichePedagogique_Ens_Dep' xx.enseignant.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-file-alt"></i>
+                    F.P
+                  </a>
+                </td>
+                
+                {% if xx.est_inscrit == True %}
+                <td class="teacher-registration text-center">
+                  <span class="badge bg-info">مسجل</span>
+                </td>
+                {% else %}
+                <td class="teacher-registration text-center">
+                  <a href="{% url 'depa:inscription_Ens' xx.enseignant.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-secondary">
+                    <i class="fas fa-user-plus"></i>
+                    تسجيل
+                  </a>
+                </td>
+                {% endif %}
+
+                {% if xx.est_inscrit == False %}
+                <td class="teacher-platform-delete text-center">
+                  <i class="fas fa-ban text-muted"></i>
+                </td>
+                {% else %}
+                <td class="teacher-platform-delete text-center">
+                  <form action="{% url 'depa:delete_Ens_Platform' xx.enseignant.id %}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من المنصة؟')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="fas fa-user-times"></i>
+                    </button>
+                  </form>
+                </td>
+                {% endif %}
+
+                <td class="teacher-view text-center">
+                  <a href="{% url 'depa:profile_Ens_Dep' xx.enseignant.id %}" class="btn btn-sm btn-outline-info">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                </td>
+                <td class="teacher-dept-delete text-center">
+                  <form action="{% url 'depa:delete_Enseignant' xx.id %}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من القسم؟')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+
+              <!-- ENSEIGNANTS VACATAIRES -->
+              {% for xxx in all_Ens_Dep_Vac %}
+              <tr class="teacher-row">
+                <td class="teacher-number">
+                  <span class="badge bg-primary">{{forloop.counter|add:all_Ens_Dep_Per.count|add:all_Ens_Dep_PerVac.count}}</span>
+                </td>
+                <td class="teacher-name">
+                  <strong>{{xxx.enseignant.nom_ar}} {{xxx.enseignant.prenom_ar}}</strong>
+                </td>
+                <td class="teacher-email">
+                  {% if xxx.enseignant.email_prof %}
+                    <small class="text-muted">{{xxx.enseignant.email_prof}}</small>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">
+                      <i class="fas fa-exclamation-triangle"></i> غير محدد
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="teacher-grade">
+                  {% if xxx.enseignant.grade %}
+                    <small>{{xxx.enseignant.grade.code}}</small>
+                  {% else %}
+                    <small class="text-muted">-</small>
+                  {% endif %}
+                </td>
+                <td class="teacher-speciality">
+                  {% if xxx.enseignant.specialite_fr %}
+                    <small>{{xxx.enseignant.specialite_fr}}</small>
+                  {% else %}
+                    <small class="text-muted">-</small>
+                  {% endif %}
+                </td>
+                <td class="teacher-scholar">
+                  {% if xxx.enseignant.googlescholar %}
+                    <a href="{{xxx.enseignant.googlescholar}}" target="_blank" class="btn btn-sm btn-outline-info">
+                      <i class="fas fa-external-link-alt"></i>
+                    </a>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">
+                      <i class="fas fa-exclamation-triangle"></i>
+                    </span>
+                  {% endif %}
+                </td>
+                <!-- Dans tbody -->
+                <td class="teacher-scholar">
+                    {% if x.enseignant.googlescholar %}
+                        <span class="badge bg-primary">
+                            <i class="fas fa-file-alt"></i>
+                            {{x.enseignant.scholar_publications_count}}
+                        </span>
+                        <a href="{% url 'depa:update_scholar_manual' x.enseignant.id %}" 
+                          class="btn btn-sm">
+                            <i class="fas fa-sync-alt"></i>
+                        </a>
+                    {% else %}
+                        <span class="badge bg-warning">Vide</span>
+                    {% endif %}
+                </td>
+                <td class="teacher-status">
+                  <span class="badge bg-info">مؤقت</span>
+                </td>
+                <td class="teacher-schedule">
+                  <a href="{% url 'depa:emploi_Ens' xxx.enseignant.id %}?semestre={{semestre_num}}" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-calendar-alt"></i>
+                    الدروس
+                  </a>
+                </td>
+                <td class="teacher-fp text-center">
+                  <a href="{% url 'depa:fichePedagogique_Ens_Dep' xxx.enseignant.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-file-alt"></i>
+                    F.P
+                  </a>
+                </td>
+                
+                {% if xxx.est_inscrit == True %}
+                <td class="teacher-registration text-center">
+                  <span class="badge bg-info">مسجل</span>
+                </td>
+                {% else %}
+                <td class="teacher-registration text-center">
+                  <a href="{% url 'depa:inscription_Ens' xxx.enseignant.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-secondary">
+                    <i class="fas fa-user-plus"></i>
+                    تسجيل
+                  </a>
+                </td>
+                {% endif %}
+
+                {% if xxx.est_inscrit == False %}
+                <td class="teacher-platform-delete text-center">
+                  <i class="fas fa-ban text-muted"></i>
+                </td>
+                {% else %}
+                <td class="teacher-platform-delete text-center">
+                  <form action="{% url 'depa:delete_Ens_Platform' xxx.enseignant.id %}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من المنصة؟')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="fas fa-user-times"></i>
+                    </button>
+                  </form>
+                </td>
+                {% endif %}
+
+                <td class="teacher-view text-center">
+                  <a href="{% url 'depa:profile_Ens_Dep' xxx.enseignant.id %}" class="btn btn-sm btn-outline-info">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                </td>
+                <td class="teacher-dept-delete text-center">
+                  <form action="{% url 'depa:delete_Enseignant' xxx.id %}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من القسم؟')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+
+              <!-- ENSEIGNANTS ASSOCIÉS -->
+              {% for xxxx in all_Ens_Dep_Aso %}
+              <tr class="teacher-row">
+                <td class="teacher-number">
+                  <span class="badge bg-primary">{{forloop.counter|add:all_Ens_Dep_Per.count|add:all_Ens_Dep_PerVac.count|add:all_Ens_Dep_Vac.count}}</span>
+                </td>
+                <td class="teacher-name">
+                  <strong>{{xxxx.enseignant.nom_ar}} {{xxxx.enseignant.prenom_ar}}</strong>
+                </td>
+                <td class="teacher-email">
+                  {% if xxxx.enseignant.email_prof %}
+                    <small class="text-muted">{{xxxx.enseignant.email_prof}}</small>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">
+                      <i class="fas fa-exclamation-triangle"></i> غير محدد
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="teacher-grade">
+                  {% if xxxx.enseignant.grade %}
+                    <small>{{xxxx.enseignant.grade.code}}</small>
+                  {% else %}
+                    <small class="text-muted">-</small>
+                  {% endif %}
+                </td>
+                <td class="teacher-speciality">
+                  {% if xxxx.enseignant.specialite_fr %}
+                    <small>{{xxxx.enseignant.specialite_fr}}</small>
+                  {% else %}
+                    <small class="text-muted">-</small>
+                  {% endif %}
+                </td>
+                <td class="teacher-scholar">
+                  {% if xxxx.enseignant.googlescholar %}
+                    <a href="{{xxxx.enseignant.googlescholar}}" target="_blank" class="btn btn-sm btn-outline-info">
+                      <i class="fas fa-external-link-alt"></i>
+                    </a>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">
+                      <i class="fas fa-exclamation-triangle"></i>
+                    </span>
+                  {% endif %}
+                </td>
+                <!-- Dans tbody -->
+                <td class="teacher-scholar">
+                    {% if x.enseignant.googlescholar %}
+                        <span class="badge bg-primary">
+                            <i class="fas fa-file-alt"></i>
+                            {{x.enseignant.scholar_publications_count}}
+                        </span>
+                        <a href="{% url 'depa:update_scholar_manual' x.enseignant.id %}" 
+                          class="btn btn-sm">
+                            <i class="fas fa-sync-alt"></i>
+                        </a>
+                    {% else %}
+                        <span class="badge bg-warning">Vide</span>
+                    {% endif %}
+                </td>
+                <td class="teacher-status">
+                  <span class="badge bg-secondary">مشارك</span>
+                </td>
+                <td class="teacher-schedule">
+                  <a href="{% url 'depa:emploi_Ens' xxxx.enseignant.id %}?semestre={{semestre_num}}" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-calendar-alt"></i>
+                    الدروس
+                  </a>
+                </td>
+                <td class="teacher-fp text-center">
+                  <a href="{% url 'depa:fichePedagogique_Ens_Dep' xxxx.enseignant.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-file-alt"></i>
+                    F.P
+                  </a>
+                </td>
+                
+                {% if xxxx.est_inscrit == True %}
+                <td class="teacher-registration text-center">
+                  <span class="badge bg-info">مسجل</span>
+                </td>
+                {% else %}
+                <td class="teacher-registration text-center">
+                  <a href="{% url 'depa:inscription_Ens' xxxx.enseignant.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-secondary">
+                    <i class="fas fa-user-plus"></i>
+                    تسجيل
+                  </a>
+                </td>
+                {% endif %}
+
+                {% if xxxx.est_inscrit == False %}
+                <td class="teacher-platform-delete text-center">
+                  <i class="fas fa-ban text-muted"></i>
+                </td>
+                {% else %}
+                <td class="teacher-platform-delete text-center">
+                  <form action="{% url 'depa:delete_Ens_Platform' xxxx.enseignant.id %}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من المنصة؟')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="fas fa-user-times"></i>
+                    </button>
+                  </form>
+                </td>
+                {% endif %}
+
+                <td class="teacher-view text-center">
+                  <a href="{% url 'depa:profile_Ens_Dep' xxxx.enseignant.id %}" class="btn btn-sm btn-outline-info">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                </td>
+                <td class="teacher-dept-delete text-center">
+                  <form action="{% url 'depa:delete_Enseignant' xxxx.id %}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من القسم؟')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+
+              <!-- DOCTORANTS -->
+              {% for xxxxx in all_Ens_Dep_Doc %}
+              <tr class="teacher-row">
+                <td class="teacher-number">
+                  <span class="badge bg-primary">{{forloop.counter|add:all_Ens_Dep_Per.count|add:all_Ens_Dep_PerVac.count|add:all_Ens_Dep_Vac.count|add:all_Ens_Dep_Aso.count}}</span>
+                </td>
+                <td class="teacher-name">
+                  <strong>{{xxxxx.enseignant.nom_ar}} {{xxxxx.enseignant.prenom_ar}}</strong>
+                </td>
+                <td class="teacher-email">
+                  {% if xxxxx.enseignant.email_prof %}
+                    <small class="text-muted">{{xxxxx.enseignant.email_prof}}</small>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">
+                      <i class="fas fa-exclamation-triangle"></i> غير محدد
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="teacher-grade">
+                  {% if xxxxx.enseignant.grade %}
+                    <small>{{xxxxx.enseignant.grade.code}}</small>
+                  {% else %}
+                    <small class="text-muted">-</small>
+                  {% endif %}
+                </td>
+                <td class="teacher-speciality">
+                  {% if xxxxx.enseignant.specialite_fr %}
+                    <small>{{xxxxx.enseignant.specialite_fr}}</small>
+                  {% else %}
+                    <small class="text-muted">-</small>
+                  {% endif %}
+                </td>
+                <td class="teacher-scholar">
+                  {% if xxxxx.enseignant.googlescholar %}
+                    <a href="{{xxxxx.enseignant.googlescholar}}" target="_blank" class="btn btn-sm btn-outline-info">
+                      <i class="fas fa-external-link-alt"></i>
+                    </a>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">
+                      <i class="fas fa-exclamation-triangle"></i>
+                    </span>
+                  {% endif %}
+                </td>
+                <!-- Dans tbody -->
+                <td class="teacher-scholar">
+                    {% if x.enseignant.googlescholar %}
+                        <span class="badge bg-primary">
+                            <i class="fas fa-file-alt"></i>
+                            {{x.enseignant.scholar_publications_count}}
+                        </span>
+                        <a href="{% url 'depa:update_scholar_manual' x.enseignant.id %}" 
+                          class="btn btn-sm">
+                            <i class="fas fa-sync-alt"></i>
+                        </a>
+                    {% else %}
+                        <span class="badge bg-warning">Vide</span>
+                    {% endif %}
+                </td>
+                <td class="teacher-status">
+                  <span class="badge bg-primary">دكتوراه</span>
+                </td>
+                <td class="teacher-schedule">
+                  <a href="{% url 'depa:emploi_Ens' xxxxx.enseignant.id %}?semestre={{semestre_num}}" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-calendar-alt"></i>
+                    الدروس
+                  </a>
+                </td>
+                <td class="teacher-fp text-center">
+                  <a href="{% url 'depa:fichePedagogique_Ens_Dep' xxxxx.enseignant.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-file-alt"></i>
+                    F.P
+                  </a>
+                </td>
+                
+                {% if xxxxx.est_inscrit == True %}
+                <td class="teacher-registration text-center">
+                  <span class="badge bg-info">مسجل</span>
+                </td>
+                {% else %}
+                <td class="teacher-registration text-center">
+                  <a href="{% url 'depa:inscription_Ens' xxxxx.enseignant.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-secondary">
+                    <i class="fas fa-user-plus"></i>
+                    تسجيل
+                  </a>
+                </td>
+                {% endif %}
+
+                {% if xxxxx.est_inscrit == False %}
+                <td class="teacher-platform-delete text-center">
+                  <i class="fas fa-ban text-muted"></i>
+                </td>
+                {% else %}
+                <td class="teacher-platform-delete text-center">
+                  <form action="{% url 'depa:delete_Ens_Platform' xxxxx.enseignant.id %}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من المنصة؟')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="fas fa-user-times"></i>
+                    </button>
+                  </form>
+                </td>
+                {% endif %}
+
+                <td class="teacher-view text-center">
+                  <a href="{% url 'depa:profile_Ens_Dep' xxxxx.enseignant.id %}" class="btn btn-sm btn-outline-info">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                </td>
+                <td class="teacher-dept-delete text-center">
+                  <form action="{% url 'depa:delete_Enseignant' xxxxx.id %}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من القسم؟')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animation des statistiques au chargement
+    animateStatistics();
+});
+
+function animateStatistics() {
+    const statNumbers = document.querySAll('.stat-card h3, .stat-card h4, .stat-card-small strong');
+    
+    statNumbers.forEach(function(element) {
+        const finalValue = parseInt(element.textContent) || 0;
+        if (finalValue > 0) {
+            animateCountUp(element, finalValue);
+        }
+    });
+}
+
+function animateCountUp(element, finalValue) {
+    const duration = 1000;
+    const increment = finalValue / (duration / 16);
+    let currentValue = 0;
+    
+    const timer = setInterval(function() {
+        currentValue += increment;
+        if (currentValue >= finalValue) {
+            currentValue = finalValue;
+            clearInterval(timer);
+        }
+        element.textContent = Math.floor(currentValue);
+    }, 16);
+}
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* LAYOUT GÉNÉRAL */
+.grey_zone {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  padding: 15px;
+  margin: 8px;
+}
+
+.main-header {
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* CARTES */
+.card {
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.card-header {
+  border-radius: 8px 8px 0 0 !important;
+  padding: 12px 15px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.card-body {
+  padding: 15px;
+}
+
+/* STATISTIQUES */
+.stat-card {
+  border-radius: 6px;
+  padding: 15px;
+  text-align: center;
+}
+
+.stat-card h3, .stat-card h4 {
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.stat-card small {
+  font-size: 0.85rem;
+}
+
+.stat-card-small {
+  border-radius: 4px;
+  padding: 8px;
+  transition: all 0.3s ease;
+}
+
+.stat-card-small:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.stat-card-small strong {
+  font-size: 1.2rem;
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* TABLEAUX */
+.table-responsive {
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.table {
+  margin-bottom: 0;
+  font-size: 0.8rem;
+}
+
+.table thead th {
+  border: none;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 10px 6px;
+  background-color: #343a40;
+  color: white;
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(0,123,255,0.05);
+}
+
+.table tbody td {
+  padding: 8px 6px;
+  vertical-align: middle;
+  border-top: none;
+}
+
+/* Largeurs des colonnes */
+.col-number { width: 45px; text-align: center; }
+.col-teacher { min-width: 150px; max-width: 180px; }
+.col-email { min-width: 180px; max-width: 220px; }
+.col-grade { min-width: 120px; max-width: 150px; }
+.col-speciality { min-width: 150px; max-width: 200px; }
+.col-scholar { width: 80px; text-align: center; }
+.col-status { width: 100px; }
+.col-schedule { width: 85px; }
+.col-fp { width: 65px; }
+.col-registered { width: 95px; }
+.col-delete-platform { width: 85px; }
+.col-view { width: 65px; }
+.col-delete-dept { width: 85px; }
+
+/* Styles spécifiques pour les cellules */
+.teacher-email small {
+  font-size: 0.75rem;
+  word-break: break-word;
+}
+
+.teacher-grade small, .teacher-speciality small {
+  font-size: 0.75rem;
+  display: block;
+}
+
+/* BOUTONS */
+.btn {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.btn-sm {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+  white-space: nowrap;
+}
+
+.semester-selector .btn-sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+}
+
+/* BADGES */
+.badge {
+  font-size: 0.7em;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* ALERTES */
+.creation-alert {
+  border-radius: 6px;
+  border: none;
+  margin-bottom: 20px;
+  padding: 12px 15px;
+}
+
+.alert-warning {
+  background-color: #fff3cd;
+  border-color: #ffc107;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .main-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .semester-selector {
+    width: 100%;
+  }
+  
+  .semester-selector .btn {
+    flex: 1;
+    font-size: 0.8rem;
+  }
+  
+  .table {
+    font-size: 0.7rem;
+  }
+  
+  .col-email, .col-speciality {
+    min-width: 120px;
+  }
+}
+
+/* Animation pour les warning badges */
+@keyframes pulse-warning {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.badge.bg-warning {
+  animation: pulse-warning 2s infinite;
+}
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- À ajouter dans list_enseignants_dep.html -->
+
+<!-- Modal pour afficher les informations Scholar -->
+<div class="modal fade" id="scholarUpdateModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content scholar-modal">
+      <div class="modal-header bg-success text-white border-0">
+        <h5 class="modal-title">
+          <i class="fas fa-check-circle me-2"></i>
+          تحديث بيانات Google Scholar
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <div class="scholar-info">
+          <div class="mb-3">
+            <i class="fas fa-user-graduate fa-3x text-primary mb-2"></i>
+            <h6 class="teacher-name-modal fw-bold"></h6>
+          </div>
+          
+          <div class="row g-3">
+            <div class="col-4">
+              <div class="stat-box bg-primary-subtle p-3 rounded">
+                <i class="fas fa-file-alt fa-2x text-primary mb-2"></i>
+                <h4 class="publications-count text-primary mb-0">0</h4>
+                <small class="text-muted">المنشورات</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="stat-box bg-success-subtle p-3 rounded">
+                <i class="fas fa-quote-right fa-2x text-success mb-2"></i>
+                <h4 class="citations-count text-success mb-0">0</h4>
+                <small class="text-muted">الاستشهادات</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="stat-box bg-info-subtle p-3 rounded">
+                <i class="fas fa-chart-line fa-2x text-info mb-2"></i>
+                <h4 class="h-index text-info mb-0">0</h4>
+                <small class="text-muted">H-index</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <div class="stat-box bg-warning-subtle p-2 rounded d-inline-block">
+              <i class="fas fa-chart-bar text-warning me-1"></i>
+              <strong class="i10-index text-warning">0</strong>
+              <small class="text-muted ms-1">i10-index</small>
+            </div>
+          </div>
+
+          <div class="progress mt-3" style="height: 6px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+                 role="progressbar" style="width: 100%"></div>
+          </div>
+          <small class="text-muted d-block mt-2">
+            <i class="fas fa-clock me-1"></i>
+            سيتم إغلاق هذه النافذة تلقائياً بعد <span class="countdown-timer">5</span> ثوانٍ
+          </small>
+        </div>
+
+        <div class="scholar-loading d-none">
+          <div class="spinner-border text-primary mb-3" role="status">
+            <span class="visually-hidden">جاري التحميل...</span>
+          </div>
+          <p class="text-muted">جاري تحديث البيانات من Google Scholar...</p>
+        </div>
+
+        <div class="scholar-error d-none">
+          <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+          <p class="error-message text-danger fw-bold"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.scholar-modal .modal-content {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.scholar-modal .modal-header {
+  border-radius: 15px 15px 0 0;
+}
+
+.stat-box {
+  transition: transform 0.3s ease;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.stat-box:hover {
+  transform: translateY(-5px);
+}
+
+.stat-box h4 {
+  font-weight: 700;
+  margin: 8px 0 2px 0;
+}
+
+.countdown-timer {
+  font-weight: bold;
+  color: #dc3545;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Intercepter les clics sur les boutons de mise à jour
+  document.querySelectorAll('.update-scholar-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      const url = this.href;
+      const teacherName = this.dataset.teacherName;
+      
+      // Afficher le modal avec loading
+      showScholarModal(teacherName, 'loading');
+      
+      // Faire la requête AJAX
+      fetch(url, {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showScholarModal(teacherName, 'success', data);
+          
+          // Mettre à jour l'affichage dans le tableau
+          updateTableRow(this, data);
+          
+          // Auto-fermer après 5 secondes
+          startCountdown();
+        } else {
+          showScholarModal(teacherName, 'error', data);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showScholarModal(teacherName, 'error', {
+          message: 'حدث خطأ أثناء الاتصال بالخادم'
+        });
+      });
+    });
+  });
+});
+
+function showScholarModal(teacherName, state, data = {}) {
+  const modal = new bootstrap.Modal(document.getElementById('scholarUpdateModal'));
+  const modalElement = document.getElementById('scholarUpdateModal');
+  
+  const infoDiv = modalElement.querySelector('.scholar-info');
+  const loadingDiv = modalElement.querySelector('.scholar-loading');
+  const errorDiv = modalElement.querySelector('.scholar-error');
+  
+  // Reset toutes les sections
+  infoDiv.classList.add('d-none');
+  loadingDiv.classList.add('d-none');
+  errorDiv.classList.add('d-none');
+  
+  if (state === 'loading') {
+    loadingDiv.classList.remove('d-none');
+  } else if (state === 'success') {
+    infoDiv.classList.remove('d-none');
+    
+    // Remplir les données
+    modalElement.querySelector('.teacher-name-modal').textContent = teacherName;
+    modalElement.querySelector('.publications-count').textContent = data.publications || 0;
+    modalElement.querySelector('.citations-count').textContent = data.citations || 0;
+    modalElement.querySelector('.h-index').textContent = data.h_index || 0;
+    modalElement.querySelector('.i10-index').textContent = data.i10_index || 0;
+  } else if (state === 'error') {
+    errorDiv.classList.remove('d-none');
+    modalElement.querySelector('.error-message').textContent = data.message || 'حدث خطأ غير متوقع';
+  }
+  
+  modal.show();
+}
+
+function startCountdown() {
+  let seconds = 7;
+  const countdownElement = document.querySelector('.countdown-timer');
+  
+  const interval = setInterval(() => {
+    seconds--;
+    countdownElement.textContent = seconds;
+    
+    if (seconds <= 0) {
+      clearInterval(interval);
+      const modal = bootstrap.Modal.getInstance(document.getElementById('scholarUpdateModal'));
+      modal.hide();
+      
+      // Recharger la page pour voir les changements
+      setTimeout(() => {
+        location.reload();
+      }, 500);
+    }
+  }, 1000);
+}
+
+function updateTableRow(button, data) {
+  // Trouver la ligne du tableau et mettre à jour l'affichage
+  const row = button.closest('tr');
+  const countBadge = row.querySelector('.scholar-publications-count');
+  
+  if (countBadge) {
+    countBadge.textContent = data.publications || 0;
+  }
+}
+</script>
+{% endblock %}

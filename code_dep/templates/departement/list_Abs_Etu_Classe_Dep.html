@@ -1,0 +1,231 @@
+{% extends 'departement/base_Dep.html' %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<div class="grey_zone m-1 p-2">
+  <!-- En-tête de la page -->
+  <h5 class="border-bottom border-danger text-dark font-weight-bold mb-3">غيابات طلاب: {{ titre_00 }}</h5>
+  <h5 class="oneBorder mb-2">المادة: <span class="text-danger fw-bold">{{ titre_01 }}</span></h5>
+
+  <!-- Message d'aide -->
+  <div class="alert alert-info mb-3" role="alert">
+    📌 تحذير: يمكنك ترتيب الجدول بالنقر على عناوين الأعمدة (الأسماء، الغيابات، إلخ).
+  </div>
+
+  <!-- Contrôles pour afficher/masquer les colonnes -->
+  <div class="mb-3">
+    <label class="fw-bold mb-1">إظهار الحقول: </label>
+    <label><input type="checkbox" id="toggle-index" checked> #</label>
+    <label><input type="checkbox" id="toggle-nom_ar" checked> اللقب</label>
+    <label><input type="checkbox" id="toggle-prenom_ar" checked> الاسم</label>
+    <label><input type="checkbox" id="toggle-nom_fr" checked> Nom</label>
+    <label><input type="checkbox" id="toggle-prenom_fr" checked> Prénom</label>
+    {% for idx in all_sea_fait %}
+      <label><input type="checkbox" id="toggle-date-{{ idx.id }}" checked> {{ idx.date|date:"d-M" }}</label>
+    {% endfor %}
+    <label><input type="checkbox" id="toggle-nbr_absence" checked> عدد الغيابات</label>
+    <label><input type="checkbox" id="toggle-nbr_absence_justifiee" checked> عدد الغيابات المبررة</label>
+  </div>
+
+  <!-- Bouton d'exportation PDF -->
+  <button id="export-pdf" class="btn btn-primary mb-3">تصدير إلى PDF</button>
+
+  <!-- Table principale des absences -->
+  <table class="table table-striped table-hover table-sm table-bordered align-middle" id="absence-table">
+    <thead class="table-secondary">
+      <tr>
+        <th data-sort="index" class="toggle-col" data-col="index">#</th>
+        <th data-sort="nom_ar" class="toggle-col sortable" data-col="nom_ar">اللقب<span class="sort-icon"></span></th>
+        <th data-sort="prenom_ar" class="toggle-col sortable" data-col="prenom_ar">الاسم<span class="sort-icon"></span></th>
+        <th data-sort="nom_fr" class="toggle-col sortable" data-col="nom_fr">Nom<span class="sort-icon"></span></th>
+        <th data-sort="prenom_fr" class="toggle-col sortable" data-col="prenom_fr">Prénom<span class="sort-icon"></span></th>
+        {% for idx in all_sea_fait %}
+          <th class="text-warning toggle-col text-center" data-col="date-{{ idx.id }}" style="white-space: nowrap;">{{ idx.date|date:"d-M" }}</th>
+        {% endfor %}
+        <th data-sort="nbr_absence" class="toggle-col sortable text-center" data-col="nbr_absence">عدد الغيابات <span class="sort-icon"></span></th>
+        <th data-sort="nbr_absence_justifiee" class="toggle-col sortable text-center" data-col="nbr_absence_justifiee">عدد الغيابات المبررة <span class="sort-icon"></span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for index in all_Abs_Classe_with_absences %}
+        <tr style="white-space: nowrap;" 
+            data-nom_ar="{{ index.etudiant.nom_ar|default:''|lower }}" 
+            data-prenom_ar="{{ index.etudiant.prenom_ar|default:''|lower }}" 
+            data-nom_fr="{{ index.etudiant.nom_fr|default:''|lower }}" 
+            data-prenom_fr="{{ index.etudiant.prenom_fr|default:''|lower }}" 
+            data-nbr_absence="{{ index.nbr_absence|default:'0' }}" 
+            data-nbr_absence_justifiee="{{ index.nbr_absence_justifiee|default:'0' }}">
+          <td class="toggle-col" data-col="index">{{ forloop.counter }}</td>
+          <td class="toggle-col" data-col="nom_ar">{{ index.etudiant.nom_ar|default:'-' }}</td>
+          <td class="toggle-col" data-col="prenom_ar">{{ index.etudiant.prenom_ar|default:'-' }}</td>
+          <td class="toggle-col" data-col="nom_fr">{{ index.etudiant.nom_fr|default:'-' }}</td>
+          <td class="toggle-col" data-col="prenom_fr">{{ index.etudiant.prenom_fr|default:'-' }}</td>
+          {% for absence in index.absences_per_seance %}
+            <td class="toggle-col text-center" {% if absence %}data-col="date-{{ absence.seance.id }}"{% else %}data-col="date-none"{% endif %}>
+              {% if absence %}
+                {% if not absence.present and not absence.justifiee %}
+                  <span class="text-danger">غ</span>
+                {% elif not absence.present and absence.justifiee %}
+                  <span class="text-info">غ.م</span>
+                {% else %}
+                  <span>-</span>
+                {% endif %}
+              {% else %}
+                <span>-</span>
+              {% endif %}
+            </td>
+          {% endfor %}
+          <td class="toggle-col text-center {% if index.nbr_absence >= 3 %}text-danger fw-bold bg-warning-subtle{% elif index.nbr_absence >= 1 %}text-danger{% else %}text-dark{% endif %}" data-col="nbr_absence">
+            {{ index.nbr_absence }}
+          </td>
+          <td class="toggle-col text-center {% if index.nbr_absence_justifiee >= 5 %}text-info fw-bold bg-warning-subtle{% elif index.nbr_absence_justifiee >= 1 %}text-info{% else %}text-dark{% endif %}" data-col="nbr_absence_justifiee">
+            {{ index.nbr_absence_justifiee }}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="100%" class="text-center">Aucune donnée disponible.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Scripts pour le tri, l'affichage/masquage et l'exportation PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    let table = document.getElementById('absence-table');
+    let tbody = table.getElementsByTagName('tbody')[0];
+    let ths = table.getElementsByTagName('th');
+    let sortDirection = {};
+
+    // Afficher/masquer les colonnes
+    let toggleCheckboxes = document.querySelectorAll('input[id^="toggle-"]');
+    toggleCheckboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        let col = this.id.replace('toggle-', '');
+        let elements = document.querySelectorAll(`.toggle-col[data-col="${col}"]`);
+        elements.forEach(el => el.style.display = this.checked ? '' : 'none');
+      });
+    });
+
+    // Tri dynamique avec indication visuelle
+    for (let th of ths) {
+      if (th.classList.contains('sortable')) {
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', function() {
+          let key = this.getAttribute('data-sort');
+          let sortIcon = this.querySelector('.sort-icon');
+          let rows = Array.from(tbody.getElementsByTagName('tr'));
+          sortDirection[key] = !sortDirection[key];
+
+          document.querySelectorAll('.sort-icon').forEach(icon => icon.textContent = '');
+          sortIcon.textContent = sortDirection[key] ? ' ↓' : ' ↑';
+
+          rows.sort((a, b) => {
+            let aValue = a.getAttribute(`data-${key}`) || '0';
+            let bValue = b.getAttribute(`data-${key}`) || '0';
+            if (key.startsWith('nbr_')) {
+              aValue = parseInt(aValue) || 0;
+              bValue = parseInt(bValue) || 0;
+            } else {
+              aValue = aValue.toLowerCase();
+              bValue = bValue.toLowerCase();
+            }
+            if (aValue < bValue) return sortDirection[key] ? -1 : 1;
+            if (aValue > bValue) return sortDirection[key] ? 1 : -1;
+            return 0;
+          });
+
+          for (let row of rows) {
+            tbody.appendChild(row);
+          }
+        });
+      }
+    }
+
+    // Exportation en PDF
+    document.getElementById('export-pdf').addEventListener('click', function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const table = document.getElementById('absence-table');
+
+      html2canvas(table).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const imgProps = doc.getImageProperties(imgData);
+        const pdfWidth = doc.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        doc.save('tableau_absences.pdf');
+      });
+    });
+  });
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Style pour le hover des lignes du tableau (couleur ambrée) */
+.table-hover tbody tr:hover {
+    background-color: #fff3cd !important; /* Couleur ambrée */
+    color: #856404;
+}
+
+/* Style pour les en-têtes triables */
+.sortable:hover {
+    background-color: #f0f0f0;
+    cursor: pointer;
+}
+
+/* Style pour les checkboxes */
+.mb-3 label {
+    margin-right: 15px;
+    cursor: pointer;
+}
+
+.mb-3 input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+/* Style pour les icônes de tri */
+.sort-icon {
+    font-size: 12px;
+    margin-left: 5px;
+}
+
+/* Amélioration du style général */
+.grey_zone {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.oneBorder {
+    border-left: 4px solid #dc3545;
+    padding-left: 10px;
+}
+
+/* Style pour les cellules d'absence */
+.text-danger {
+    font-weight: bold;
+}
+
+.text-info {
+    font-weight: bold;
+}
+
+/* Style amélioré pour les badges de comptage */
+.bg-warning-subtle {
+    background-color: #fff3cd !important;
+}
+
+/* Responsive pour les checkboxes */
+@media (max-width: 768px) {
+    .mb-3 label {
+        display: block;
+        margin-bottom: 5px;
+        margin-right: 0;
+    }
+}
+</style>
+{% endblock %}

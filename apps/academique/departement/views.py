@@ -315,10 +315,9 @@ def profileUpdate_Dep(request):
 # ═══════════════════════════════════════════════════════════════════════════
 
 @login_required
-def list_enseignants_dep(request, semestre=1):
-    """
-    Liste des enseignants du département pour un semestre donné.
-    """
+def list_enseignants_dep(request, semestre_num=1):
+    """Vue pour la liste des enseignants par semestre"""
+
     try:
         departement_id = request.session.get('selected_departement_id')
         if not departement_id:
@@ -327,33 +326,111 @@ def list_enseignants_dep(request, semestre=1):
 
         departement = get_object_or_404(Departement, id=departement_id)
 
-        enseignants = []
-        if MODELS_AVAILABLE:
-            try:
-                annee_univ = AnneeUniversitaire.objects.order_by('-date_debut').first()
-                if annee_univ:
-                    filter_kwargs = {
-                        'departement': departement,
-                        'annee_univ': annee_univ,
-                    }
-                    if semestre == 1:
-                        filter_kwargs['semestre_1'] = True
-                    else:
-                        filter_kwargs['semestre_2'] = True
+        # Récupérer l'année universitaire courante
+        annee_courante = AnneeUniversitaire.objects.order_by('-date_debut').first()
+        if not annee_courante:
+            messages.error(request, 'لا توجد سنة جامعية محددة كسنة حالية')
+            return redirect('depa:dashboard_Dep')
 
-                    enseignants = Ens_Dep.objects.filter(
-                        **filter_kwargs
-                    ).select_related('enseignant', 'enseignant__user')
-            except Exception:
-                pass
+        # Valider le numéro de semestre
+        if semestre_num not in [1, 2]:
+            messages.error(request, 'رقم السداسي غير صحيح')
+            return redirect('depa:list_enseignants_dep', semestre_num=1)
+
+        # Filtre de base avec semestre
+        base_filter = {
+            'departement': departement,
+            'annee_univ': annee_courante,
+            f'semestre_{semestre_num}': True
+        }
+
+        # Récupérer les enseignants filtrés par semestre
+        all_Ens_Dep = Ens_Dep.objects.filter(**base_filter).select_related(
+            'enseignant__grade',
+            'enseignant'
+        ).order_by('enseignant__nom_ar')
+
+        all_Ens_Dep_Per = Ens_Dep.objects.filter(
+            departement=departement,
+            statut='Permanent',
+            annee_univ=annee_courante,
+            **{f'semestre_{semestre_num}': True}
+        ).select_related(
+            'enseignant__grade',
+            'enseignant'
+        ).order_by('enseignant__nom_ar')
+
+        all_Ens_Dep_PerVac = Ens_Dep.objects.filter(
+            departement=departement,
+            statut='Permanent & Vacataire',
+            annee_univ=annee_courante,
+            **{f'semestre_{semestre_num}': True}
+        ).select_related(
+            'enseignant__grade',
+            'enseignant'
+        ).order_by('enseignant__nom_ar')
+
+        all_Ens_Dep_Vac = Ens_Dep.objects.filter(
+            departement=departement,
+            statut='Vacataire',
+            annee_univ=annee_courante,
+            **{f'semestre_{semestre_num}': True}
+        ).select_related(
+            'enseignant__grade',
+            'enseignant'
+        ).order_by('enseignant__nom_ar')
+
+        all_Ens_Dep_Aso = Ens_Dep.objects.filter(
+            departement=departement,
+            statut='Associe',
+            annee_univ=annee_courante,
+            **{f'semestre_{semestre_num}': True}
+        ).select_related(
+            'enseignant__grade',
+            'enseignant'
+        ).order_by('enseignant__nom_ar')
+
+        all_Ens_Dep_Doc = Ens_Dep.objects.filter(
+            departement=departement,
+            statut='Doctorant',
+            annee_univ=annee_courante,
+            **{f'semestre_{semestre_num}': True}
+        ).select_related(
+            'enseignant__grade',
+            'enseignant'
+        ).order_by('enseignant__nom_ar')
+
+        # Calculer les statistiques par grade
+        grade_stats = all_Ens_Dep.values('enseignant__grade__nom_ar').annotate(
+            count=Count('id')
+        ).order_by('-count')
+
+        # Compteurs pour les champs vides
+        missing_email_count = all_Ens_Dep.filter(
+            Q(enseignant__email_prof__isnull=True) | Q(enseignant__email_prof='')
+        ).count()
+
+        missing_scholar_count = all_Ens_Dep.filter(
+            Q(enseignant__googlescholar__isnull=True) | Q(enseignant__googlescholar='')
+        ).count()
 
         context = {
-            'title': f'قائمة الأساتذة - السداسي {semestre}',
-            'departement': departement,
+            'title': 'قائمة الأساتذة',
             'my_Dep': departement,
-            'enseignants': enseignants,
-            'semestre': semestre,
+            'my_Fac': departement.faculte,
+            'annee_courante': annee_courante,
+            'semestre_num': semestre_num,
+            'all_Ens_Dep': all_Ens_Dep,
+            'all_Ens_Dep_Per': all_Ens_Dep_Per,
+            'all_Ens_Dep_Vac': all_Ens_Dep_Vac,
+            'all_Ens_Dep_PerVac': all_Ens_Dep_PerVac,
+            'all_Ens_Dep_Aso': all_Ens_Dep_Aso,
+            'all_Ens_Dep_Doc': all_Ens_Dep_Doc,
+            'grade_stats': grade_stats,
+            'missing_email_count': missing_email_count,
+            'missing_scholar_count': missing_scholar_count,
         }
+
         return render(request, 'departement/list_enseignants_dep.html', context)
 
     except Exception as e:

@@ -1,0 +1,764 @@
+{% extends 'departement/base_Dep.html' %}
+{% load crispy_forms_tags %}
+{% load dept_filters %}
+{% block content %}
+
+<div class="container-fluid px-3 py-2">
+    <div class="row justify-content-center">
+        <div class="col-12">
+
+            <!-- En-tête -->
+            <div class="header-section mb-3 no-print">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div class="header-title">
+                        <h4 class="mb-1 text-dark fw-bold">
+                            <i class="fas fa-user-times me-2"></i>
+                            قائمة الغيابات TD/TP - {{niv_spe_dep.niveau.nom_ar}} {{niv_spe_dep.specialite.nom_ar}}
+                        </h4>
+                        <div class="stats-row">
+                            <span class="badge bg-info me-2">{{semestre.nom_ar}}</span>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <a href="{% url 'depa:list_NivSpeDep' %}" class="btn btn-sm btn-secondary">
+                            <i class="fas fa-arrow-right me-1"></i>رجوع
+                        </a>
+                        <button class="btn btn-sm btn-primary" onclick="window.print()">
+                            <i class="fas fa-print me-1"></i>طباعة
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="statistics-section mb-3 no-print">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="stat-card bg-primary">
+                            <div class="stat-icon"><i class="fas fa-users"></i></div>
+                            <div class="stat-content">
+                                <div class="stat-value">{{total_etudiants_niveau}}</div>
+                                <div class="stat-label">مجموع الطلبة في المستوى</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card bg-danger">
+                            <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                            <div class="stat-content">
+                                <div class="stat-value">{{total_etudiants}}</div>
+                                <div class="stat-label">طلبة لديهم ≥{{min_absences}} غيابات</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card bg-warning">
+                            <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+                            <div class="stat-content">
+                                <div class="stat-value">{{total_etudiants_justifies}}</div>
+                                <div class="stat-label">طلبة لديهم ≥{{min_absences_just}} غيابات مبررة</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtres -->
+            <div class="filters-section mb-3 no-print">
+                <div class="card">
+                    <div class="card-body">
+                        <form method="get">
+                            <div class="row g-3">
+                                <div class="col-md-5">
+                                    <label class="form-label">الحد الأدنى للغيابات غير المبررة</label>
+                                    <input type="number" class="form-control" name="min_absences" value="{{min_absences}}" min="0">
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label">الحد الأدنى للغيابات المبررة</label>
+                                    <input type="number" class="form-control" name="min_absences_just" value="{{min_absences_just}}" min="0">
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="fas fa-filter me-1"></i>تطبيق
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Sélecteur de colonnes -->
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h6 class="mb-3"><i class="fas fa-columns me-2"></i>اختيار الأعمدة (للعرض والطباعة)</h6>
+                        <p class="text-muted small mb-3">الأعمدة المحددة ستظهر في الشاشة وعند الطباعة</p>
+
+                        <!-- Colonnes étudiants -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-12">
+                                <strong class="d-block mb-2">معلومات الطالب:</strong>
+                                <div class="d-flex flex-wrap gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input column-toggle-unified" type="checkbox" id="col-nom-fr" data-column="col-nom-fr" checked>
+                                        <label class="form-check-label" for="col-nom-fr">Nom (FR)</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input column-toggle-unified" type="checkbox" id="col-prenom-fr" data-column="col-prenom-fr" checked>
+                                        <label class="form-check-label" for="col-prenom-fr">Prénom (FR)</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input column-toggle-unified" type="checkbox" id="col-nom-ar" data-column="col-nom-ar" checked>
+                                        <label class="form-check-label" for="col-nom-ar">الاسم (AR)</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input column-toggle-unified" type="checkbox" id="col-prenom-ar" data-column="col-prenom-ar" checked>
+                                        <label class="form-check-label" for="col-prenom-ar">اللقب (AR)</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input column-toggle-unified" type="checkbox" id="col-num-inscri" data-column="col-num-inscri" checked>
+                                        <label class="form-check-label" for="col-num-inscri">رقم التسجيل</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Colonnes matières -->
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <strong class="d-block mb-2">المواد:</strong>
+                                <div class="d-flex flex-wrap gap-3">
+                                    {% for mat_type in matieres_types %}
+                                    <div class="form-check">
+                                        <input class="form-check-input column-toggle-unified" type="checkbox" id="col-matiere-{{forloop.counter}}" data-column="col-matiere-{{forloop.counter}}" checked>
+                                        <label class="form-check-label" for="col-matiere-{{forloop.counter}}">{{mat_type.matiere_nom}} ({{mat_type.type}})</label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- En-tête d'impression -->
+            <div class="print-header">
+                <div class="official-header">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h4 style="margin: 5px 0; font-weight: bold;">الجمهورية الجزائرية الديمقراطية الشعبية</h4>
+                        <h5 style="margin: 5px 0;">{{departement.faculte.universite.nom_ar}}</h5>
+                        <h5 style="margin: 5px 0;">{{departement.faculte.nom_ar}}</h5>
+                        <h5 style="margin: 5px 0; border-bottom: 2px solid #000; display: inline-block; padding-bottom: 5px;">{{departement.nom_ar}}</h5>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <h4 style="margin: 10px 0; font-weight: bold;">قائمة الطلبة الغائبين (TD/TP)</h4>
+                        <h5 style="margin: 5px 0;">{{niv_spe_dep.niveau.nom_ar}} - {{niv_spe_dep.specialite.nom_ar}}</h5>
+                        <h5 style="margin: 5px 0;">السداسي {{semestre.nom_ar}}</h5>
+                    </div>
+                </div>
+            </div>
+
+            {% if total_etudiants == 0 %}
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="fas fa-user-check"></i></div>
+                    <h5 class="empty-title">لا توجد غيابات</h5>
+                    <p class="empty-text">لا يوجد طلاب لديهم {{min_absences}} غيابات أو {{min_absences_just}} غيابات مبررة</p>
+                </div>
+            {% else %}
+
+                <!-- جدول الغيابات -->
+                <div class="table-section">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm mb-0" id="absencesTable">
+                            <thead class="table-header">
+                                <tr>
+                                    <th class="text-center" rowspan="2" style="width: 40px;">#</th>
+                                    <th class="text-center sortable col-nom-fr" rowspan="2" style="width: 100px;" onclick="sortTable(1)">
+                                        Nom (FR) <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th class="text-center sortable col-prenom-fr" rowspan="2" style="width: 100px;" onclick="sortTable(2)">
+                                        Prénom (FR) <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th class="text-center sortable col-nom-ar" rowspan="2" style="width: 100px;" onclick="sortTable(3)">
+                                        الاسم (AR) <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th class="text-center sortable col-prenom-ar" rowspan="2" style="width: 100px;" onclick="sortTable(4)">
+                                        اللقب (AR) <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th class="text-center sortable col-num-inscri" rowspan="2" style="width: 90px;" onclick="sortTable(5)">
+                                        رقم التسجيل <i class="fas fa-sort"></i>
+                                    </th>
+                                    {% for mat_type in matieres_types %}
+                                    <th class="text-center matiere-header matiere-{{forloop.counter}} col-matiere-{{forloop.counter}}" colspan="2" style="width: 100px;">
+                                        {{mat_type.matiere_nom}}<br><small>({{mat_type.type}})</small>
+                                    </th>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    {% for mat_type in matieres_types %}
+                                    {% with col_base=forloop.counter0|add:forloop.counter0|add:6 %}
+                                    <th class="text-center sub-header matiere-{{forloop.counter}} col-matiere-{{forloop.counter}} sortable" data-col-index="{{col_base}}" onclick="sortTableNumeric(this)">غ <i class="fas fa-sort"></i></th>
+                                    <th class="text-center sub-header matiere-{{forloop.counter}} col-matiere-{{forloop.counter}} sortable" data-col-index="{{col_base|add:1}}" onclick="sortTableNumeric(this)">م <i class="fas fa-sort"></i></th>
+                                    {% endwith %}
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in etudiants_list %}
+                                <tr>
+                                    <td class="text-center"><strong>{{forloop.counter}}</strong></td>
+                                    <td class="text-center col-nom-fr" style="white-space: nowrap;">{{item.etudiant.nom_fr|default:"-"}}</td>
+                                    <td class="text-center col-prenom-fr" style="white-space: nowrap;">{{item.etudiant.prenom_fr|default:"-"}}</td>
+                                    <td class="text-center col-nom-ar" style="white-space: nowrap;">{{item.etudiant.nom_ar|default:"-"}}</td>
+                                    <td class="text-center col-prenom-ar" style="white-space: nowrap;">{{item.etudiant.prenom_ar|default:"-"}}</td>
+                                    <td class="text-center col-num-inscri" style="white-space: nowrap;"><small>{{item.etudiant.num_inscri}}</small></td>
+
+                                    {% for mat_type in matieres_types %}
+                                    {% with abs_data=item.matieres|lookup:mat_type.key %}
+                                        {% if abs_data %}
+                                            {% with abs=abs_data.nbr_absence just=abs_data.nbr_absence_justifiee %}
+                                                <td class="text-center matiere-{{forloop.counter}} col-matiere-{{forloop.counter}} {% if abs >= min_absences %}cell-danger{% endif %}">
+                                                    {% if abs > 0 %}<strong>{{abs}}</strong>{% else %}-{% endif %}
+                                                </td>
+                                                <td class="text-center matiere-{{forloop.counter}} col-matiere-{{forloop.counter}} {% if just >= min_absences_just %}cell-warning{% endif %}">
+                                                    {% if just > 0 %}<strong>{{just}}</strong>{% else %}-{% endif %}
+                                                </td>
+                                            {% endwith %}
+                                        {% else %}
+                                            <td class="text-center matiere-{{forloop.counter}} col-matiere-{{forloop.counter}}">-</td>
+                                            <td class="text-center matiere-{{forloop.counter}} col-matiere-{{forloop.counter}}">-</td>
+                                        {% endif %}
+                                    {% endwith %}
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="legend-section mt-2 no-print">
+                    <small>
+                        <span class="badge bg-danger me-2">Rouge</span> = Absences ≥ {{min_absences}}
+                        &nbsp;|&nbsp;
+                        <span class="badge bg-warning me-2">Jaune</span> = Absences justifiées ≥ {{min_absences_just}}
+                        &nbsp;|&nbsp;
+                        <i class="fas fa-sort"></i> = Cliquez pour trier
+                    </small>
+                </div>
+
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Gestion unifiée de l'affichage et de l'impression des colonnes
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle colonnes pour l'affichage ET l'impression
+    document.querySelectorAll('.column-toggle-unified').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const columnClass = this.dataset.column;
+            const columns = document.querySelectorAll('.' + columnClass);
+
+            // Gérer l'affichage à l'écran
+            if (this.checked) {
+                columns.forEach(col => col.style.display = '');
+            } else {
+                columns.forEach(col => col.style.display = 'none');
+            }
+
+            // Mettre à jour les styles d'impression
+            updatePrintStyles();
+
+            // Filtrer les étudiants selon les matières visibles
+            filterStudentsByVisibleMatieres();
+        });
+    });
+
+    // Initialiser les styles d'impression
+    updatePrintStyles();
+});
+
+// Mettre à jour les styles d'impression dynamiquement
+function updatePrintStyles() {
+    let printStyleEl = document.getElementById('dynamic-print-styles');
+    if (!printStyleEl) {
+        printStyleEl = document.createElement('style');
+        printStyleEl.id = 'dynamic-print-styles';
+        document.head.appendChild(printStyleEl);
+    }
+
+    let printCSS = '@media print {';
+
+    document.querySelectorAll('.column-toggle-unified').forEach(checkbox => {
+        if (!checkbox.checked) {
+            const columnClass = checkbox.dataset.column;
+            printCSS += '.' + columnClass + ' { display: none !important; }';
+        }
+    });
+
+    printCSS += '}';
+    printStyleEl.textContent = printCSS;
+}
+
+// Filtrer les étudiants en fonction des matières visibles
+function filterStudentsByVisibleMatieres() {
+    const minAbsences = {{ min_absences }};
+    const minAbsencesJust = {{ min_absences_just }};
+    const table = document.getElementById('absencesTable');
+    const tbody = table.querySelector('tbody');
+    const rows = tbody.querySelectorAll('tr');
+
+    // Récupérer les matières visibles
+    const visibleMatieres = [];
+    document.querySelectorAll('.column-toggle-unified').forEach(checkbox => {
+        if (checkbox.checked && checkbox.dataset.column.startsWith('col-matiere-')) {
+            visibleMatieres.push(checkbox.dataset.column);
+        }
+    });
+
+    // Si aucune matière n'est visible, afficher tous les étudiants
+    if (visibleMatieres.length === 0) {
+        rows.forEach(row => row.style.display = '');
+        updateStatistics(rows.length, 0, 0);
+        return;
+    }
+
+    // Compteurs pour les statistiques
+    let totalEtudiantsAffiches = 0;
+    let totalEtudiantsAbsences = 0;
+    let totalEtudiantsJustifies = 0;
+
+    // Pour chaque ligne étudiant
+    rows.forEach(row => {
+        let hasAbsencesInVisibleMatiere = false;
+        let hasAbsences = false;
+        let hasJustifiees = false;
+        const cells = row.querySelectorAll('td');
+
+        // Parcourir toutes les cellules de la ligne
+        cells.forEach(cell => {
+            // Vérifier si la cellule appartient à une matière visible
+            visibleMatieres.forEach(matiereClass => {
+                if (cell.classList.contains(matiereClass)) {
+                    const value = parseInt(cell.textContent.trim());
+
+                    // Si la cellule a une valeur numérique >= seuil
+                    if (!isNaN(value) && value > 0) {
+                        // Vérifier si c'est une colonne d'absences (cell-danger)
+                        if (cell.classList.contains('cell-danger') && value >= minAbsences) {
+                            hasAbsencesInVisibleMatiere = true;
+                            hasAbsences = true;
+                        }
+                        // Vérifier si c'est une colonne justifiées (cell-warning)
+                        if (cell.classList.contains('cell-warning') && value >= minAbsencesJust) {
+                            hasAbsencesInVisibleMatiere = true;
+                            hasJustifiees = true;
+                        }
+                    }
+                }
+            });
+        });
+
+        // Afficher ou masquer la ligne selon le résultat
+        if (hasAbsencesInVisibleMatiere) {
+            row.style.display = '';
+            totalEtudiantsAffiches++;
+            if (hasAbsences) totalEtudiantsAbsences++;
+            if (hasJustifiees) totalEtudiantsJustifies++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Mettre à jour les numéros de ligne
+    let visibleIndex = 1;
+    rows.forEach(row => {
+        if (row.style.display !== 'none') {
+            const numberCell = row.querySelector('td:first-child strong');
+            if (numberCell) {
+                numberCell.textContent = visibleIndex++;
+            }
+        }
+    });
+
+    // Mettre à jour les statistiques
+    updateStatistics(totalEtudiantsAffiches, totalEtudiantsAbsences, totalEtudiantsJustifies);
+}
+
+// Mettre à jour les cartes de statistiques
+function updateStatistics(totalEtudiants, totalAbsences, totalJustifies) {
+    // Mettre à jour la deuxième carte (étudiants avec absences)
+    const absencesCard = document.querySelector('.stat-card.bg-danger .stat-value');
+    if (absencesCard) {
+        absencesCard.textContent = totalAbsences;
+    }
+
+    // Mettre à jour la troisième carte (étudiants avec absences justifiées)
+    const justifieesCard = document.querySelector('.stat-card.bg-warning .stat-value');
+    if (justifieesCard) {
+        justifieesCard.textContent = totalJustifies;
+    }
+}
+
+// Fonction de tri pour le tableau (colonnes texte)
+function sortTable(columnIndex) {
+    const table = document.getElementById('absencesTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+    // Déterminer l'ordre de tri (ascendant/descendant)
+    const isAscending = table.dataset.sortOrder !== 'asc';
+    table.dataset.sortOrder = isAscending ? 'asc' : 'desc';
+
+    rows.sort((a, b) => {
+        const cellA = a.cells[columnIndex].textContent.trim();
+        const cellB = b.cells[columnIndex].textContent.trim();
+
+        // Essayer de convertir en nombre
+        const numA = parseFloat(cellA);
+        const numB = parseFloat(cellB);
+
+        let comparison = 0;
+        if (!isNaN(numA) && !isNaN(numB)) {
+            // Comparaison numérique
+            comparison = numA - numB;
+        } else {
+            // Comparaison alphabétique
+            comparison = cellA.localeCompare(cellB, 'ar');
+        }
+
+        return isAscending ? comparison : -comparison;
+    });
+
+    // Réinsérer les lignes triées
+    rows.forEach(row => tbody.appendChild(row));
+
+    // Mettre à jour les numéros de ligne
+    rows.forEach((row, index) => {
+        row.cells[0].querySelector('strong').textContent = index + 1;
+    });
+}
+
+// Fonction de tri numérique pour les colonnes d'absences
+function sortTableNumeric(headerElement) {
+    const columnIndex = parseInt(headerElement.getAttribute('data-col-index'));
+    const table = document.getElementById('absencesTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+    // Déterminer l'ordre de tri
+    const currentOrder = headerElement.dataset.sortOrder || 'none';
+    const isAscending = currentOrder !== 'asc';
+    headerElement.dataset.sortOrder = isAscending ? 'asc' : 'desc';
+
+    rows.sort((a, b) => {
+        const cellA = a.cells[columnIndex].textContent.trim();
+        const cellB = b.cells[columnIndex].textContent.trim();
+
+        // Convertir en nombre (traiter '-' comme 0)
+        const numA = cellA === '-' ? 0 : parseFloat(cellA) || 0;
+        const numB = cellB === '-' ? 0 : parseFloat(cellB) || 0;
+
+        return isAscending ? (numA - numB) : (numB - numA);
+    });
+
+    // Réinsérer les lignes triées
+    rows.forEach(row => tbody.appendChild(row));
+
+    // Mettre à jour les numéros de ligne
+    rows.forEach((row, index) => {
+        row.cells[0].querySelector('strong').textContent = index + 1;
+    });
+}
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* En-tête */
+.header-section {
+    background: linear-gradient(135deg, #f8f9fa, #ffffff);
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    border-left: 4px solid #ffc107;
+}
+
+.stats-row {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Statistiques */
+.statistics-section {
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    border-radius: 8px;
+    color: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.stat-icon {
+    font-size: 3rem;
+    margin-left: 1.5rem;
+    opacity: 0.8;
+}
+
+.stat-content {
+    flex: 1;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.filters-section .card {
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Table */
+.table-section {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.table-sm {
+    font-size: 0.85rem;
+}
+
+.table-sm th,
+.table-sm td {
+    padding: 0.4rem 0.3rem;
+    vertical-align: middle;
+}
+
+.table-header {
+    background: linear-gradient(135deg, #343a40, #495057);
+    color: white;
+}
+
+.table-header th {
+    border: 1px solid #6c757d !important;
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 0.5rem 0.3rem;
+}
+
+.sortable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.sortable:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.matiere-header {
+    background: linear-gradient(135deg, #007bff, #0056b3) !important;
+    font-size: 0.7rem;
+}
+
+/* Couleurs différentes pour chaque matière */
+.matiere-1 { background: #e3f2fd !important; }
+.matiere-2 { background: #f3e5f5 !important; }
+.matiere-3 { background: #e8f5e9 !important; }
+.matiere-4 { background: #fff3e0 !important; }
+.matiere-5 { background: #fce4ec !important; }
+.matiere-6 { background: #e0f2f1 !important; }
+.matiere-7 { background: #f1f8e9 !important; }
+.matiere-8 { background: #ede7f6 !important; }
+.matiere-9 { background: #e1f5fe !important; }
+.matiere-10 { background: #fff8e1 !important; }
+
+.sub-header {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem !important;
+    color: #000 !important;
+}
+
+/* Coloration des cellules */
+.cell-danger {
+    background-color: #ff6b6b !important;
+    color: white !important;
+    font-weight: bold;
+}
+
+.cell-warning {
+    background-color: #ffd93d !important;
+    color: #000 !important;
+    font-weight: bold;
+}
+
+.cell-normal {
+    background-color: #f8f9fa !important;
+}
+
+tbody tr {
+    transition: all 0.2s ease;
+}
+
+tbody tr:hover {
+    background-color: #fff3cd !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: scale(1.01);
+}
+
+tbody tr:hover td {
+    border-color: #ffc107 !important;
+}
+
+.legend-section {
+    text-align: center;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px dashed #dee2e6;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: #28a745;
+    margin-bottom: 1rem;
+    opacity: 0.7;
+}
+
+.print-header {
+    display: none;
+}
+
+/* Impression */
+@media print {
+    /* Cacher tous les éléments du site qui ne sont pas nécessaires */
+    .no-print { display: none !important; }
+    header, nav, .navbar, .navbar-brand, footer, .sidebar { display: none !important; }
+
+    /* Afficher uniquement l'en-tête officiel */
+    .print-header {
+        display: block !important;
+        margin-bottom: 1.5rem;
+        page-break-after: avoid;
+    }
+
+    .official-header {
+        margin-bottom: 1rem;
+    }
+
+    @page {
+        margin: 0.8cm;
+        size: A4 landscape;
+    }
+
+    body {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .container-fluid {
+        padding: 0 !important;
+    }
+
+    .table-section {
+        box-shadow: none !important;
+        border: 2px solid #000;
+    }
+
+    .table-bordered {
+        border: 2px solid #000 !important;
+    }
+
+    .table-sm {
+        font-size: 0.65rem !important;
+    }
+
+    .table-sm th,
+    .table-sm td {
+        padding: 0.2rem 0.15rem !important;
+        border: 1px solid #000 !important;
+    }
+
+    .table-header th {
+        background: #e0e0e0 !important;
+        color: #000 !important;
+        font-size: 0.6rem !important;
+    }
+
+    .matiere-header {
+        background: #d0d0d0 !important;
+        font-size: 0.6rem !important;
+    }
+
+    .cell-danger {
+        background-color: #ffcccc !important;
+        color: #000 !important;
+    }
+
+    .cell-warning {
+        background-color: #ffffcc !important;
+        color: #000 !important;
+    }
+
+    tr {
+        page-break-inside: avoid;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    .container-fluid {
+        padding: 0 !important;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .header-actions {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,1025 @@
+{% extends 'departement/base_Dep.html' %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<div class="grey_zone m-1 p-2">
+  <!-- EN-TÊTE PRINCIPAL -->
+  <div class="main-header d-flex justify-content-between align-items-center mb-3">
+    <h4 class="page-title border-bottom border-danger text-dark mb-0">
+      <i class="fas fa-clock"></i>
+      ساعات عمل أساتذة قسم {{my_Dep}} - السداسي 
+      {% if semestre_num == 1 %}الأول{% else %}الثاني{% endif %}
+    </h4>
+    
+    <!-- Boutons pour basculer entre semestres -->
+    <div class="semester-selector btn-group" role="group">
+      <a href="{% url 'depa:heures_enseignants_dep' 1 %}" 
+         class="btn {% if semestre_num == 1 %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm">
+        <i class="fas fa-calendar-alt"></i>
+        السداسي الأول
+      </a>
+      <a href="{% url 'depa:heures_enseignants_dep' 2 %}" 
+         class="btn {% if semestre_num == 2 %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm">
+        <i class="fas fa-calendar-alt"></i>
+        السداسي الثاني
+      </a>
+    </div>
+  </div>
+
+  <!-- Statistiques heures -->
+  <div class="hours-statistics-section">
+    <div class="card mb-4">
+      <div class="card-header bg-info text-white">
+        <h5 class="mb-0">
+          <i class="fas fa-clock"></i>
+          إحصائيات ساعات العمل
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3">
+            <div class="stat-card text-center p-3 bg-primary-subtle rounded">
+              <h3 class="text-primary mb-0">{{count_all}}</h3>
+              <small class="text-muted">مسجلين بالمنصة</small>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card text-center p-3 bg-success-subtle rounded">
+              <h4 class="text-success mb-0">{{count_per}}</h4>
+              <small class="text-muted">المرسمين</small>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card text-center p-3 bg-warning-subtle rounded">
+              <h4 class="text-warning mb-0">{{count_temp}}</h4>
+              <small class="text-muted">المؤقتين</small>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card text-center p-3 bg-danger-subtle rounded">
+              <h4 class="text-danger mb-0">&lt; 3</h4>
+              <small class="text-muted">أيام عمل قليلة</small>
+            </div>
+          </div>
+        </div>
+        <a href="?refresh=1&semestre={{semestre_num}}" class="btn btn-sm btn-warning">
+          <i class="fas fa-sync-alt"></i>
+          تحديث البيانات
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau heures de travail -->
+  <div class="hours-table-section">
+    <div class="card">
+      <div class="card-header bg-dark text-white">
+        <h5 class="mb-0">
+          <i class="fas fa-table"></i>
+          تفاصيل ساعات العمل
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover table-sm mb-0">
+            <thead class="table-dark">
+              <tr>
+                <th class="col-number">#</th>
+                <th class="col-teacher-name">الأستاذ</th>
+                <th class="col-moodle">النشر على Moodle</th>
+                <th class="col-taux-min">أقل % تقدم</th>
+                <th class="col-taux-moyen">متوسط % التقدم</th>
+                <th class="col-position">الصفة</th>
+                <th class="col-sessions">الحصص</th>
+                <th class="col-work-days">أيام العمل</th>
+                <th class="col-courses">الدروس</th>
+                <th class="col-fp">F.P</th>
+                <th class="col-cours">Cours</th>
+                <th class="col-td">TD</th>
+                <th class="col-tp">TP</th>
+                <th class="col-ss">SS</th>
+                <th class="col-in-dept">داخل القسم</th>
+                <th class="col-out-dept">خارج القسم</th>
+                <th class="col-post">المنصب</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+              <!-- PERMANENTS -->
+              {% for x in main_PER %}
+              <tr class="hours-row">
+                <td class="hours-number">
+                  <span class="badge bg-primary">{{forloop.counter}}</span>
+                </td>
+                <td class="hours-teacher-name">
+                  <strong>{{x.enseignant.nom_ar}} {{x.enseignant.prenom_ar}}</strong>
+                </td>
+
+                {% if semestre_num == 1 %}
+
+                  <!-- ✅ NOUVELLE CELLULE MOODLE -->
+                  <td class="hours-moodle">
+                    {% if x.moodle_percentage_S1 == 0 %}
+                      <span class="badge bg-danger">0%</span>
+                    {% elif x.moodle_percentage_S1 < 50 %}
+                      <span class="badge bg-warning text-dark">{{x.moodle_percentage_S1}}%</span>
+                    {% elif x.moodle_percentage_S1 < 80 %}
+                      <span class="badge bg-info text-dark">{{x.moodle_percentage_S1}}%</span>
+                    {% else %}
+                      <span class="badge bg-success">{{x.moodle_percentage_S1}}%</span>
+                    {% endif %}
+                  </td>
+
+                  <td class="hours-taux-min">
+                    {% if x.taux_min_S1 < 1 %}
+                    <span class="badge bg-danger">{{x.taux_min_S1}}%</span>
+                    {% elif x.taux_min_S1 < 50 %}
+                    <span class="badge bg-warning text-dark">{{x.taux_min_S1}}%</span>
+                    {% elif x.taux_min_S1 < 75 %}
+                    <span class="badge bg-info text-dark">{{x.taux_min_S1}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{x.taux_min_S1}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-moyen">
+                    {% if x.taux_moyen_S1 < 1 %}
+                    <span class="badge bg-danger">{{x.taux_moyen_S1}}%</span>
+                    {% elif x.taux_moyen_S1 < 50 %}
+                    <span class="badge bg-warning text-dark">{{x.taux_moyen_S1}}%</span>
+                    {% elif x.taux_moyen_S1 < 75 %}
+                    <span class="badge bg-info text-dark">{{x.taux_moyen_S1}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{x.taux_moyen_S1}}%</span>
+                    {% endif %}
+                  </td>
+                {% else %}
+
+
+                  <td class="hours-moodle">
+                    {% if x.moodle_percentage_S2 == 0 %}
+                      <span class="badge bg-danger">0%</span>
+                    {% elif x.moodle_percentage_S2 < 50 %}
+                      <span class="badge bg-warning text-dark">{{x.moodle_percentage_S2}}%</span>
+                    {% elif x.moodle_percentage_S2 < 80 %}
+                      <span class="badge bg-info text-dark">{{x.moodle_percentage_S2}}%</span>
+                    {% else %}
+                      <span class="badge bg-success">{{x.moodle_percentage_S2}}%</span>
+                    {% endif %}
+                  </td>
+
+                  <td class="hours-taux-min">
+                    {% if x.taux_min_S2 < 1 %}
+                    <span class="badge bg-danger">{{x.taux_min_S2}}%</span>
+                    {% elif x.taux_min_S2 < 50 %}
+                    <span class="badge bg-warning text-dark">{{x.taux_min_S2}}%</span>
+                    {% elif x.taux_min_S2 < 75 %}
+                    <span class="badge bg-info text-dark">{{x.taux_min_S2}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{x.taux_min_S2}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-moyen">
+                    {% if x.taux_moyen_S2 < 1 %}
+                    <span class="badge bg-danger">{{x.taux_moyen_S2}}%</span>
+                    {% elif x.taux_moyen_S2 < 50 %}
+                    <span class="badge bg-warning text-dark">{{x.taux_moyen_S2}}%</span>
+                    {% elif x.taux_moyen_S2 < 75 %}
+                    <span class="badge bg-info text-dark">{{x.taux_moyen_S2}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{x.taux_moyen_S2}}%</span>
+                    {% endif %}
+                  </td>
+                {% endif %}
+
+                <td class="hours-status">
+                  <span class="badge bg-success">دائم</span>
+                </td>
+                
+                {% if semestre_num == 1 %}
+                  <td class="hours-sessions">{{x.nbrClas_ALL_Dep_S1}}</td>
+                  {% if x.nbrJour_in_Dep_S1 < 3 %}
+                  <td class="hours-work-days">
+                    <span class="badge bg-warning">{{x.nbrJour_in_Dep_S1}}</span>
+                  </td>
+                  {% else %}
+                  <td class="hours-work-days">{{x.nbrJour_in_Dep_S1}}</td>
+                  {% endif %}
+                {% else %}
+                  <td class="hours-sessions">{{x.nbrClas_ALL_Dep_S2}}</td>
+                  {% if x.nbrJour_in_Dep_S2 < 3 %}
+                  <td class="hours-work-days">
+                    <span class="badge bg-warning">{{x.nbrJour_in_Dep_S2}}</span>
+                  </td>
+                  {% else %}
+                  <td class="hours-work-days">{{x.nbrJour_in_Dep_S2}}</td>
+                  {% endif %}
+                {% endif %}
+                
+                <td class="hours-courses">
+                  <a href="{% url 'depa:emploi_Ens' x.enseignant.id %}?semestre={{semestre_num}}" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-calendar-alt"></i>
+                    الدروس
+                  </a>
+                </td>
+                <td class="hours-fp">
+                  <a href="{% url 'departement:FP_Ens_Dep_Semestre' x.enseignant.id semestre_num %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-file-alt"></i>
+                    F.P.S{{semestre_num}}
+                  </a>
+                </td>
+                
+                {% if semestre_num == 1 %}
+                  <td class="hours-cours">{{x.nbrClas_Cours_in_Dep_S1}}</td>
+                  <td class="hours-td">{{x.nbrClas_TD_in_Dep_S1}}</td>
+                  <td class="hours-tp">{{x.nbrClas_TP_in_Dep_S1}}</td>
+                  <td class="hours-ss">{{x.nbrClas_SS_in_Dep_S1}}</td>
+                  <td class="hours-in-dept">{{x.nbrClas_in_Dep_S1}}</td>
+                  <td class="hours-out-dept">{{x.nbrClas_out_Dep_S1}}</td>
+                {% else %}
+                  <td class="hours-cours">{{x.nbrClas_Cours_in_Dep_S2}}</td>
+                  <td class="hours-td">{{x.nbrClas_TD_in_Dep_S2}}</td>
+                  <td class="hours-tp">{{x.nbrClas_TP_in_Dep_S2}}</td>
+                  <td class="hours-ss">{{x.nbrClas_SS_in_Dep_S2}}</td>
+                  <td class="hours-in-dept">{{x.nbrClas_in_Dep_S2}}</td>
+                  <td class="hours-out-dept">{{x.nbrClas_out_Dep_S2}}</td>
+                {% endif %}
+                
+                {% if x.enseignant.user.poste_principal.code == 'ENS' %}
+                <td class="hours-post">-</td>
+                {% else %}
+                <td class="hours-post">
+                  <small>{{x.enseignant.user.poste_principal.nom_ar_mini}}</small>
+                </td>
+                {% endif %}
+              </tr>  
+              {% endfor %}
+
+              <!-- PERMANENTS VACATAIRES -->
+              {% for xx in main_PER_VAC %}
+              <tr class="hours-row">
+                <td class="hours-number">
+                  <span class="badge bg-primary">{{forloop.counter|add:count_per}}</span>
+                </td>
+                <td class="hours-teacher-name">
+                  <strong>{{xx.enseignant.nom_ar}} {{xx.enseignant.prenom_ar}}</strong>
+                </td>
+
+                {% if semestre_num == 1 %}
+                <!-- ✅ NOUVELLE CELLULE MOODLE -->
+                  <td class="hours-moodle">
+                    {% if xx.moodle_percentage_S1 == 0 %}
+                      <span class="badge bg-danger">0%</span>
+                    {% elif xx.moodle_percentage_S1 < 50 %}
+                      <span class="badge bg-warning text-dark">{{xx.moodle_percentage_S1}}%</span>
+                    {% elif xx.moodle_percentage_S1 < 80 %}
+                      <span class="badge bg-info text-dark">{{xx.moodle_percentage_S1}}%</span>
+                    {% else %}
+                      <span class="badge bg-success">{{xx.moodle_percentage_S1}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-min">
+                    {% if xx.taux_min_S1 < 1 %}
+                    <span class="badge bg-danger">{{xx.taux_min_S1}}%</span>
+                    {% elif xx.taux_min_S1 < 50 %}
+                    <span class="badge bg-warning text-dark">{{xx.taux_min_S1}}%</span>
+                    {% elif xx.taux_min_S1 < 75 %}
+                    <span class="badge bg-info text-dark">{{xx.taux_min_S1}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{xx.taux_min_S1}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-moyen">
+                    {% if xx.taux_moyen_S1 < 1 %}
+                    <span class="badge bg-danger">{{xx.taux_moyen_S1}}%</span>
+                    {% elif xx.taux_moyen_S1 < 50 %}
+                    <span class="badge bg-warning text-dark">{{xx.taux_moyen_S1}}%</span>
+                    {% elif xx.taux_moyen_S1 < 75 %}
+                    <span class="badge bg-info text-dark">{{xx.taux_moyen_S1}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{xx.taux_moyen_S1}}%</span>
+                    {% endif %}
+                  </td>
+                {% else %}
+                <!-- ✅ NOUVELLE CELLULE MOODLE -->
+                  <td class="hours-moodle">
+                    {% if xx.moodle_percentage_S2 == 0 %}
+                      <span class="badge bg-danger">0%</span>
+                    {% elif xx.moodle_percentage_S2 < 50 %}
+                      <span class="badge bg-warning text-dark">{{xx.moodle_percentage_S2}}%</span>
+                    {% elif xx.moodle_percentage_S2 < 80 %}
+                      <span class="badge bg-info text-dark">{{xx.moodle_percentage_S2}}%</span>
+                    {% else %}
+                      <span class="badge bg-success">{{xx.moodle_percentage_S2}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-min">
+                    {% if xx.taux_min_S2 < 1 %}
+                    <span class="badge bg-danger">{{xx.taux_min_S2}}%</span>
+                    {% elif xx.taux_min_S2 < 50 %}
+                    <span class="badge bg-warning text-dark">{{xx.taux_min_S2}}%</span>
+                    {% elif xx.taux_min_S2 < 75 %}
+                    <span class="badge bg-info text-dark">{{xx.taux_min_S2}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{xx.taux_min_S2}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-moyen">
+                    {% if xx.taux_moyen_S2 < 1 %}
+                    <span class="badge bg-danger">{{xx.taux_moyen_S2}}%</span>
+                    {% elif xx.taux_moyen_S2 < 50 %}
+                    <span class="badge bg-warning text-dark">{{xx.taux_moyen_S2}}%</span>
+                    {% elif xx.taux_moyen_S2 < 75 %}
+                    <span class="badge bg-info text-dark">{{xx.taux_moyen_S2}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{xx.taux_moyen_S2}}%</span>
+                    {% endif %}
+                  </td>
+                {% endif %}
+
+                <td class="hours-status">
+                  <span class="badge bg-warning text-dark">مرسم و مؤقت</span>
+                </td>
+                
+                {% if semestre_num == 1 %}
+                  <td class="hours-sessions">{{xx.nbrClas_ALL_Dep_S1}}</td>
+                  {% if xx.nbrJour_in_Dep_S1 < 3 %}
+                  <td class="hours-work-days">
+                    <span class="badge bg-warning">{{xx.nbrJour_in_Dep_S1}}</span>
+                  </td>
+                  {% else %}
+                  <td class="hours-work-days">{{xx.nbrJour_in_Dep_S1}}</td>
+                  {% endif %}
+                {% else %}
+                  <td class="hours-sessions">{{xx.nbrClas_ALL_Dep_S2}}</td>
+                  {% if xx.nbrJour_in_Dep_S2 < 3 %}
+                  <td class="hours-work-days">
+                    <span class="badge bg-warning">{{xx.nbrJour_in_Dep_S2}}</span>
+                  </td>
+                  {% else %}
+                  <td class="hours-work-days">{{xx.nbrJour_in_Dep_S2}}</td>
+                  {% endif %}
+                {% endif %}
+                
+                <td class="hours-courses">
+                  <a href="{% url 'depa:emploi_Ens' xx.enseignant.id %}?semestre={{semestre_num}}" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-calendar-alt"></i>
+                    الدروس
+                  </a>
+                </td>
+                <td class="hours-fp">
+                  <a href="{% url 'departement:FP_Ens_Dep_Semestre' xx.enseignant.id semestre_num %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-file-alt"></i>
+                    F.P.S{{semestre_num}}
+                  </a>
+                </td>
+                
+                {% if semestre_num == 1 %}
+                  <td class="hours-cours">{{xx.nbrClas_Cours_in_Dep_S1}}</td>
+                  <td class="hours-td">{{xx.nbrClas_TD_in_Dep_S1}}</td>
+                  <td class="hours-tp">{{xx.nbrClas_TP_in_Dep_S1}}</td>
+                  <td class="hours-ss">{{xx.nbrClas_SS_in_Dep_S1}}</td>
+                  <td class="hours-in-dept">{{xx.nbrClas_in_Dep_S1}}</td>
+                  <td class="hours-out-dept">{{xx.nbrClas_out_Dep_S1}}</td>
+                {% else %}
+                  <td class="hours-cours">{{xx.nbrClas_Cours_in_Dep_S2}}</td>
+                  <td class="hours-td">{{xx.nbrClas_TD_in_Dep_S2}}</td>
+                  <td class="hours-tp">{{xx.nbrClas_TP_in_Dep_S2}}</td>
+                  <td class="hours-ss">{{xx.nbrClas_SS_in_Dep_S2}}</td>
+                  <td class="hours-in-dept">{{xx.nbrClas_in_Dep_S2}}</td>
+                  <td class="hours-out-dept">{{xx.nbrClas_out_Dep_S2}}</td>
+                {% endif %}
+                
+                {% if xx.enseignant.user.poste_principal.code == 'ENS' %}
+                <td class="hours-post">-</td>
+                {% else %}
+                <td class="hours-post">
+                  <small>{{xx.enseignant.user.poste_principal.nom_ar_mini}}</small>
+                </td>
+                {% endif %}
+              </tr>  
+              {% endfor %}
+
+              <!-- VACATAIRES -->
+              {% for xxx in main_VAC %}
+              <tr class="hours-row">
+                <td class="hours-number">
+                  <span class="badge bg-primary">{{forloop.counter|add:count_per|add:count_PER_VAC}}</span>
+                </td>
+                <td class="hours-teacher-name">
+                  <strong>{{xxx.enseignant.nom_ar}} {{xxx.enseignant.prenom_ar}}</strong>
+                </td>
+
+                {% if semestre_num == 1 %}
+                <!-- ✅ NOUVELLE CELLULE MOODLE -->
+                  <td class="hours-moodle">
+                    {% if xxx.moodle_percentage_S1 == 0 %}
+                      <span class="badge bg-danger">0%</span>
+                    {% elif xxx.moodle_percentage_S1 < 50 %}
+                      <span class="badge bg-warning text-dark">{{xxx.moodle_percentage_S1}}%</span>
+                    {% elif xxx.moodle_percentage_S1 < 80 %}
+                      <span class="badge bg-info text-dark">{{xxx.moodle_percentage_S1}}%</span>
+                    {% else %}
+                      <span class="badge bg-success">{{xxx.moodle_percentage_S1}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-min">
+                    {% if xxx.taux_min_S1 < 1 %}
+                    <span class="badge bg-danger">{{xxx.taux_min_S1}}%</span>
+                    {% elif xxx.taux_min_S1 < 50 %}
+                    <span class="badge bg-warning text-dark">{{xxx.taux_min_S1}}%</span>
+                    {% elif xxx.taux_min_S1 < 75 %}
+                    <span class="badge bg-info text-dark">{{xxx.taux_min_S1}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{xxx.taux_min_S1}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-moyen">
+                    {% if xxx.taux_moyen_S1 < 1 %}
+                    <span class="badge bg-danger">{{xxx.taux_moyen_S1}}%</span>
+                    {% elif xxx.taux_moyen_S1 < 50 %}
+                    <span class="badge bg-warning text-dark">{{xxx.taux_moyen_S1}}%</span>
+                    {% elif xxx.taux_moyen_S1 < 75 %}
+                    <span class="badge bg-info text-dark">{{xxx.taux_moyen_S1}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{xxx.taux_moyen_S1}}%</span>
+                    {% endif %}
+                  </td>
+                {% else %}
+                <!-- ✅ NOUVELLE CELLULE MOODLE -->
+                  <td class="hours-moodle">
+                    {% if xxx.moodle_percentage_S2 == 0 %}
+                      <span class="badge bg-danger">0%</span>
+                    {% elif xxx.moodle_percentage_S2 < 50 %}
+                      <span class="badge bg-warning text-dark">{{xxx.moodle_percentage_S2}}%</span>
+                    {% elif xxx.moodle_percentage_S2 < 80 %}
+                      <span class="badge bg-info text-dark">{{xxx.moodle_percentage_S2}}%</span>
+                    {% else %}
+                      <span class="badge bg-success">{{xxx.moodle_percentage_S2}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-min">
+                    {% if xxx.taux_min_S2 < 1 %}
+                    <span class="badge bg-danger">{{xxx.taux_min_S2}}%</span>
+                    {% elif xxx.taux_min_S2 < 50 %}
+                    <span class="badge bg-warning text-dark">{{xxx.taux_min_S2}}%</span>
+                    {% elif xxx.taux_min_S2 < 75 %}
+                    <span class="badge bg-info text-dark">{{xxx.taux_min_S2}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{xxx.taux_min_S2}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-moyen">
+                    {% if xxx.taux_moyen_S2 < 1 %}
+                    <span class="badge bg-danger">{{xxx.taux_moyen_S2}}%</span>
+                    {% elif xxx.taux_moyen_S2 < 50 %}
+                    <span class="badge bg-warning text-dark">{{xxx.taux_moyen_S2}}%</span>
+                    {% elif xxx.taux_moyen_S2 < 75 %}
+                    <span class="badge bg-info text-dark">{{xxx.taux_moyen_S2}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{xxx.taux_moyen_S2}}%</span>
+                    {% endif %}
+                  </td>
+                {% endif %}
+                
+                <td class="hours-status">
+                  <span class="badge bg-info">مؤقت</span>
+                </td>
+                
+                {% if semestre_num == 1 %}
+                  <td class="hours-sessions">{{xxx.nbrClas_ALL_Dep_S1}}</td>
+                  {% if xxx.nbrJour_in_Dep_S1 < 3 %}
+                  <td class="hours-work-days">
+                    <span class="badge bg-warning">{{xxx.nbrJour_in_Dep_S1}}</span>
+                  </td>
+                  {% else %}
+                  <td class="hours-work-days">{{xxx.nbrJour_in_Dep_S1}}</td>
+                  {% endif %}
+                {% else %}
+                  <td class="hours-sessions">{{xxx.nbrClas_ALL_Dep_S2}}</td>
+                  {% if xxx.nbrJour_in_Dep_S2 < 3 %}
+                  <td class="hours-work-days">
+                    <span class="badge bg-warning">{{xxx.nbrJour_in_Dep_S2}}</span>
+                  </td>
+                  {% else %}
+                  <td class="hours-work-days">{{xxx.nbrJour_in_Dep_S2}}</td>
+                  {% endif %}
+                {% endif %}
+                
+                <td class="hours-courses">
+                  <a href="{% url 'depa:emploi_Ens' xxx.enseignant.id %}?semestre={{semestre_num}}" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-calendar-alt"></i>
+                    الدروس
+                  </a>
+                </td>
+                <td class="hours-fp">
+                  <a href="{% url 'departement:FP_Ens_Dep_Semestre' xxx.enseignant.id semestre_num %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-file-alt"></i>
+                    F.P.S{{semestre_num}}
+                  </a>
+                </td>
+                
+                {% if semestre_num == 1 %}
+                  <td class="hours-cours">{{xxx.nbrClas_Cours_in_Dep_S1}}</td>
+                  <td class="hours-td">{{xxx.nbrClas_TD_in_Dep_S1}}</td>
+                  <td class="hours-tp">{{xxx.nbrClas_TP_in_Dep_S1}}</td>
+                  <td class="hours-ss">{{xxx.nbrClas_SS_in_Dep_S1}}</td>
+                  <td class="hours-in-dept">{{xxx.nbrClas_in_Dep_S1}}</td>
+                  <td class="hours-out-dept">{{xxx.nbrClas_out_Dep_S1}}</td>
+                {% else %}
+                  <td class="hours-cours">{{xxx.nbrClas_Cours_in_Dep_S2}}</td>
+                  <td class="hours-td">{{xxx.nbrClas_TD_in_Dep_S2}}</td>
+                  <td class="hours-tp">{{xxx.nbrClas_TP_in_Dep_S2}}</td>
+                  <td class="hours-ss">{{xxx.nbrClas_SS_in_Dep_S2}}</td>
+                  <td class="hours-in-dept">{{xxx.nbrClas_in_Dep_S2}}</td>
+                  <td class="hours-out-dept">{{xxx.nbrClas_out_Dep_S2}}</td>
+                {% endif %}
+                
+                {% if xxx.enseignant.user.poste_principal.code == 'ENS' %}
+                <td class="hours-post">-</td>
+                {% else %}
+                <td class="hours-post">
+                  <small>{{xxx.enseignant.user.poste_principal.nom_ar_mini}}</small>
+                </td>
+                {% endif %}
+              </tr>  
+              {% endfor %}
+
+              <!-- ASSOCIÉS -->
+              {% for xxxx in main_ASO %}
+              <tr class="hours-row">
+                <td class="hours-number">
+                  <span class="badge bg-primary">{{forloop.counter|add:count_per|add:count_PER_VAC|add:count_VAC}}</span>
+                </td>
+                <td class="hours-teacher-name">
+                  <strong>{{xxxx.enseignant.nom_ar}} {{xxxx.enseignant.prenom_ar}}</strong>
+                </td>
+
+                {% if semestre_num == 1 %}
+                <!-- ✅ NOUVELLE CELLULE MOODLE -->
+                  <td class="hours-moodle">
+                    {% if xxxx.moodle_percentage_S1 == 0 %}
+                      <span class="badge bg-danger">0%</span>
+                    {% elif xxxx.moodle_percentage_S1 < 50 %}
+                      <span class="badge bg-warning text-dark">{{xxxx.moodle_percentage_S1}}%</span>
+                    {% elif xxxx.moodle_percentage_S1 < 80 %}
+                      <span class="badge bg-info text-dark">{{xxxx.moodle_percentage_S1}}%</span>
+                    {% else %}
+                      <span class="badge bg-success">{{xxxx.moodle_percentage_S1}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-min">
+                    {% if xxxx.taux_min_S1 < 1 %}
+                    <span class="badge bg-danger">{{xxxx.taux_min_S1}}%</span>
+                    {% elif xxxx.taux_min_S1 < 50 %}
+                    <span class="badge bg-warning text-dark">{{xxxx.taux_min_S1}}%</span>
+                    {% elif xxxx.taux_min_S1 < 75 %}
+                    <span class="badge bg-info text-dark">{{xxxx.taux_min_S1}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{xxxx.taux_min_S1}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-moyen">
+                    {% if xxxx.taux_moyen_S1 < 1 %}
+                    <span class="badge bg-danger">{{xxxx.taux_moyen_S1}}%</span>
+                    {% elif xxxx.taux_moyen_S1 < 50 %}
+                    <span class="badge bg-warning text-dark">{{xxxx.taux_moyen_S1}}%</span>
+                    {% elif xxxx.taux_moyen_S1 < 75 %}
+                    <span class="badge bg-info text-dark">{{xxxx.taux_moyen_S1}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{xxxx.taux_moyen_S1}}%</span>
+                    {% endif %}
+                  </td>
+                {% else %}
+                <!-- ✅ NOUVELLE CELLULE MOODLE -->
+                  <td class="hours-moodle">
+                    {% if xxxx.moodle_percentage_S2 == 0 %}
+                      <span class="badge bg-danger">0%</span>
+                    {% elif xxxx.moodle_percentage_S2 < 50 %}
+                      <span class="badge bg-warning text-dark">{{xxxx.moodle_percentage_S2}}%</span>
+                    {% elif xxxx.moodle_percentage_S2 < 80 %}
+                      <span class="badge bg-info text-dark">{{xxxx.moodle_percentage_S2}}%</span>
+                    {% else %}
+                      <span class="badge bg-success">{{xxxx.moodle_percentage_S2}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-min">
+                    {% if xxxx.taux_min_S2 < 1 %}
+                    <span class="badge bg-danger">{{xxxx.taux_min_S2}}%</span>
+                    {% elif xxxx.taux_min_S2 < 50 %}
+                    <span class="badge bg-warning text-dark">{{xxxx.taux_min_S2}}%</span>
+                    {% elif xxxx.taux_min_S2 < 75 %}
+                    <span class="badge bg-info text-dark">{{xxxx.taux_min_S2}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{xxxx.taux_min_S2}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-moyen">
+                    {% if xxxx.taux_moyen_S2 < 1 %}
+                    <span class="badge bg-danger">{{xxxx.taux_moyen_S2}}%</span>
+                    {% elif xxxx.taux_moyen_S2 < 50 %}
+                    <span class="badge bg-warning text-dark">{{xxxx.taux_moyen_S2}}%</span>
+                    {% elif xxxx.taux_moyen_S2 < 75 %}
+                    <span class="badge bg-info text-dark">{{xxxx.taux_moyen_S2}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{xxxx.taux_moyen_S2}}%</span>
+                    {% endif %}
+                  </td>
+                {% endif %}
+
+                <td class="hours-status">
+                  <span class="badge bg-secondary">مشارك</span>
+                </td>
+                
+                {% if semestre_num == 1 %}
+                  <td class="hours-sessions">{{xxxx.nbrClas_ALL_Dep_S1}}</td>
+                  {% if xxxx.nbrJour_in_Dep_S1 < 3 %}
+                  <td class="hours-work-days">
+                    <span class="badge bg-warning">{{xxxx.nbrJour_in_Dep_S1}}</span>
+                  </td>
+                  {% else %}
+                  <td class="hours-work-days">{{xxxx.nbrJour_in_Dep_S1}}</td>
+                  {% endif %}
+                {% else %}
+                  <td class="hours-sessions">{{xxxx.nbrClas_ALL_Dep_S2}}</td>
+                  {% if xxxx.nbrJour_in_Dep_S2 < 3 %}
+                  <td class="hours-work-days">
+                    <span class="badge bg-warning">{{xxxx.nbrJour_in_Dep_S2}}</span>
+                  </td>
+                  {% else %}
+                  <td class="hours-work-days">{{xxxx.nbrJour_in_Dep_S2}}</td>
+                  {% endif %}
+                {% endif %}
+                
+                <td class="hours-courses">
+                  <a href="{% url 'depa:emploi_Ens' xxxx.enseignant.id %}?semestre={{semestre_num}}" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-calendar-alt"></i>
+                    الدروس
+                  </a>
+                </td>
+                <td class="hours-fp">
+                  <a href="{% url 'departement:FP_Ens_Dep_Semestre' xxxx.enseignant.id semestre_num %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-file-alt"></i>
+                    F.P.S{{semestre_num}}
+                  </a>
+                </td>
+                
+                {% if semestre_num == 1 %}
+                  <td class="hours-cours">{{xxxx.nbrClas_Cours_in_Dep_S1}}</td>
+                  <td class="hours-td">{{xxxx.nbrClas_TD_in_Dep_S1}}</td>
+                  <td class="hours-tp">{{xxxx.nbrClas_TP_in_Dep_S1}}</td>
+                  <td class="hours-ss">{{xxxx.nbrClas_SS_in_Dep_S1}}</td>
+                  <td class="hours-in-dept">{{xxxx.nbrClas_in_Dep_S1}}</td>
+                  <td class="hours-out-dept">{{xxxx.nbrClas_out_Dep_S1}}</td>
+                {% else %}
+                  <td class="hours-cours">{{xxxx.nbrClas_Cours_in_Dep_S2}}</td>
+                  <td class="hours-td">{{xxxx.nbrClas_TD_in_Dep_S2}}</td>
+                  <td class="hours-tp">{{xxxx.nbrClas_TP_in_Dep_S2}}</td>
+                  <td class="hours-ss">{{xxxx.nbrClas_SS_in_Dep_S2}}</td>
+                  <td class="hours-in-dept">{{xxxx.nbrClas_in_Dep_S2}}</td>
+                  <td class="hours-out-dept">{{xxxx.nbrClas_out_Dep_S2}}</td>
+                {% endif %}
+                
+                {% if xxxx.enseignant.user.poste_principal.code == 'ENS' %}
+                <td class="hours-post">-</td>
+                {% else %}
+                <td class="hours-post">
+                  <small>{{xxxx.enseignant.user.poste_principal.nom_ar_mini}}</small>
+                </td>
+                {% endif %}
+              </tr>  
+              {% endfor %}
+
+              <!-- DOCTORANTS -->
+              {% for xxxxx in main_DOC %}
+              <tr class="hours-row">
+                <td class="hours-number">
+                  <span class="badge bg-primary">{{forloop.counter|add:count_per|add:count_PER_VAC|add:count_VAC|add:count_ASO}}</span>
+                </td>
+                <td class="hours-teacher-name">
+                  <strong>{{xxxxx.enseignant.nom_ar}} {{xxxxx.enseignant.prenom_ar}}</strong>
+                </td>
+
+                {% if semestre_num == 1 %}
+                <!-- ✅ NOUVELLE CELLULE MOODLE -->
+                  <td class="hours-moodle">
+                    {% if xxxxx.moodle_percentage_S1 == 0 %}
+                      <span class="badge bg-danger">0%</span>
+                    {% elif xxxxx.moodle_percentage_S1 < 50 %}
+                      <span class="badge bg-warning text-dark">{{xxxxx.moodle_percentage_S1}}%</span>
+                    {% elif xxxxx.moodle_percentage_S1 < 80 %}
+                      <span class="badge bg-info text-dark">{{xxxxx.moodle_percentage_S1}}%</span>
+                    {% else %}
+                      <span class="badge bg-success">{{xxxxx.moodle_percentage_S1}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-min">
+                    {% if xxxxx.taux_min_S1 < 1 %}
+                    <span class="badge bg-danger">{{xxxxx.taux_min_S1}}%</span>
+                    {% elif xxxxx.taux_min_S1 < 50 %}
+                    <span class="badge bg-warning text-dark">{{xxxxx.taux_min_S1}}%</span>
+                    {% elif xxxxx.taux_min_S1 < 75 %}
+                    <span class="badge bg-info text-dark">{{xxxxx.taux_min_S1}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{xxxxx.taux_min_S1}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-moyen">
+                    {% if xxxxx.taux_moyen_S1 < 1 %}
+                    <span class="badge bg-danger">{{xxxxx.taux_moyen_S1}}%</span>
+                    {% elif xxxxx.taux_moyen_S1 < 50 %}
+                    <span class="badge bg-warning text-dark">{{xxxxx.taux_moyen_S1}}%</span>
+                    {% elif xxxxx.taux_moyen_S1 < 75 %}
+                    <span class="badge bg-info text-dark">{{xxxxx.taux_moyen_S1}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{xxxxx.taux_moyen_S1}}%</span>
+                    {% endif %}
+                  </td>
+                {% else %}
+                <!-- ✅ NOUVELLE CELLULE MOODLE -->
+                  <td class="hours-moodle">
+                    {% if xxxxx.moodle_percentage_S2 == 0 %}
+                      <span class="badge bg-danger">0%</span>
+                    {% elif xxxxx.moodle_percentage_S2 < 50 %}
+                      <span class="badge bg-warning text-dark">{{xxxxx.moodle_percentage_S2}}%</span>
+                    {% elif xxxxx.moodle_percentage_S2 < 80 %}
+                      <span class="badge bg-info text-dark">{{xxxxx.moodle_percentage_S2}}%</span>
+                    {% else %}
+                      <span class="badge bg-success">{{xxxxx.moodle_percentage_S2}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-min">
+                    {% if xxxxx.taux_min_S2 < 1 %}
+                    <span class="badge bg-danger">{{xxxxx.taux_min_S2}}%</span>
+                    {% elif xxxxx.taux_min_S2 < 50 %}
+                    <span class="badge bg-warning text-dark">{{xxxxx.taux_min_S2}}%</span>
+                    {% elif xxxxx.taux_min_S2 < 75 %}
+                    <span class="badge bg-info text-dark">{{xxxxx.taux_min_S2}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{xxxxx.taux_min_S2}}%</span>
+                    {% endif %}
+                  </td>
+                  <td class="hours-taux-moyen">
+                    {% if xxxxx.taux_moyen_S2 < 1 %}
+                    <span class="badge bg-danger">{{xxxxx.taux_moyen_S2}}%</span>
+                    {% elif xxxxx.taux_moyen_S2 < 50 %}
+                    <span class="badge bg-warning text-dark">{{xxxxx.taux_moyen_S2}}%</span>
+                    {% elif xxxxx.taux_moyen_S2 < 75 %}
+                    <span class="badge bg-info text-dark">{{xxxxx.taux_moyen_S2}}%</span>
+                    {% else %}
+                    <span class="badge bg-success">{{xxxxx.taux_moyen_S2}}%</span>
+                    {% endif %}
+                  </td>
+                {% endif %}
+
+                <td class="hours-status">
+                  <span class="badge bg-primary">دكتوراه</span>
+                </td>
+                
+                {% if semestre_num == 1 %}
+                  <td class="hours-sessions">{{xxxxx.nbrClas_ALL_Dep_S1}}</td>
+                  {% if xxxxx.nbrJour_in_Dep_S1 < 3 %}
+                  <td class="hours-work-days">
+                    <span class="badge bg-warning">{{xxxxx.nbrJour_in_Dep_S1}}</span>
+                  </td>
+                  {% else %}
+                  <td class="hours-work-days">{{xxxxx.nbrJour_in_Dep_S1}}</td>
+                  {% endif %}
+                {% else %}
+                  <td class="hours-sessions">{{xxxxx.nbrClas_ALL_Dep_S2}}</td>
+                  {% if xxxxx.nbrJour_in_Dep_S2 < 3 %}
+                  <td class="hours-work-days">
+                    <span class="badge bg-warning">{{xxxxx.nbrJour_in_Dep_S2}}</span>
+                  </td>
+                  {% else %}
+                  <td class="hours-work-days">{{xxxxx.nbrJour_in_Dep_S2}}</td>
+                  {% endif %}
+                {% endif %}
+                
+                <td class="hours-courses">
+                  <a href="{% url 'depa:emploi_Ens' xxxxx.enseignant.id %}?semestre={{semestre_num}}" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-calendar-alt"></i>
+                    الدروس
+                  </a>
+                </td>
+                <td class="hours-fp">
+                  <a href="{% url 'departement:FP_Ens_Dep_Semestre' xxxxx.enseignant.id semestre_num %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-file-alt"></i>
+                    F.P.S{{semestre_num}}
+                  </a>
+                </td>
+                
+                {% if semestre_num == 1 %}
+                  <td class="hours-cours">{{xxxxx.nbrClas_Cours_in_Dep_S1}}</td>
+                  <td class="hours-td">{{xxxxx.nbrClas_TD_in_Dep_S1}}</td>
+                  <td class="hours-tp">{{xxxxx.nbrClas_TP_in_Dep_S1}}</td>
+                  <td class="hours-ss">{{xxxxx.nbrClas_SS_in_Dep_S1}}</td>
+                  <td class="hours-in-dept">{{xxxxx.nbrClas_in_Dep_S1}}</td>
+                  <td class="hours-out-dept">{{xxxxx.nbrClas_out_Dep_S1}}</td>
+                {% else %}
+                  <td class="hours-cours">{{xxxxx.nbrClas_Cours_in_Dep_S2}}</td>
+                  <td class="hours-td">{{xxxxx.nbrClas_TD_in_Dep_S2}}</td>
+                  <td class="hours-tp">{{xxxxx.nbrClas_TP_in_Dep_S2}}</td>
+                  <td class="hours-ss">{{xxxxx.nbrClas_SS_in_Dep_S2}}</td>
+                  <td class="hours-in-dept">{{xxxxx.nbrClas_in_Dep_S2}}</td>
+                  <td class="hours-out-dept">{{xxxxx.nbrClas_out_Dep_S2}}</td>
+                {% endif %}
+                
+                {% if xxxxx.enseignant.user.poste_principal.code == 'ENS' %}
+                <td class="hours-post">-</td>
+                {% else %}
+                <td class="hours-post">
+                  <small>{{xxxxx.enseignant.user.poste_principal.nom_ar_mini}}</small>
+                </td>
+                {% endif %}
+              </tr>  
+              {% endfor %}
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    animateStatistics();
+});
+
+function animateStatistics() {
+    const statNumbers = document.querySelectorAll('.stat-card h3, .stat-card h4');
+    
+    statNumbers.forEach(function(element) {
+        const finalValue = parseInt(element.textContent) || 0;
+        if (finalValue > 0) {
+            animateCountUp(element, finalValue);
+        }
+    });
+}
+
+function animateCountUp(element, finalValue) {
+    const duration = 1000;
+    const increment = finalValue / (duration / 16);
+    let currentValue = 0;
+    
+    const timer = setInterval(function() {
+        currentValue += increment;
+        if (currentValue >= finalValue) {
+            currentValue = finalValue;
+            clearInterval(timer);
+        }
+        element.textContent = Math.floor(currentValue);
+    }, 16);
+}
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* LAYOUT GÉNÉRAL */
+.grey_zone {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  padding: 15px;
+  margin: 8px;
+}
+
+.main-header {
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* CARTES */
+.card {
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.card-header {
+  border-radius: 8px 8px 0 0 !important;
+  padding: 12px 15px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.card-body {
+  padding: 15px;
+}
+
+/* STATISTIQUES */
+.stat-card {
+  border-radius: 6px;
+  padding: 15px;
+  text-align: center;
+}
+
+.stat-card h3, .stat-card h4 {
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.stat-card small {
+  font-size: 0.85rem;
+}
+
+/* TABLEAUX */
+.table-responsive {
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.table {
+  margin-bottom: 0;
+  font-size: 0.85rem;
+}
+
+.table thead th {
+  border: none;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 10px 8px;
+  background-color: #343a40;
+  color: white;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(0,123,255,0.05);
+}
+
+.table tbody td {
+  padding: 8px;
+  vertical-align: middle;
+  border-top: none;
+}
+
+/* Largeurs des colonnes */
+.col-number { width: 50px; }
+.col-teacher-name { min-width: 180px; max-width: 200px; }
+.col-taux-min, .col-taux-moyen { width: 90px; text-align: center; }
+.col-position { width: 100px; }
+.col-sessions, .col-work-days { width: 80px; }
+.col-courses { width: 90px; }
+.col-fp { width: 70px; }
+.col-cours, .col-td, .col-tp, .col-ss { width: 60px; }
+.col-in-dept, .col-out-dept { width: 80px; }
+.col-post { width: 90px; }
+
+/* BOUTONS */
+.btn {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.btn-sm {
+  font-size: 0.75rem;
+  padding: 0.3rem 0.6rem;
+  white-space: nowrap;
+}
+
+.semester-selector .btn-sm {
+  padding: 0.4rem 0.8rem;
+}
+
+/* BADGES */
+.badge {
+  font-size: 0.75em;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .main-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .semester-selector {
+    width: 100%;
+  }
+  
+  .semester-selector .btn {
+    flex: 1;
+    font-size: 0.8rem;
+  }
+  
+  .table {
+    font-size: 0.75rem;
+  }
+}
+</style>
+{% endblock %}

@@ -1,12 +1,7 @@
-{% extends 'base_dashboard.html' %}
+{% extends 'departement/base_Dep.html' %}
 {% load static %}
 
-{% block title %}{{ title }}{% endblock %}
-
-{% block page_title %}{{ title }}{% endblock %}
-
-{% block extra_css %}
-{{ block.super }}
+{% block extra_css_dep %}
 <style>
     .stat-card {
         background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);
@@ -211,84 +206,6 @@
     {% endif %}
 </div>
 {% endif %}
-{% endblock %}
-
-{% block sidebar_menu %}
-<!-- Menu spécifique département -->
-<div class="nav-section">الإدارة</div>
-
-<div class="sub-menu">
-    <a class="nav-link">
-        <i class="fas fa-users"></i>
-        الأساتذة
-    </a>
-    <div class="sub-menu-items">
-        <a class="nav-link" href="{% url 'depa:list_enseignants_dep' 1 %}">
-            <i class="fas fa-list"></i>
-            قائمة الأساتذة
-        </a>
-        <a class="nav-link" href="{% url 'depa:new_Enseignant' %}">
-            <i class="fas fa-user-plus"></i>
-            إضافة أستاذ
-        </a>
-        <a class="nav-link" href="{% url 'depa:heures_enseignants_dep' 1 %}">
-            <i class="fas fa-clock"></i>
-            حصص الأساتذة
-        </a>
-    </div>
-</div>
-
-<div class="sub-menu">
-    <a class="nav-link">
-        <i class="fas fa-user-graduate"></i>
-        الطلبة
-    </a>
-    <div class="sub-menu-items">
-        <a class="nav-link" href="{% url 'depa:list_etudiants' %}">
-            <i class="fas fa-list"></i>
-            قوائم الطلبة
-        </a>
-        <a class="nav-link" href="{% url 'depa:import_etudiants' %}">
-            <i class="fas fa-file-import"></i>
-            استيراد الطلبة
-        </a>
-    </div>
-</div>
-
-<div class="sub-menu">
-    <a class="nav-link">
-        <i class="fas fa-book"></i>
-        المقاييس والتخصصات
-    </a>
-    <div class="sub-menu-items">
-        <a class="nav-link" href="{% url 'depa:list_Mat_Niv' %}">
-            <i class="fas fa-list"></i>
-            قائمة المقاييس
-        </a>
-        <a class="nav-link" href="{% url 'depa:list_Specialite_Dep' %}">
-            <i class="fas fa-graduation-cap"></i>
-            التخصصات
-        </a>
-    </div>
-</div>
-
-<div class="sub-menu">
-    <a class="nav-link">
-        <i class="fas fa-calendar-alt"></i>
-        التوقيت
-    </a>
-    <div class="sub-menu-items">
-        <a class="nav-link" href="{% url 'depa:import_emploi' %}">
-            <i class="fas fa-file-import"></i>
-            استيراد التوقيت
-        </a>
-    </div>
-</div>
-
-<a class="nav-link" href="{% url 'depa:profile_Dep' %}">
-    <i class="fas fa-id-card"></i>
-    الملف الشخصي
-</a>
 {% endblock %}
 
 {% block content %}
