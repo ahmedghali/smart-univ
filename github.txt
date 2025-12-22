@@ -1,6 +1,6 @@
 git remote -v
 git add .
-git commit -m "list Ens Dep"
+git commit -m "stabel active deactive acces Ens vers Dep"
 git push -u origin main
 
 

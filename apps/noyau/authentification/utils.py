@@ -142,8 +142,14 @@ def handle_enseignant_redirect(user, request):
         request.session['affectations_count'] = affectations_count
 
         if affectations_count == 1:
-            # Une seule affectation : rediriger directement
-            departement_id = affectations.first().departement.id
+            # Une seule affectation : vérifier si elle est active
+            affectation = affectations.first()
+            if not affectation.est_actif:
+                return {
+                    'error': True,
+                    'message': "عذراً، حسابك غير مفعّل في هذا القسم. يرجى التواصل مع رئيس القسم لتفعيل حسابك."
+                }
+            departement_id = affectation.departement.id
             request.session['selected_departement_id'] = departement_id
             return redirect('ense:dashboard_Ens', dep_id=departement_id)
 

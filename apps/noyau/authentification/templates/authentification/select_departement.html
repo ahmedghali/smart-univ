@@ -30,7 +30,7 @@
 
                 <div class="roles-container mb-4">
                     {% for affectation in affectations %}
-                        <label class="role-card" for="dep_{{ forloop.counter }}">
+                        <label class="role-card {% if not affectation.est_actif %}inactive-dept{% endif %}" for="dep_{{ forloop.counter }}">
                             <div class="d-flex align-items-center">
                                 <input
                                     type="radio"
@@ -42,13 +42,24 @@
                                 >
                                 <div class="flex-grow-1">
                                     <div class="role-label">
-                                        <i class="fas fa-building text-primary me-2"></i>
+                                        <i class="fas fa-building {% if affectation.est_actif %}text-primary{% else %}text-muted{% endif %} me-2"></i>
                                         {{ affectation.departement.nom_ar|default:affectation.departement.nom_fr }}
+                                        {% if affectation.est_actif %}
+                                            <span class="badge bg-success ms-2">نشط</span>
+                                        {% else %}
+                                            <span class="badge bg-danger ms-2">غير مفعّل</span>
+                                        {% endif %}
                                     </div>
                                     <div class="text-muted small mt-1">
                                         <i class="fas fa-university me-1"></i>
                                         {{ affectation.departement.faculte.nom_ar|default:affectation.departement.faculte.nom_fr }}
                                     </div>
+                                    {% if not affectation.est_actif %}
+                                        <div class="text-danger small mt-1">
+                                            <i class="fas fa-exclamation-circle me-1"></i>
+                                            حسابك غير مفعّل في هذا القسم
+                                        </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </label>
@@ -82,6 +93,20 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .inactive-dept {
+        opacity: 0.7;
+        background-color: #f8f9fa !important;
+        border-color: #dee2e6 !important;
+    }
+    .inactive-dept:hover {
+        opacity: 0.85;
+        border-color: #dc3545 !important;
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}

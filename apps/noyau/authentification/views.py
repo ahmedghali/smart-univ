@@ -151,6 +151,20 @@ def select_departement(request):
                 'affectations': affectations
             })
 
+        # Vérifier si l'enseignant est actif dans ce département
+        try:
+            affectation = affectations.get(departement_id=selected_departement_id)
+            if not affectation.est_actif:
+                messages.error(request, 'عذراً، حسابك غير مفعّل في هذا القسم. يرجى التواصل مع رئيس القسم لتفعيل حسابك.')
+                return render(request, 'authentification/select_departement.html', {
+                    'affectations': affectations
+                })
+        except Exception:
+            messages.error(request, 'حدث خطأ أثناء التحقق من حالة حسابك.')
+            return render(request, 'authentification/select_departement.html', {
+                'affectations': affectations
+            })
+
         # Sauvegarder le département sélectionné en session
         request.session['selected_departement_id'] = selected_departement_id
 

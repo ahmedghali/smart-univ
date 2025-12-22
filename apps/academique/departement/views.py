@@ -67,8 +67,8 @@ def get_department_stats(departement, annee_univ=None):
             stats['doctorant_teachers']
         )
 
-        # Enseignants inscrits (actifs sur la plateforme)
-        stats['present_teachers'] = all_enseignants.filter(est_inscrit=True).count()
+        # Enseignants actifs dans le département
+        stats['present_teachers'] = all_enseignants.filter(est_actif=True).count()
 
         # Statistiques par semestre
         stats['enseignants_s1'] = all_enseignants.filter(semestre_1=True).count()
@@ -337,11 +337,12 @@ def list_enseignants_dep(request, semestre_num=1):
             messages.error(request, 'رقم السداسي غير صحيح')
             return redirect('depa:list_enseignants_dep', semestre_num=1)
 
-        # Filtre de base avec semestre
+        # Filtre de base avec semestre et enseignant inscrit sur la plateforme
         base_filter = {
             'departement': departement,
             'annee_univ': annee_courante,
-            f'semestre_{semestre_num}': True
+            f'semestre_{semestre_num}': True,
+            'enseignant__est_inscrit': True  # Seulement les enseignants inscrits sur la plateforme
         }
 
         # Récupérer les enseignants filtrés par semestre
@@ -354,6 +355,7 @@ def list_enseignants_dep(request, semestre_num=1):
             departement=departement,
             statut='Permanent',
             annee_univ=annee_courante,
+            enseignant__est_inscrit=True,
             **{f'semestre_{semestre_num}': True}
         ).select_related(
             'enseignant__grade',
@@ -364,6 +366,7 @@ def list_enseignants_dep(request, semestre_num=1):
             departement=departement,
             statut='Permanent & Vacataire',
             annee_univ=annee_courante,
+            enseignant__est_inscrit=True,
             **{f'semestre_{semestre_num}': True}
         ).select_related(
             'enseignant__grade',
@@ -374,6 +377,7 @@ def list_enseignants_dep(request, semestre_num=1):
             departement=departement,
             statut='Vacataire',
             annee_univ=annee_courante,
+            enseignant__est_inscrit=True,
             **{f'semestre_{semestre_num}': True}
         ).select_related(
             'enseignant__grade',
@@ -384,6 +388,7 @@ def list_enseignants_dep(request, semestre_num=1):
             departement=departement,
             statut='Associe',
             annee_univ=annee_courante,
+            enseignant__est_inscrit=True,
             **{f'semestre_{semestre_num}': True}
         ).select_related(
             'enseignant__grade',
@@ -394,6 +399,7 @@ def list_enseignants_dep(request, semestre_num=1):
             departement=departement,
             statut='Doctorant',
             annee_univ=annee_courante,
+            enseignant__est_inscrit=True,
             **{f'semestre_{semestre_num}': True}
         ).select_related(
             'enseignant__grade',
@@ -678,6 +684,120 @@ def import_emploi(request):
     except Exception as e:
         messages.error(request, f'خطأ: {str(e)}')
         return redirect('depa:dashboard_Dep')
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SUPPRESSION ENSEIGNANTS
+# ═══════════════════════════════════════════════════════════════════════════
+
+@login_required
+def delete_Enseignant(request, ens_dep_id):
+    """
+    Supprime un enseignant du département.
+    Seuls les enseignants non-permanents peuvent être supprimés.
+    """
+    try:
+        my_Ens_Dep = get_object_or_404(Ens_Dep, id=ens_dep_id)
+        deleted_Ens = my_Ens_Dep.enseignant
+
+        if my_Ens_Dep.statut != 'Permanent':
+            my_Ens_Dep.delete()
+            messages.warning(request, f'تم حذف "{deleted_Ens}" من القسم.')
+        else:
+            messages.error(request, f'لا يمكن حذف الأستاذ المرسم "{deleted_Ens}".')
+
+        # Retourner à la page précédente
+        referer_url = request.META.get('HTTP_REFERER')
+        if referer_url:
+            return redirect(referer_url)
+        return redirect('depa:list_enseignants_dep', semestre_num=1)
+
+    except Exception as e:
+        messages.error(request, f'خطأ: {str(e)}')
+        return redirect('depa:list_enseignants_dep', semestre_num=1)
+
+
+@login_required
+def delete_Ens_Acces_Dep(request, ens_id):
+    """
+    Désactive un enseignant dans le département.
+    Met est_actif = False au lieu de supprimer l'enregistrement.
+    """
+    try:
+        from apps.academique.enseignant.models import Enseignant
+
+        departement_id = request.session.get('selected_departement_id')
+        if not departement_id:
+            messages.error(request, 'يرجى اختيار القسم أولاً')
+            return redirect('auth:select_role')
+
+        departement = get_object_or_404(Departement, id=departement_id)
+        maj_Ens = get_object_or_404(Enseignant, id=ens_id)
+
+        this_to_deactivate = Ens_Dep.objects.get(
+            enseignant=ens_id,
+            departement=departement,
+            est_actif=True
+        )
+        this_to_deactivate.est_actif = False
+        this_to_deactivate.save()
+
+        messages.warning(request, f'تم إلغاء تنشيط "{maj_Ens}" من القسم.')
+
+        # Retourner à la page précédente
+        referer_url = request.META.get('HTTP_REFERER')
+        if referer_url:
+            return redirect(referer_url)
+        return redirect('depa:list_enseignants_dep', semestre_num=1)
+
+    except Ens_Dep.DoesNotExist:
+        messages.error(request, 'الأستاذ غير نشط في القسم.')
+        return redirect('depa:list_enseignants_dep', semestre_num=1)
+    except Exception as e:
+        messages.error(request, f'خطأ: {str(e)}')
+        return redirect('depa:list_enseignants_dep', semestre_num=1)
+
+
+@login_required
+def activate_Ens_Acces_Dep(request, ens_id):
+    """
+    Active un enseignant dans le département.
+    Met est_actif = True pour permettre l'accès au département.
+    """
+    try:
+        from apps.academique.enseignant.models import Enseignant
+
+        departement_id = request.session.get('selected_departement_id')
+        if not departement_id:
+            messages.error(request, 'يرجى اختيار القسم أولاً')
+            return redirect('auth:select_role')
+
+        departement = get_object_or_404(Departement, id=departement_id)
+        maj_Ens = get_object_or_404(Enseignant, id=ens_id)
+
+        # Chercher l'affectation inactive
+        this_to_activate = Ens_Dep.objects.get(
+            enseignant=ens_id,
+            departement=departement,
+            est_actif=False
+        )
+        this_to_activate.est_actif = True
+        this_to_activate.save()
+
+        messages.success(request, f'تم تنشيط حساب "{maj_Ens}" في القسم بنجاح.')
+
+        # Retourner à la page précédente
+        referer_url = request.META.get('HTTP_REFERER')
+        if referer_url:
+            return redirect(referer_url)
+        return redirect('depa:list_enseignants_dep', semestre_num=1)
+
+    except Ens_Dep.DoesNotExist:
+        messages.error(request, 'الأستاذ نشط بالفعل في القسم أو غير موجود.')
+        return redirect('depa:list_enseignants_dep', semestre_num=1)
+    except Exception as e:
+        messages.error(request, f'خطأ: {str(e)}')
+        return redirect('depa:list_enseignants_dep', semestre_num=1)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

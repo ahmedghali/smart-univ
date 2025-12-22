@@ -172,11 +172,11 @@
                 </th>
                 <th class="col-registered text-center">
                   <i class="fas fa-user-check"></i>
-                  مسجل بالمنصة
+                  نشط بالقسم
                 </th>
                 <th class="col-delete-platform text-center">
                   <i class="fas fa-user-times"></i>
-                  حذف من المنصة
+                  إلغاء التنشيط
                 </th>
                 <th class="col-view text-center">
                   <i class="fas fa-eye"></i>
@@ -266,26 +266,29 @@
                   </a>
                 </td>
                 
-                {% if x.est_inscrit == True %}
+                {% if x.est_actif == True %}
                 <td class="teacher-registration text-center">
-                  <span class="badge bg-info">مسجل</span>
+                  <span class="badge bg-success">نشط</span>
                 </td>
                 {% else %}
                 <td class="teacher-registration text-center">
-                  <a href="#" class="btn btn-sm btn-secondary">
-                    <i class="fas fa-user-plus"></i>
-                    تسجيل
-                  </a>
+                  <form action="{% url 'depa:activate_Ens_Acces_Dep' x.enseignant.id %}" method="post" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من تنشيط حساب هذا الأستاذ؟')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-warning">
+                      <i class="fas fa-user-check"></i>
+                      تنشيط الحساب
+                    </button>
+                  </form>
                 </td>
                 {% endif %}
 
-                {% if x.est_inscrit == False %}
+                {% if x.est_actif == False %}
                 <td class="teacher-platform-delete text-center">
                   <i class="fas fa-ban text-muted"></i>
                 </td>
                 {% else %}
                 <td class="teacher-platform-delete text-center">
-                  <form action="#" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من المنصة؟')">
+                  <form action="{% url 'depa:delete_Ens_Acces_Dep' x.enseignant.id %}" method="post" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من المنصة؟')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-outline-danger">
                       <i class="fas fa-user-times"></i>
@@ -300,7 +303,7 @@
                   </a>
                 </td>
                 <td class="teacher-dept-delete text-center">
-                  <i class="fas fa-ban text-muted"></i>
+                  <i class="fas fa-ban text-muted" title="لا يمكن حذف الأستاذ المرسم"></i>
                 </td>
               </tr>
               {% endfor %}
@@ -380,26 +383,29 @@
                   </a>
                 </td>
                 
-                {% if xx.est_inscrit == True %}
+                {% if xx.est_actif == True %}
                 <td class="teacher-registration text-center">
-                  <span class="badge bg-info">مسجل</span>
+                  <span class="badge bg-success">نشط</span>
                 </td>
                 {% else %}
                 <td class="teacher-registration text-center">
-                  <a href="#" class="btn btn-sm btn-secondary">
-                    <i class="fas fa-user-plus"></i>
-                    تسجيل
-                  </a>
+                  <form action="{% url 'depa:activate_Ens_Acces_Dep' xx.enseignant.id %}" method="post" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من تنشيط حساب هذا الأستاذ؟')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-warning">
+                      <i class="fas fa-user-check"></i>
+                      تنشيط الحساب
+                    </button>
+                  </form>
                 </td>
                 {% endif %}
 
-                {% if xx.est_inscrit == False %}
+                {% if xx.est_actif == False %}
                 <td class="teacher-platform-delete text-center">
                   <i class="fas fa-ban text-muted"></i>
                 </td>
                 {% else %}
                 <td class="teacher-platform-delete text-center">
-                  <form action="#" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من المنصة؟')">
+                  <form action="{% url 'depa:delete_Ens_Acces_Dep' xx.enseignant.id %}" method="post" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من المنصة؟')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-outline-danger">
                       <i class="fas fa-user-times"></i>
@@ -414,7 +420,7 @@
                   </a>
                 </td>
                 <td class="teacher-dept-delete text-center">
-                  <form action="#" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من القسم؟')">
+                  <form action="{% url 'depa:delete_Enseignant' xx.id %}" method="post" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من القسم؟')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-outline-danger">
                       <i class="fas fa-trash"></i>
@@ -499,26 +505,29 @@
                   </a>
                 </td>
                 
-                {% if xxx.est_inscrit == True %}
+                {% if xxx.est_actif == True %}
                 <td class="teacher-registration text-center">
-                  <span class="badge bg-info">مسجل</span>
+                  <span class="badge bg-success">نشط</span>
                 </td>
                 {% else %}
                 <td class="teacher-registration text-center">
-                  <a href="#" class="btn btn-sm btn-secondary">
-                    <i class="fas fa-user-plus"></i>
-                    تسجيل
-                  </a>
+                  <form action="{% url 'depa:activate_Ens_Acces_Dep' xxx.enseignant.id %}" method="post" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من تنشيط حساب هذا الأستاذ؟')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-warning">
+                      <i class="fas fa-user-check"></i>
+                      تنشيط الحساب
+                    </button>
+                  </form>
                 </td>
                 {% endif %}
 
-                {% if xxx.est_inscrit == False %}
+                {% if xxx.est_actif == False %}
                 <td class="teacher-platform-delete text-center">
                   <i class="fas fa-ban text-muted"></i>
                 </td>
                 {% else %}
                 <td class="teacher-platform-delete text-center">
-                  <form action="#" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من المنصة؟')">
+                  <form action="{% url 'depa:delete_Ens_Acces_Dep' xxx.enseignant.id %}" method="post" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من المنصة؟')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-outline-danger">
                       <i class="fas fa-user-times"></i>
@@ -533,7 +542,7 @@
                   </a>
                 </td>
                 <td class="teacher-dept-delete text-center">
-                  <form action="#" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من القسم؟')">
+                  <form action="{% url 'depa:delete_Enseignant' xxx.id %}" method="post" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من القسم؟')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-outline-danger">
                       <i class="fas fa-trash"></i>
@@ -618,26 +627,29 @@
                   </a>
                 </td>
                 
-                {% if xxxx.est_inscrit == True %}
+                {% if xxxx.est_actif == True %}
                 <td class="teacher-registration text-center">
-                  <span class="badge bg-info">مسجل</span>
+                  <span class="badge bg-success">نشط</span>
                 </td>
                 {% else %}
                 <td class="teacher-registration text-center">
-                  <a href="#" class="btn btn-sm btn-secondary">
-                    <i class="fas fa-user-plus"></i>
-                    تسجيل
-                  </a>
+                  <form action="{% url 'depa:activate_Ens_Acces_Dep' xxxx.enseignant.id %}" method="post" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من تنشيط حساب هذا الأستاذ؟')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-warning">
+                      <i class="fas fa-user-check"></i>
+                      تنشيط الحساب
+                    </button>
+                  </form>
                 </td>
                 {% endif %}
 
-                {% if xxxx.est_inscrit == False %}
+                {% if xxxx.est_actif == False %}
                 <td class="teacher-platform-delete text-center">
                   <i class="fas fa-ban text-muted"></i>
                 </td>
                 {% else %}
                 <td class="teacher-platform-delete text-center">
-                  <form action="#" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من المنصة؟')">
+                  <form action="{% url 'depa:delete_Ens_Acces_Dep' xxxx.enseignant.id %}" method="post" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من المنصة؟')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-outline-danger">
                       <i class="fas fa-user-times"></i>
@@ -652,7 +664,7 @@
                   </a>
                 </td>
                 <td class="teacher-dept-delete text-center">
-                  <form action="#" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من القسم؟')">
+                  <form action="{% url 'depa:delete_Enseignant' xxxx.id %}" method="post" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من القسم؟')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-outline-danger">
                       <i class="fas fa-trash"></i>
@@ -737,26 +749,29 @@
                   </a>
                 </td>
                 
-                {% if xxxxx.est_inscrit == True %}
+                {% if xxxxx.est_actif == True %}
                 <td class="teacher-registration text-center">
-                  <span class="badge bg-info">مسجل</span>
+                  <span class="badge bg-success">نشط</span>
                 </td>
                 {% else %}
                 <td class="teacher-registration text-center">
-                  <a href="#" class="btn btn-sm btn-secondary">
-                    <i class="fas fa-user-plus"></i>
-                    تسجيل
-                  </a>
+                  <form action="{% url 'depa:activate_Ens_Acces_Dep' xxxxx.enseignant.id %}" method="post" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من تنشيط حساب هذا الأستاذ؟')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-warning">
+                      <i class="fas fa-user-check"></i>
+                      تنشيط الحساب
+                    </button>
+                  </form>
                 </td>
                 {% endif %}
 
-                {% if xxxxx.est_inscrit == False %}
+                {% if xxxxx.est_actif == False %}
                 <td class="teacher-platform-delete text-center">
                   <i class="fas fa-ban text-muted"></i>
                 </td>
                 {% else %}
                 <td class="teacher-platform-delete text-center">
-                  <form action="#" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من المنصة؟')">
+                  <form action="{% url 'depa:delete_Ens_Acces_Dep' xxxxx.enseignant.id %}" method="post" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من المنصة؟')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-outline-danger">
                       <i class="fas fa-user-times"></i>
@@ -771,7 +786,7 @@
                   </a>
                 </td>
                 <td class="teacher-dept-delete text-center">
-                  <form action="#" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من القسم؟')">
+                  <form action="{% url 'depa:delete_Enseignant' xxxxx.id %}" method="post" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الأستاذ من القسم؟')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-outline-danger">
                       <i class="fas fa-trash"></i>
