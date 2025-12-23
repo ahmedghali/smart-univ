@@ -13,11 +13,15 @@ from django.contrib import messages
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
+from django.contrib.auth.models import Group
+from django.db.models import Q
+
 from apps.academique.enseignant.models import Enseignant
 from apps.academique.etudiant.models import Etudiant
 from apps.academique.affectation.models import Ens_Dep
 from apps.academique.departement.models import Departement, NivSpeDep_SG
 from apps.noyau.commun.models import AnneeUniversitaire
+from apps.noyau.authentification.models import CustomUser
 
 
 # ══════════════════════════════════════════════════════════════
@@ -586,9 +590,315 @@ class EnsDep_DepAdmin(DepartementFilterMixin, admin.ModelAdmin):
 
 
 # ══════════════════════════════════════════════════════════════
+# ADMIN UTILISATEURS POUR LE DÉPARTEMENT
+# ══════════════════════════════════════════════════════════════
+
+class UserDepAdmin(DepartementFilterMixin, admin.ModelAdmin):
+    """
+    Administration des utilisateurs pour le chef de département.
+    Permet de gérer les comptes des enseignants et étudiants du département.
+    """
+
+    list_display = (
+        'username',
+        'get_nom_complet',
+        'get_type_utilisateur',
+        'get_poste',
+        'is_active',
+        'last_login',
+        'get_reset_password_button',
+    )
+
+    # Rendre le username cliquable pour accéder à la page de modification
+    list_display_links = ('username',)
+
+    list_filter = (
+        'is_active',
+        'poste_principal',
+        'groups',
+    )
+
+    search_fields = (
+        'username',
+        'first_name',
+        'last_name',
+        'email',
+    )
+
+    readonly_fields = (
+        'username',
+        'last_login',
+        'date_joined',
+    )
+
+    # Actions personnalisées
+    actions = [
+        'reset_password_action',
+        'activate_users',
+        'deactivate_users',
+    ]
+
+    fieldsets = (
+        ('معلومات الحساب / Informations du compte', {
+            'fields': (
+                'username',
+                'is_active',
+            )
+        }),
+        ('المعلومات الشخصية / Informations personnelles', {
+            'fields': (
+                'first_name',
+                'last_name',
+                'email',
+            )
+        }),
+        ('المجموعات / Groupes', {
+            'fields': (
+                'groups',
+            )
+        }),
+        ('التدقيق / Audit', {
+            'fields': (
+                'last_login',
+                'date_joined',
+            ),
+            'classes': ('collapse',)
+        }),
+    )
+
+    filter_horizontal = ['groups']
+
+    def get_nom_complet(self, obj):
+        """Affiche le nom complet."""
+        return obj.nom_complet
+    get_nom_complet.short_description = "الاسم الكامل / Nom"
+
+    def get_type_utilisateur(self, obj):
+        """Affiche le type d'utilisateur (Enseignant ou Étudiant)."""
+        if hasattr(obj, 'enseignant_profile') and obj.enseignant_profile:
+            return format_html('<span style="color: #2196F3;">أستاذ</span>')
+        elif hasattr(obj, 'etudiant_profile') and obj.etudiant_profile:
+            return format_html('<span style="color: #4CAF50;">طالب</span>')
+        return format_html('<span style="color: #9E9E9E;">-</span>')
+    get_type_utilisateur.short_description = "النوع / Type"
+
+    def get_poste(self, obj):
+        """Affiche le poste principal."""
+        if obj.poste_principal:
+            return obj.poste_principal.nom_ar or obj.poste_principal.nom_fr
+        return "-"
+    get_poste.short_description = "المنصب / Poste"
+
+    def get_reset_password_button(self, obj):
+        """Affiche un bouton pour réinitialiser le mot de passe."""
+        url = reverse('dep_admin:user_reset_password', args=[obj.pk])
+        return format_html(
+            '<a class="button" href="{}" style="background: #417690; color: white; '
+            'padding: 3px 8px; text-decoration: none; border-radius: 3px; font-size: 11px;">'
+            'إعادة تعيين</a>',
+            url
+        )
+    get_reset_password_button.short_description = "كلمة المرور"
+    get_reset_password_button.allow_tags = True
+
+    def get_urls(self):
+        """Ajoute des URLs personnalisées."""
+        from django.urls import path
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                '<int:user_id>/reset-password/',
+                self.admin_site.admin_view(self.reset_password_view),
+                name='user_reset_password',
+            ),
+        ]
+        return custom_urls + urls
+
+    def reset_password_view(self, request, user_id):
+        """Vue pour réinitialiser le mot de passe d'un utilisateur."""
+        from apps.academique.etudiant.utils import generate_password
+
+        try:
+            user = CustomUser.objects.get(pk=user_id)
+
+            # Vérifier que l'utilisateur appartient au département
+            departement = self.get_departement(request)
+            if not departement:
+                messages.error(request, "لا يوجد قسم محدد.")
+                return redirect('dep_admin:authentification_customuser_changelist')
+
+            # Générer le nouveau mot de passe
+            new_password = generate_password(
+                user.last_name,
+                user.last_name,
+                user.first_name,
+                user.first_name
+            )
+            user.set_password(new_password)
+            user.save(update_fields=['password'])
+
+            messages.success(
+                request,
+                format_html(
+                    'تم إعادة تعيين كلمة المرور للمستخدم <strong>{}</strong><br>'
+                    '<span style="font-size: 14px; background: #f0f0f0; padding: 5px 10px; '
+                    'border-radius: 3px; font-family: monospace;">'
+                    'كلمة المرور الجديدة: <strong>{}</strong></span>',
+                    user.username,
+                    new_password
+                )
+            )
+
+        except CustomUser.DoesNotExist:
+            messages.error(request, "المستخدم غير موجود.")
+
+        return redirect('dep_admin:authentification_customuser_changelist')
+
+    def changelist_view(self, request, extra_context=None):
+        """Ajoute un message si aucun département n'est sélectionné."""
+        departement = self.get_departement(request)
+        if not departement:
+            messages.warning(
+                request,
+                "لم يتم تحديد قسم. يرجى تحديد قسمك من لوحة التحكم. / "
+                "Aucun département sélectionné. Veuillez sélectionner votre département."
+            )
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def get_queryset(self, request):
+        """
+        Filtre les utilisateurs par département.
+        Affiche uniquement les utilisateurs liés aux enseignants ou étudiants du département.
+        """
+        qs = super().get_queryset(request)
+        departement = self.get_departement(request)
+        annee = self.get_annee_courante()
+
+        if not departement:
+            return qs.none()
+
+        # Récupérer les IDs des enseignants du département (avec compte utilisateur)
+        ens_ids = []
+        if annee:
+            ens_ids = Ens_Dep.objects.filter(
+                departement=departement,
+                annee_univ=annee,
+                enseignant__user__isnull=False
+            ).values_list('enseignant__user_id', flat=True)
+
+        # Récupérer les IDs des étudiants du département (avec compte utilisateur)
+        etu_ids = Etudiant.objects.filter(
+            niv_spe_dep_sg__niv_spe_dep__departement=departement,
+            user__isnull=False
+        ).values_list('user_id', flat=True)
+
+        # Combiner les IDs
+        all_user_ids = list(set(list(ens_ids) + list(etu_ids)))
+
+        if all_user_ids:
+            return qs.filter(id__in=all_user_ids)
+        return qs.none()
+
+    # ══════════════════════════════════════════════════════════
+    # ACTIONS PERSONNALISÉES
+    # ══════════════════════════════════════════════════════════
+
+    @admin.action(description="إعادة تعيين كلمة المرور / Réinitialiser le mot de passe")
+    def reset_password_action(self, request, queryset):
+        """Réinitialise le mot de passe des utilisateurs sélectionnés."""
+        from apps.academique.etudiant.utils import generate_password
+
+        reset_count = 0
+        for user in queryset:
+            # Générer un nouveau mot de passe basé sur le nom
+            new_password = generate_password(
+                user.last_name,
+                user.last_name,  # Fallback arabe
+                user.first_name,
+                user.first_name  # Fallback arabe
+            )
+            user.set_password(new_password)
+            user.save(update_fields=['password'])
+            reset_count += 1
+
+        messages.success(
+            request,
+            f'تم إعادة تعيين كلمة المرور لـ {reset_count} مستخدم(ين). '
+            f'كلمة المرور الجديدة: ...XX123 (XX = أول حرفين من الاسم واللقب)'
+        )
+    reset_password_action.short_description = "إعادة تعيين كلمة المرور / Réinitialiser le mot de passe"
+
+    @admin.action(description="تفعيل الحسابات / Activer les comptes")
+    def activate_users(self, request, queryset):
+        """Active les comptes sélectionnés."""
+        updated = queryset.update(is_active=True)
+        messages.success(request, f'تم تفعيل {updated} حساب(ات).')
+    activate_users.short_description = "تفعيل الحسابات / Activer les comptes"
+
+    @admin.action(description="تعطيل الحسابات / Désactiver les comptes")
+    def deactivate_users(self, request, queryset):
+        """Désactive les comptes sélectionnés."""
+        # Ne pas désactiver son propre compte
+        queryset = queryset.exclude(id=request.user.id)
+        updated = queryset.update(is_active=False)
+        messages.success(request, f'تم تعطيل {updated} حساب(ات).')
+    deactivate_users.short_description = "تعطيل الحسابات / Désactiver les comptes"
+
+    # ══════════════════════════════════════════════════════════
+    # PERMISSIONS
+    # ══════════════════════════════════════════════════════════
+
+    def has_module_permission(self, request):
+        """Permet d'afficher le module dans l'admin."""
+        return True
+
+    def has_add_permission(self, request):
+        """Le chef de département ne peut pas créer des utilisateurs directement."""
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        """Le chef de département peut modifier les utilisateurs de son département."""
+        if obj is None:
+            return True
+        # Ne peut pas modifier les superusers
+        if obj.is_superuser:
+            return False
+        # Ne peut pas modifier son propre compte (sauf is_active)
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        """Le chef de département ne peut pas supprimer les utilisateurs."""
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        """Le chef de département peut voir les utilisateurs de son département."""
+        return True
+
+    def get_readonly_fields(self, request, obj=None):
+        """
+        Rend certains champs en lecture seule selon le contexte.
+        """
+        readonly = list(self.readonly_fields)
+        if obj:
+            # Ne peut pas changer le nom d'utilisateur ni les permissions superuser
+            readonly.extend(['is_superuser', 'is_staff', 'user_permissions'])
+        return readonly
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        """Filtre les groupes disponibles pour le chef de département."""
+        if db_field.name == "groups":
+            # Exclure les groupes admin/superuser
+            kwargs["queryset"] = Group.objects.exclude(
+                name__in=['Administrateurs', 'Admin', 'Superusers']
+            )
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+
+# ══════════════════════════════════════════════════════════════
 # ENREGISTREMENT DES MODÈLES DANS L'ADMIN PERSONNALISÉ
 # ══════════════════════════════════════════════════════════════
 
 dep_admin_site.register(Enseignant, EnseignantDepAdmin)
 dep_admin_site.register(Etudiant, EtudiantDepAdmin)
 dep_admin_site.register(Ens_Dep, EnsDep_DepAdmin)
+dep_admin_site.register(CustomUser, UserDepAdmin)

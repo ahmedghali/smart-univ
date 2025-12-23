@@ -1,0 +1,562 @@
+{% extends "admin/import_export/base.html" %}
+{% load i18n %}
+{% load admin_urls %}
+{% load import_export_tags %}
+{% load static %}
+{% load import_stats %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "import_export/import.css" %}" />
+<style>
+    /* === HEADER === */
+    .import-header {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--hairline-color, #ccc);
+    }
+    .import-header h2 {
+        margin: 0 0 5px 0;
+        color: var(--body-fg, #333);
+    }
+    .import-summary {
+        margin: 0;
+        color: var(--body-quiet-color, #666);
+        font-size: 0.95em;
+    }
+
+    /* === STATISTIQUES === */
+    .import-stats {
+        margin: 20px 0;
+    }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 15px;
+    }
+    .stat-card {
+        background: var(--darkened-bg, #f8f9fa);
+        border: 1px solid var(--hairline-color, #ddd);
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        position: relative;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .stat-icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+    }
+    .stat-number {
+        font-size: 2.2em;
+        font-weight: 700;
+        display: block;
+        line-height: 1;
+    }
+    .stat-label {
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 5px;
+        color: var(--body-quiet-color, #666);
+    }
+    .stat-percent {
+        display: block;
+        font-size: 0.75em;
+        color: var(--body-quiet-color, #888);
+        margin-top: 3px;
+    }
+
+    /* Couleurs des cartes */
+    .stat-total { border-left: 4px solid #6366f1; }
+    .stat-total .stat-number { color: #6366f1; }
+    .stat-new { border-left: 4px solid #10b981; }
+    .stat-new .stat-number { color: #10b981; }
+    .stat-update { border-left: 4px solid #3b82f6; }
+    .stat-update .stat-number { color: #3b82f6; }
+    .stat-skip { border-left: 4px solid #6b7280; }
+    .stat-skip .stat-number { color: #6b7280; }
+    .stat-error { border-left: 4px solid #ef4444; }
+    .stat-error .stat-number { color: #ef4444; }
+
+    /* === SECTIONS DÉTAILS === */
+    .import-details {
+        margin: 25px 0;
+    }
+    .students-section {
+        background: var(--darkened-bg, #f8f9fa);
+        border: 1px solid var(--hairline-color, #ddd);
+        border-radius: 8px;
+        margin-bottom: 10px;
+        overflow: hidden;
+    }
+    .students-section summary {
+        padding: 12px 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 500;
+        color: var(--body-fg, #333);
+        background: var(--secondary, #f1f3f5);
+        border-bottom: 1px solid var(--hairline-color, #ddd);
+    }
+    .students-section summary:hover {
+        background: var(--hairline-color, #e9ecef);
+    }
+    .students-section[open] summary {
+        border-bottom: 1px solid var(--hairline-color, #ddd);
+    }
+    .section-icon {
+        font-size: 1.1em;
+    }
+    .section-title {
+        flex: 1;
+    }
+    .section-count {
+        background: var(--primary, #417690);
+        color: white;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 0.85em;
+        font-weight: 600;
+    }
+
+    /* === TABLE ÉTUDIANTS === */
+    .students-table-container {
+        padding: 10px 15px;
+        max-height: 350px;
+        overflow-y: auto;
+    }
+    .students-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9em;
+    }
+    .students-table th {
+        background: var(--primary, #417690);
+        color: white;
+        padding: 10px 12px;
+        text-align: right;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+    .students-table td {
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--hairline-color, #ddd);
+        background: transparent !important;
+        color: inherit !important;
+    }
+    .students-table tr:hover td {
+        background: var(--darkened-bg, #f5f5f5) !important;
+    }
+    .students-table .col-matricule {
+        font-weight: 600;
+        font-family: monospace;
+    }
+
+    /* Fix pour le thème sombre - supprimer tout highlight de diff */
+    .students-table mark,
+    .students-table ins,
+    .students-table del,
+    .students-table-container mark,
+    .students-table-container ins,
+    .students-table-container del,
+    .students-section ins,
+    .students-section del,
+    .students-section mark,
+    .import-details ins,
+    .import-details del,
+    .import-details mark {
+        background: none !important;
+        background-color: transparent !important;
+        color: inherit !important;
+        text-decoration: none !important;
+        border: none !important;
+    }
+
+    /* Override import_export default styles */
+    .import-preview ins,
+    .import-preview del,
+    ins, del {
+        background: none !important;
+        background-color: transparent !important;
+    }
+
+    /* === BOUTONS === */
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin: 25px 0;
+        justify-content: center;
+        padding-top: 20px;
+        border-top: 1px solid var(--hairline-color, #ddd);
+    }
+    .btn-confirm {
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 12px 35px;
+        font-size: 1em;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+    .btn-confirm:hover { background: #059669; }
+    .btn-cancel {
+        background: #6b7280;
+        color: white;
+        border: none;
+        padding: 12px 35px;
+        font-size: 1em;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+    .btn-cancel:hover { background: #4b5563; color: white; }
+</style>
+{% endblock %}
+
+{% block extrahead %}{{ block.super }}
+  <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+  {% if confirm_form %}
+    {{ confirm_form.media }}
+  {% else %}
+    {{ form.media }}
+  {% endif %}
+{% endblock %}
+
+{% block breadcrumbs_last %}
+{% translate "Import" %}
+{% endblock %}
+
+{% block content %}
+
+  {% if confirm_form %}
+    {% block confirm_import_form %}
+
+    {% if result and not result.has_errors %}
+        {% import_statistics result.valid_rows as stats %}
+
+        {# En-tête avec titre et résumé #}
+        <div class="import-header">
+            <h2>تقرير الاستيراد / Rapport d'import</h2>
+            <p class="import-summary">
+                {{ stats.total }} enregistrement(s) analysé(s) depuis le fichier Excel
+            </p>
+        </div>
+
+        {# Statistiques principales #}
+        <div class="import-stats">
+            <div class="stats-grid">
+                <div class="stat-card stat-total">
+                    <div class="stat-icon">📊</div>
+                    <span class="stat-number">{{ stats.total }}</span>
+                    <span class="stat-label">Total</span>
+                </div>
+                <div class="stat-card stat-new">
+                    <div class="stat-icon">➕</div>
+                    <span class="stat-number">{{ stats.new }}</span>
+                    <span class="stat-label">Nouveaux</span>
+                    {% if stats.total > 0 %}
+                    <span class="stat-percent">{% widthratio stats.new stats.total 100 %}%</span>
+                    {% endif %}
+                </div>
+                <div class="stat-card stat-update">
+                    <div class="stat-icon">🔄</div>
+                    <span class="stat-number">{{ stats.update }}</span>
+                    <span class="stat-label">Mises à jour</span>
+                    {% if stats.total > 0 %}
+                    <span class="stat-percent">{% widthratio stats.update stats.total 100 %}%</span>
+                    {% endif %}
+                </div>
+                <div class="stat-card stat-skip">
+                    <div class="stat-icon">⏭️</div>
+                    <span class="stat-number">{{ stats.skip }}</span>
+                    <span class="stat-label">Ignorés</span>
+                    {% if stats.total > 0 %}
+                    <span class="stat-percent">{% widthratio stats.skip stats.total 100 %}%</span>
+                    {% endif %}
+                </div>
+                {% if stats.error > 0 %}
+                <div class="stat-card stat-error">
+                    <div class="stat-icon">❌</div>
+                    <span class="stat-number">{{ stats.error }}</span>
+                    <span class="stat-label">Erreurs</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Détails des étudiants #}
+        <div class="import-details">
+            {% if stats.new > 0 %}
+            <details class="students-section" open>
+                <summary>
+                    <span class="section-icon">➕</span>
+                    <span class="section-title">Nouveaux étudiants / طلاب جدد</span>
+                    <span class="section-count">{{ stats.new }}</span>
+                </summary>
+                <div class="students-table-container">
+                    <table class="students-table">
+                        <thead>
+                            <tr>
+                                <th>Matricule</th>
+                                <th>Nom</th>
+                                <th>Prénom</th>
+                                <th>اللقب</th>
+                                <th>الإسم</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in result.valid_rows %}
+                                {% if row.import_type == 'new' %}
+                                <tr>
+                                    <td class="col-matricule">{{ row.diff|get_student_name:2 }}</td>
+                                    <td>{{ row.diff|get_student_name:3 }}</td>
+                                    <td>{{ row.diff|get_student_name:4 }}</td>
+                                    <td>{{ row.diff|get_student_name:5 }}</td>
+                                    <td>{{ row.diff|get_student_name:6 }}</td>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+            {% endif %}
+
+            {% if stats.update > 0 %}
+            <details class="students-section">
+                <summary>
+                    <span class="section-icon">🔄</span>
+                    <span class="section-title">Étudiants mis à jour / طلاب محدّثون</span>
+                    <span class="section-count">{{ stats.update }}</span>
+                </summary>
+                <div class="students-table-container">
+                    <table class="students-table">
+                        <thead>
+                            <tr>
+                                <th>Matricule</th>
+                                <th>Nom</th>
+                                <th>Prénom</th>
+                                <th>اللقب</th>
+                                <th>الإسم</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in result.valid_rows %}
+                                {% if row.import_type == 'update' %}
+                                <tr>
+                                    <td class="col-matricule">{{ row.diff|get_student_name:2 }}</td>
+                                    <td>{{ row.diff|get_student_name:3 }}</td>
+                                    <td>{{ row.diff|get_student_name:4 }}</td>
+                                    <td>{{ row.diff|get_student_name:5 }}</td>
+                                    <td>{{ row.diff|get_student_name:6 }}</td>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+            {% endif %}
+
+            {% if stats.skip > 0 %}
+            <details class="students-section">
+                <summary>
+                    <span class="section-icon">⏭️</span>
+                    <span class="section-title">Étudiants ignorés (sans changement) / طلاب متجاهلون</span>
+                    <span class="section-count">{{ stats.skip }}</span>
+                </summary>
+                <div class="students-table-container">
+                    <table class="students-table">
+                        <thead>
+                            <tr>
+                                <th>Matricule</th>
+                                <th>Nom</th>
+                                <th>Prénom</th>
+                                <th>اللقب</th>
+                                <th>الإسم</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in result.valid_rows %}
+                                {% if row.import_type == 'skip' %}
+                                <tr>
+                                    <td class="col-matricule">{{ row.diff|get_student_name:2 }}</td>
+                                    <td>{{ row.diff|get_student_name:3 }}</td>
+                                    <td>{{ row.diff|get_student_name:4 }}</td>
+                                    <td>{{ row.diff|get_student_name:5 }}</td>
+                                    <td>{{ row.diff|get_student_name:6 }}</td>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <form action="{% url opts|admin_urlname:"process_import" %}" method="POST">
+      {% csrf_token %}
+      {{ confirm_form.as_p }}
+
+      <div class="action-buttons">
+        <input type="submit" class="btn-confirm" name="confirm" value="تأكيد الاستيراد / Confirmer">
+        <a href="{% url opts|admin_urlname:"changelist" %}" class="btn-cancel">إلغاء / Annuler</a>
+      </div>
+    </form>
+    {% endblock %}
+
+  {% else %}
+    {% block import_form %}
+    <form action="" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      {% include "admin/import_export/resource_fields_list.html" with import_or_export="import" %}
+      {% block import_form_additional_info %}{% endblock %}
+
+      {% block form_detail %}
+          <fieldset class="module aligned">
+          {% for field in form.visible_fields %}
+            <div class="form-row">
+              {{ field.errors }}
+
+              {{ field.label_tag }}
+
+              {% if field.field.widget.attrs.readonly %}
+                {{ field.field.value }}
+                {{ field.as_hidden }}
+              {% else %}
+                {{ field }}
+              {% endif %}
+
+              {% if field.field.help_text %}
+              <p class="help">{{ field.field.help_text|safe }}</p>
+              {% endif %}
+            </div>
+          {% endfor %}
+          {% for field in form.hidden_fields %}
+              {{ field }}
+          {% endfor %}
+        </fieldset>
+      {% endblock %}
+
+      {% block form_submit_button %}
+        <div class="submit-row">
+          <input type="submit" class="default" value="{% translate "Submit" %}">
+        </div>
+      {% endblock %}
+    </form>
+    {% endblock %}
+  {% endif %}
+
+  {% if result %}
+
+    {% if result.has_errors %}
+    {% block errors %}
+      <h2>{% translate "Errors" %}</h2>
+      <ul>
+        {% for error in result.base_errors  %}
+        <li>
+          {{ error.error }}
+          <div class="traceback">{{ error.traceback|linebreaks }}</div>
+        </li>
+        {% endfor %}
+        {% block import_error_list %}
+        {% for line, errors in result.row_errors %}
+          {% for error in errors %}
+            {% block import_error_list_item %}
+            <li class="import-error-li">
+              {% if "message" in import_error_display %}
+                <div class="import-error-display-message">{% translate "Line number" %}: {{ line }} - {{ error.error }}</div>
+              {% endif %}
+              {% if "row" in import_error_display %}
+                <div class="import-error-display-row">{{ error.row.values|join:", " }}</div>
+              {% endif %}
+              {% if "traceback" in import_error_display %}
+              <div class="import-error-display-traceback">{{ error.traceback|linebreaks }}</div>
+              {% endif %}
+            </li>
+            {% endblock %}
+          {% endfor %}
+        {% endfor %}
+        {% endblock %}
+      </ul>
+    {% endblock %}
+
+    {% elif result.has_validation_errors %}
+
+    {% block validation_errors %}
+      <h2>{% translate "Some rows failed to validate" %}</h2>
+
+      <p>{% translate "Please correct these errors in your data where possible, then reupload it using the form above." %}</p>
+
+      <table class="import-preview">
+        <thead>
+          <tr>
+            <th>{% translate "Row" %}</th>
+            <th>{% translate "Errors" %}</th>
+            {% for field in result.diff_headers %}
+              <th>{{ field }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+        {% for row in result.invalid_rows %}
+          <tr>
+            <td>{{ row.number }} </td>
+            <td class="errors">
+              <span class="validation-error-count">{{ row.error_count }}</span>
+              <div class="validation-error-container">
+                <ul class="validation-error-list">
+                  {% for field_name, error_list in row.field_specific_errors.items %}
+                    <li>
+                        <span class="validation-error-field-label">{{ field_name }}</span>
+                        <ul>
+                          {% for error in error_list %}
+                            <li>{{ error }}</li>
+                          {% endfor %}
+                        </ul>
+                    </li>
+                  {% endfor %}
+                  {% if row.non_field_specific_errors %}
+                    <li>
+                      <span class="validation-error-field-label">{% translate "Non field specific" %}</span>
+                      <ul>
+                        {% for error in row.non_field_specific_errors %}
+                          <li>{{ error }}</li>
+                        {% endfor %}
+                      </ul>
+                    </li>
+                  {% endif %}
+                </ul>
+              </div>
+            </td>
+            {% for field in row.values %}
+              <td>{{ field }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% endblock %}
+
+    {% else %}
+      {# Table de prévisualisation masquée - les statistiques suffisent #}
+      {% block preview %}{% endblock %}
+    {% endif %}
+
+  {% endif %}
+{% endblock %}

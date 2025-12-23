@@ -39,6 +39,16 @@ ARABIC_TO_FRENCH = {
 }
 
 
+def contains_arabic(text):
+    """Vérifie si le texte contient des caractères arabes."""
+    if not text:
+        return False
+    for char in text:
+        if char in ARABIC_TO_FRENCH or '\u0600' <= char <= '\u06FF':
+            return True
+    return False
+
+
 def transliterate_arabic_to_french(text):
     """Convertit un texte arabe en français en utilisant le dictionnaire."""
     if not text:
@@ -53,10 +63,18 @@ def transliterate_arabic_to_french(text):
 def get_french_name(nom_fr, nom_ar, max_length=7):
     """
     Retourne le nom en français, soit directement soit par translitération.
+    Détecte automatiquement si le texte contient de l'arabe et le translitère.
     Supprime les espaces et convertit en minuscules.
     """
+    nom = ""
+
+    # Vérifier nom_fr d'abord
     if nom_fr and nom_fr.strip():
         nom = nom_fr.strip()
+        # Si nom_fr contient de l'arabe, le translitérer
+        if contains_arabic(nom):
+            nom = transliterate_arabic_to_french(nom)
+    # Sinon utiliser nom_ar translitéré
     elif nom_ar and nom_ar.strip():
         nom = transliterate_arabic_to_french(nom_ar.strip())
     else:
@@ -64,6 +82,13 @@ def get_french_name(nom_fr, nom_ar, max_length=7):
 
     # Supprimer espaces, tirets et convertir en minuscules
     nom = nom.lower().replace(" ", "").replace("-", "").replace("_", "")
+
+    # Supprimer les caractères non-ASCII restants
+    nom = ''.join(c for c in nom if c.isascii() and c.isalnum())
+
+    # Si le nom est vide après nettoyage, utiliser un défaut
+    if not nom:
+        nom = "etudiant"
 
     # Limiter à max_length caractères
     return nom[:max_length]

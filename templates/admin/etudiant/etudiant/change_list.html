@@ -1,0 +1,172 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls %}
+
+{% block content %}
+<style>
+    /* === STATISTIQUES DASHBOARD === */
+    .stats-dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+        padding: 20px;
+        background: var(--body-bg, #f8f9fa);
+        border-radius: 10px;
+        border: 1px solid var(--hairline-color, #ddd);
+    }
+
+    .stat-card {
+        background: var(--darkened-bg, #fff);
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        border: 1px solid var(--hairline-color, #e0e0e0);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .stat-card.primary {
+        background: linear-gradient(135deg, #417690 0%, #2c5364 100%);
+        color: white;
+        border: none;
+    }
+
+    .stat-card.primary .stat-label {
+        color: rgba(255,255,255,0.9);
+    }
+
+    .stat-card.success {
+        border-left: 4px solid #28a745;
+    }
+
+    .stat-card.info {
+        border-left: 4px solid #17a2b8;
+    }
+
+    .stat-card.warning {
+        border-left: 4px solid #ffc107;
+    }
+
+    .stat-card.danger {
+        border-left: 4px solid #dc3545;
+    }
+
+    .stat-value {
+        font-size: 2em;
+        font-weight: 700;
+        line-height: 1.2;
+        color: var(--body-fg, #333);
+    }
+
+    .stat-card.primary .stat-value {
+        color: white;
+    }
+
+    .stat-label {
+        font-size: 0.85em;
+        color: var(--body-quiet-color, #666);
+        margin-top: 5px;
+        font-weight: 500;
+    }
+
+    .stat-percent {
+        font-size: 0.75em;
+        color: var(--body-quiet-color, #888);
+        margin-top: 3px;
+    }
+
+    .stat-card.primary .stat-percent {
+        color: rgba(255,255,255,0.8);
+    }
+
+    .stat-icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        opacity: 0.8;
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 768px) {
+        .stats-dashboard {
+            grid-template-columns: repeat(2, 1fr);
+            padding: 15px;
+        }
+        .stat-value {
+            font-size: 1.5em;
+        }
+    }
+
+    /* Dark theme support */
+    @media (prefers-color-scheme: dark) {
+        .stat-card {
+            background: #2a2a2a;
+            border-color: #444;
+        }
+        .stat-value {
+            color: #e0e0e0;
+        }
+        .stat-label, .stat-percent {
+            color: #aaa;
+        }
+    }
+</style>
+
+{% if etudiant_stats %}
+<div class="stats-dashboard">
+    <!-- Total -->
+    <div class="stat-card primary">
+        <div class="stat-icon">&#x1F393;</div>
+        <div class="stat-value">{{ etudiant_stats.total }}</div>
+        <div class="stat-label">المجموع الكلي</div>
+        <div class="stat-percent">Total des étudiants</div>
+    </div>
+
+    <!-- Hommes -->
+    <div class="stat-card info">
+        <div class="stat-icon">&#x1F468;&#x200D;&#x1F393;</div>
+        <div class="stat-value">{{ etudiant_stats.hommes }}</div>
+        <div class="stat-label">ذكور / Hommes</div>
+        <div class="stat-percent">{{ etudiant_stats.pct_hommes }}%</div>
+    </div>
+
+    <!-- Femmes -->
+    <div class="stat-card success">
+        <div class="stat-icon">&#x1F469;&#x200D;&#x1F393;</div>
+        <div class="stat-value">{{ etudiant_stats.femmes }}</div>
+        <div class="stat-label">إناث / Femmes</div>
+        <div class="stat-percent">{{ etudiant_stats.pct_femmes }}%</div>
+    </div>
+
+    <!-- Actifs -->
+    <div class="stat-card success">
+        <div class="stat-icon">&#x2705;</div>
+        <div class="stat-value">{{ etudiant_stats.total_actifs }}</div>
+        <div class="stat-label">نشطون / Actifs</div>
+        <div class="stat-percent">{{ etudiant_stats.pct_actifs }}%</div>
+    </div>
+
+    <!-- Avec compte -->
+    <div class="stat-card info">
+        <div class="stat-icon">&#x1F511;</div>
+        <div class="stat-value">{{ etudiant_stats.avec_compte }}</div>
+        <div class="stat-label">لديهم حساب</div>
+        <div class="stat-percent">{{ etudiant_stats.pct_avec_compte }}%</div>
+    </div>
+
+    <!-- Sans compte -->
+    <div class="stat-card warning">
+        <div class="stat-icon">&#x26A0;</div>
+        <div class="stat-value">{{ etudiant_stats.sans_compte }}</div>
+        <div class="stat-label">بدون حساب</div>
+        <div class="stat-percent">Sans compte</div>
+    </div>
+</div>
+{% endif %}
+
+{{ block.super }}
+{% endblock %}

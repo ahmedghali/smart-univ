@@ -163,8 +163,21 @@ NOTES.md
 *.ipynb
 
 # ══════════════════════════════════════════════════════════════
-# MIGRATIONS (décommentez pour masquer)
+# MODÈLES ET MIGRATIONS (STRUCTURE BASE DE DONNÉES)
 # ══════════════════════════════════════════════════════════════
 
-# */migrations/*.py
-# !*/migrations/__init__.py
+# Fichiers de modèles (schéma de la base de données)
+*/models.py
+**/models.py
+
+# Fichiers de migrations
+*/migrations/*.py
+**/migrations/*.py
+!*/migrations/__init__.py
+!**/migrations/__init__.py
+
+# ══════════════════════════════════════════════════════════════
+# CLAUDE CODE
+# ══════════════════════════════════════════════════════════════
+
+.claude/
