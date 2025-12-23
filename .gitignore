@@ -1,54 +1,170 @@
-# Python
+# ══════════════════════════════════════════════════════════════
+# FICHIERS SENSIBLES - NE JAMAIS COMMITTER
+# ══════════════════════════════════════════════════════════════
+
+# Environment Variables (SECRETS!)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+*.env
+
+# Fichiers de configuration locale
+local_settings.py
+settings_local.py
+secrets.py
+config_local.py
+
+# Clés et certificats
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# ══════════════════════════════════════════════════════════════
+# PYTHON
+# ══════════════════════════════════════════════════════════════
+
 *.py[cod]
 *$py.class
 *.so
 .Python
 __pycache__/
 *.pyc
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Django
+# ══════════════════════════════════════════════════════════════
+# DJANGO
+# ══════════════════════════════════════════════════════════════
+
 *.log
-local_settings.py
 db.sqlite3
 db.sqlite3-journal
-/media
-/staticfiles
+/media/
+/staticfiles/
+*.pot
+*.mo
 
-# Environment Variables
-.env
-.env.local
-.env.*.local
+# ══════════════════════════════════════════════════════════════
+# VIRTUAL ENVIRONMENT
+# ══════════════════════════════════════════════════════════════
 
-# Virtual Environment
 venv/
 env/
 ENV/
-.venv
+.venv/
+.virtualenv/
+virtualenv/
 
-# IDEs
+# ══════════════════════════════════════════════════════════════
+# IDEs ET EDITEURS
+# ══════════════════════════════════════════════════════════════
+
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+*.sublime-project
+*.sublime-workspace
+.project
+.pydevproject
+.spyderproject
+.spyproject
 
+# ══════════════════════════════════════════════════════════════
 # OS
+# ══════════════════════════════════════════════════════════════
+
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
-
-# Database
-*.sql
-*.sqlite
-
-# Migrations (optional - décommentez si vous ne voulez pas versionner les migrations)
-# */migrations/*.py
-# !*/migrations/__init__.py
-
+Desktop.ini
 nul
 
-/code_Ens
-/code_Etu
+# ══════════════════════════════════════════════════════════════
+# BASE DE DONNÉES
+# ══════════════════════════════════════════════════════════════
+
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+
+# ══════════════════════════════════════════════════════════════
+# FICHIERS TEMPORAIRES ET CACHE
+# ══════════════════════════════════════════════════════════════
+
+*.tmp
+*.temp
+*.bak
+*.backup
+.cache/
+*.cache
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ══════════════════════════════════════════════════════════════
+# TESTS ET COUVERTURE
+# ══════════════════════════════════════════════════════════════
+
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# ══════════════════════════════════════════════════════════════
+# DOCUMENTATION PRIVÉE
+# ══════════════════════════════════════════════════════════════
+
+/code_Ens/
+/code_Etu/
+/code_dep/
 guide.md
 IMPORT_EXPORT_GUIDE.md
 ROADMAP.md
 ARCHITECTURE.md
+TODO.md
+NOTES.md
+*.private.md
+
+# ══════════════════════════════════════════════════════════════
+# JUPYTER NOTEBOOKS
+# ══════════════════════════════════════════════════════════════
+
+.ipynb_checkpoints/
+*.ipynb
+
+# ══════════════════════════════════════════════════════════════
+# MIGRATIONS (décommentez pour masquer)
+# ══════════════════════════════════════════════════════════════
+
+# */migrations/*.py
+# !*/migrations/__init__.py
