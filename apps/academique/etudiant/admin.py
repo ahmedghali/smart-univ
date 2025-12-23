@@ -169,8 +169,7 @@ class EtudiantAdmin(ImportExportModelAdmin):
         'prenom_fr',
         'nom_ar',
         'prenom_ar',
-        'delegue',
-        'get_status_display',
+        'get_last_login',
         'get_user_creation_button',
     )
 
@@ -323,38 +322,84 @@ class EtudiantAdmin(ImportExportModelAdmin):
         return " / ".join(statuses) if statuses else "نشط"
     get_status_display.short_description = "الحالة / Statut"
 
+    def get_last_login(self, obj):
+        """Affiche la date de dernière connexion de l'utilisateur."""
+        if obj.user and obj.user.last_login:
+            return obj.user.last_login.strftime('%Y-%m-%d %H:%M')
+        elif obj.user:
+            return format_html('<span style="color: #9ca3af;">لم يسجل بعد</span>')
+        return format_html('<span style="color: #ef4444;">-</span>')
+    get_last_login.short_description = "آخر دخول / Dernier login"
+    get_last_login.admin_order_field = 'user__last_login'
+
     def get_user_link(self, obj):
-        """Affiche les informations de l'utilisateur avec lien vers la modification."""
+        """Affiche les informations de l'utilisateur avec un style carte professionnelle dark."""
         if obj.user:
             user = obj.user
-            status_icon = '✅' if user.is_active else '❌'
+            status_color = '#4ade80' if user.is_active else '#f87171'
+            status_bg = 'rgba(74, 222, 128, 0.15)' if user.is_active else 'rgba(248, 113, 113, 0.15)'
             status_text = 'نشط / Actif' if user.is_active else 'غير نشط / Inactif'
             last_login = user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'لم يسجل الدخول بعد'
 
+            # URL vers la page de modification dans dep_admin
+            user_edit_url = f'/departement/admin/authentification/customuser/{user.pk}/change/'
+
             return format_html(
-                '<div style="background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #e0e0e0;">'
-                '<div style="margin-bottom: 8px;">'
-                '<strong style="color: #417690; font-size: 14px;">👤 {}</strong>'
-                '<span style="margin-right: 10px; color: #666;"> - {}</span>'
+                '<div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); '
+                'padding: 20px; border-radius: 12px; color: #e2e8f0; '
+                'box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.2); '
+                'border: 1px solid #475569; max-width: 450px;">'
+
+                '<!-- En-tête avec avatar -->'
+                '<div style="display: flex; align-items: center; margin-bottom: 16px; '
+                'padding-bottom: 16px; border-bottom: 1px solid #475569;">'
+                '<div style="width: 50px; height: 50px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); '
+                'border-radius: 50%; display: flex; align-items: center; justify-content: center; '
+                'font-size: 20px; margin-left: 15px; flex-shrink: 0;">👤</div>'
+                '<div style="flex-grow: 1;">'
+                '<div style="font-size: 16px; font-weight: 600; color: #f1f5f9;">{}</div>'
+                '<div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">@{}</div>'
+                '<div style="background: {}; color: {}; padding: 3px 10px; border-radius: 20px; '
+                'font-size: 11px; font-weight: 500; display: inline-block;">{}</div>'
                 '</div>'
-                '<table style="font-size: 12px; width: 100%;">'
-                '<tr><td style="color: #888; width: 120px;">اسم المستخدم:</td><td><strong>{}</strong></td></tr>'
-                '<tr><td style="color: #888;">البريد الإلكتروني:</td><td>{}</td></tr>'
-                '<tr><td style="color: #888;">الحالة:</td><td>{} {}</td></tr>'
-                '<tr><td style="color: #888;">آخر دخول:</td><td>{}</td></tr>'
-                '</table>'
+                '</div>'
+
+                '<!-- Informations -->'
+                '<div style="display: grid; gap: 10px; margin-bottom: 16px;">'
+                '<div style="display: flex; align-items: center;">'
+                '<span style="color: #64748b; font-size: 12px; width: 100px;">📧 البريد:</span>'
+                '<span style="color: #e2e8f0; font-size: 13px;">{}</span>'
+                '</div>'
+                '<div style="display: flex; align-items: center;">'
+                '<span style="color: #64748b; font-size: 12px; width: 100px;">🕐 آخر دخول:</span>'
+                '<span style="color: #e2e8f0; font-size: 13px;">{}</span>'
+                '</div>'
+                '</div>'
+
+                '<!-- Bouton -->'
+                '<a href="{}" style="display: block; text-align: center; '
+                'background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; '
+                'padding: 10px 16px; text-decoration: none; border-radius: 8px; '
+                'font-size: 13px; font-weight: 500;">'
+                '⚙️ إدارة الحساب / Gérer le compte</a>'
                 '</div>',
                 user.nom_complet,
                 user.username,
-                user.username,
-                user.email or '-',
-                status_icon,
+                status_bg,
+                status_color,
                 status_text,
-                last_login
+                user.email or '-',
+                last_login,
+                user_edit_url
             )
         return format_html(
-            '<span style="color: #999; padding: 10px; display: block;">'
-            '⚠️ لا يوجد حساب مرتبط / Aucun compte lié</span>'
+            '<div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); '
+            'padding: 20px; border-radius: 12px; color: #94a3b8; text-align: center; '
+            'border: 1px solid #475569; max-width: 450px;">'
+            '<div style="font-size: 40px; margin-bottom: 10px;">⚠️</div>'
+            '<div style="font-size: 14px;">لا يوجد حساب مرتبط</div>'
+            '<div style="font-size: 12px; color: #64748b;">Aucun compte utilisateur lié</div>'
+            '</div>'
         )
     get_user_link.short_description = "المستخدم / Utilisateur"
     get_user_link.allow_tags = True

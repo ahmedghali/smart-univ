@@ -132,7 +132,7 @@ class DepartementFilterMixin:
     def get_annee_courante(self):
         """Récupère l'année universitaire courante."""
         try:
-            return AnneeUniversitaire.objects.get(courante=True)
+            return AnneeUniversitaire.objects.get(est_courante=True)
         except AnneeUniversitaire.DoesNotExist:
             return None
 
@@ -626,9 +626,9 @@ class UserDepAdmin(DepartementFilterMixin, admin.ModelAdmin):
     )
 
     readonly_fields = (
-        'username',
         'last_login',
         'date_joined',
+        'get_password_change_link',
     )
 
     # Actions personnalisées
@@ -644,6 +644,12 @@ class UserDepAdmin(DepartementFilterMixin, admin.ModelAdmin):
                 'username',
                 'is_active',
             )
+        }),
+        ('كلمة المرور / Mot de passe', {
+            'fields': (
+                'get_password_change_link',
+            ),
+            'description': 'Cliquez sur le bouton pour réinitialiser le mot de passe'
         }),
         ('المعلومات الشخصية / Informations personnelles', {
             'fields': (
@@ -691,7 +697,7 @@ class UserDepAdmin(DepartementFilterMixin, admin.ModelAdmin):
 
     def get_reset_password_button(self, obj):
         """Affiche un bouton pour réinitialiser le mot de passe."""
-        url = reverse('dep_admin:user_reset_password', args=[obj.pk])
+        url = f'/departement/admin/authentification/customuser/{obj.pk}/reset-password/'
         return format_html(
             '<a class="button" href="{}" style="background: #417690; color: white; '
             'padding: 3px 8px; text-decoration: none; border-radius: 3px; font-size: 11px;">'
@@ -700,6 +706,34 @@ class UserDepAdmin(DepartementFilterMixin, admin.ModelAdmin):
         )
     get_reset_password_button.short_description = "كلمة المرور"
     get_reset_password_button.allow_tags = True
+
+    def get_password_change_link(self, obj):
+        """Affiche les options de gestion du mot de passe dans le formulaire."""
+        if obj and obj.pk:
+            # Utiliser des URLs directes au lieu de reverse
+            reset_url = f'/departement/admin/authentification/customuser/{obj.pk}/reset-password/'
+            set_password_url = f'/departement/admin/authentification/customuser/{obj.pk}/set-password/'
+            return format_html(
+                '<div style="display: flex; gap: 10px; flex-wrap: wrap;">'
+                '<a href="{}" style="background: linear-gradient(135deg, #f59e0b, #d97706); '
+                'color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; '
+                'font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px;">'
+                '🔄 إعادة تعيين تلقائي / Réinitialiser auto</a>'
+                '<a href="{}" style="background: linear-gradient(135deg, #3b82f6, #2563eb); '
+                'color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; '
+                'font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px;">'
+                '🔑 تعيين كلمة مرور جديدة / Définir nouveau</a>'
+                '</div>'
+                '<div style="margin-top: 8px; font-size: 11px; color: #6b7280;">'
+                '• إعادة تعيين تلقائي: كلمة المرور = أول حرفين من الاسم + أول حرفين من اللقب + 123<br>'
+                '• Réinitialiser auto: Mot de passe = 2 premières lettres nom + prénom + 123'
+                '</div>',
+                reset_url,
+                set_password_url
+            )
+        return format_html('<span style="color: #9ca3af;">احفظ المستخدم أولاً / Enregistrez d\'abord</span>')
+    get_password_change_link.short_description = "إدارة كلمة المرور / Gestion du mot de passe"
+    get_password_change_link.allow_tags = True
 
     def get_urls(self):
         """Ajoute des URLs personnalisées."""
@@ -711,11 +745,16 @@ class UserDepAdmin(DepartementFilterMixin, admin.ModelAdmin):
                 self.admin_site.admin_view(self.reset_password_view),
                 name='user_reset_password',
             ),
+            path(
+                '<int:user_id>/set-password/',
+                self.admin_site.admin_view(self.set_password_view),
+                name='user_set_password',
+            ),
         ]
         return custom_urls + urls
 
     def reset_password_view(self, request, user_id):
-        """Vue pour réinitialiser le mot de passe d'un utilisateur."""
+        """Vue pour réinitialiser le mot de passe d'un utilisateur (automatique)."""
         from apps.academique.etudiant.utils import generate_password
 
         try:
@@ -725,7 +764,7 @@ class UserDepAdmin(DepartementFilterMixin, admin.ModelAdmin):
             departement = self.get_departement(request)
             if not departement:
                 messages.error(request, "لا يوجد قسم محدد.")
-                return redirect('dep_admin:authentification_customuser_changelist')
+                return redirect('/departement/admin/authentification/customuser/')
 
             # Générer le nouveau mot de passe
             new_password = generate_password(
@@ -741,9 +780,9 @@ class UserDepAdmin(DepartementFilterMixin, admin.ModelAdmin):
                 request,
                 format_html(
                     'تم إعادة تعيين كلمة المرور للمستخدم <strong>{}</strong><br>'
-                    '<span style="font-size: 14px; background: #f0f0f0; padding: 5px 10px; '
-                    'border-radius: 3px; font-family: monospace;">'
-                    'كلمة المرور الجديدة: <strong>{}</strong></span>',
+                    '<span style="font-size: 14px; background: #1e293b; color: #fbbf24; padding: 8px 12px; '
+                    'border-radius: 4px; font-family: monospace; display: inline-block; margin-top: 5px;">'
+                    'كلمة المرور الجديدة: <strong style="color: #4ade80;">{}</strong></span>',
                     user.username,
                     new_password
                 )
@@ -752,7 +791,110 @@ class UserDepAdmin(DepartementFilterMixin, admin.ModelAdmin):
         except CustomUser.DoesNotExist:
             messages.error(request, "المستخدم غير موجود.")
 
-        return redirect('dep_admin:authentification_customuser_changelist')
+        return redirect('/departement/admin/authentification/customuser/')
+
+    def set_password_view(self, request, user_id):
+        """Vue pour définir un mot de passe personnalisé."""
+        from django.shortcuts import render
+
+        try:
+            user = CustomUser.objects.get(pk=user_id)
+
+            # Vérifier que l'utilisateur appartient au département
+            departement = self.get_departement(request)
+            if not departement:
+                messages.error(request, "لا يوجد قسم محدد.")
+                return redirect('/departement/admin/authentification/customuser/')
+
+            if request.method == 'POST':
+                new_password = request.POST.get('new_password', '').strip()
+                confirm_password = request.POST.get('confirm_password', '').strip()
+
+                if not new_password:
+                    messages.error(request, "كلمة المرور مطلوبة / Le mot de passe est requis")
+                elif len(new_password) < 4:
+                    messages.error(request, "كلمة المرور قصيرة جداً (4 أحرف على الأقل) / Mot de passe trop court (min 4 caractères)")
+                elif new_password != confirm_password:
+                    messages.error(request, "كلمتا المرور غير متطابقتين / Les mots de passe ne correspondent pas")
+                else:
+                    user.set_password(new_password)
+                    user.save(update_fields=['password'])
+                    messages.success(
+                        request,
+                        format_html(
+                            'تم تعيين كلمة المرور الجديدة للمستخدم <strong>{}</strong> بنجاح',
+                            user.username
+                        )
+                    )
+                    return redirect('/departement/admin/authentification/customuser/')
+
+            # Afficher le formulaire
+            context = {
+                'title': f'تعيين كلمة مرور جديدة لـ {user.username}',
+                'user_obj': user,
+                'opts': self.model._meta,
+                'has_view_permission': True,
+            }
+
+            # Rendu HTML inline simple
+            html_content = f'''
+            <!DOCTYPE html>
+            <html dir="rtl">
+            <head>
+                <meta charset="UTF-8">
+                <title>تعيين كلمة مرور جديدة</title>
+                <style>
+                    body {{ font-family: 'Segoe UI', Tahoma, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }}
+                    .container {{ max-width: 500px; margin: 50px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }}
+                    h1 {{ color: #1e293b; font-size: 20px; margin-bottom: 10px; }}
+                    .user-info {{ background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; }}
+                    .user-info strong {{ color: #3b82f6; }}
+                    label {{ display: block; margin-bottom: 5px; color: #475569; font-weight: 500; }}
+                    input[type="password"] {{ width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 15px; font-size: 14px; box-sizing: border-box; }}
+                    input[type="password"]:focus {{ outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }}
+                    .btn {{ padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; }}
+                    .btn-primary {{ background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }}
+                    .btn-secondary {{ background: #e2e8f0; color: #475569; margin-right: 10px; text-decoration: none; display: inline-block; }}
+                    .buttons {{ display: flex; gap: 10px; margin-top: 20px; }}
+                    .messages {{ margin-bottom: 15px; }}
+                    .error {{ background: #fef2f2; color: #dc2626; padding: 10px; border-radius: 6px; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>🔑 تعيين كلمة مرور جديدة</h1>
+                    <div class="user-info">
+                        <strong>👤 {user.nom_complet}</strong><br>
+                        <span style="color: #64748b;">@{user.username}</span>
+                    </div>
+                    <form method="post">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{request.META.get('CSRF_COOKIE', '')}">
+                        <label>كلمة المرور الجديدة / Nouveau mot de passe</label>
+                        <input type="password" name="new_password" required autofocus>
+                        <label>تأكيد كلمة المرور / Confirmer le mot de passe</label>
+                        <input type="password" name="confirm_password" required>
+                        <div class="buttons">
+                            <button type="submit" class="btn btn-primary">✓ حفظ / Enregistrer</button>
+                            <a href="/departement/admin/authentification/customuser/" class="btn btn-secondary">✕ إلغاء / Annuler</a>
+                        </div>
+                    </form>
+                </div>
+            </body>
+            </html>
+            '''
+            from django.http import HttpResponse
+            from django.middleware.csrf import get_token
+            # Get CSRF token
+            csrf_token = get_token(request)
+            html_content = html_content.replace(
+                f'value="{request.META.get("CSRF_COOKIE", "")}"',
+                f'value="{csrf_token}"'
+            )
+            return HttpResponse(html_content)
+
+        except CustomUser.DoesNotExist:
+            messages.error(request, "المستخدم غير موجود.")
+            return redirect('/departement/admin/authentification/customuser/')
 
     def changelist_view(self, request, extra_context=None):
         """Ajoute un message si aucun département n'est sélectionné."""
@@ -764,6 +906,23 @@ class UserDepAdmin(DepartementFilterMixin, admin.ModelAdmin):
                 "Aucun département sélectionné. Veuillez sélectionner votre département."
             )
         return super().changelist_view(request, extra_context=extra_context)
+
+    def get_user_ids_for_department(self, departement, annee=None):
+        """Récupère les IDs des utilisateurs du département."""
+        ens_ids = []
+        if annee:
+            ens_ids = list(Ens_Dep.objects.filter(
+                departement=departement,
+                annee_univ=annee,
+                enseignant__user__isnull=False
+            ).values_list('enseignant__user_id', flat=True))
+
+        etu_ids = list(Etudiant.objects.filter(
+            niv_spe_dep_sg__niv_spe_dep__departement=departement,
+            user__isnull=False
+        ).values_list('user_id', flat=True))
+
+        return list(set(ens_ids + etu_ids))
 
     def get_queryset(self, request):
         """
@@ -777,27 +936,30 @@ class UserDepAdmin(DepartementFilterMixin, admin.ModelAdmin):
         if not departement:
             return qs.none()
 
-        # Récupérer les IDs des enseignants du département (avec compte utilisateur)
-        ens_ids = []
-        if annee:
-            ens_ids = Ens_Dep.objects.filter(
-                departement=departement,
-                annee_univ=annee,
-                enseignant__user__isnull=False
-            ).values_list('enseignant__user_id', flat=True)
-
-        # Récupérer les IDs des étudiants du département (avec compte utilisateur)
-        etu_ids = Etudiant.objects.filter(
-            niv_spe_dep_sg__niv_spe_dep__departement=departement,
-            user__isnull=False
-        ).values_list('user_id', flat=True)
-
-        # Combiner les IDs
-        all_user_ids = list(set(list(ens_ids) + list(etu_ids)))
+        all_user_ids = self.get_user_ids_for_department(departement, annee)
 
         if all_user_ids:
             return qs.filter(id__in=all_user_ids)
         return qs.none()
+
+    def get_object(self, request, object_id, from_field=None):
+        """
+        Permet d'accéder aux détails d'un utilisateur du département.
+        Vérifie que l'utilisateur appartient bien au département.
+        """
+        obj = super().get_object(request, object_id, from_field)
+        if obj is None:
+            return None
+
+        # Vérifier que l'utilisateur appartient au département
+        departement = self.get_departement(request)
+        if departement:
+            annee = self.get_annee_courante()
+            allowed_ids = self.get_user_ids_for_department(departement, annee)
+            if obj.pk in allowed_ids:
+                return obj
+
+        return None
 
     # ══════════════════════════════════════════════════════════
     # ACTIONS PERSONNALISÉES
