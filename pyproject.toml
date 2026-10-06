@@ -1,0 +1,44 @@
+[project]
+name = "smart-univ"
+version = "1.0.0"
+description = "Système de gestion universitaire"
+requires-python = ">=3.13"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 120
+extend-exclude = ["migrations", "staticfiles", "static", "media", "data"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "DJ", "ERA"]
+ignore = [
+    "E501",   # longueur de ligne gérée par le formateur
+    "B904",   # raise ... from err
+    "DJ001",  # null=True sur CharField : changement de schéma
+    "DJ008",  # __str__ manquant sur certains modèles
+]
+
+# Dette technique existante : chaque correction change le comportement et doit être revue à la main.
+[tool.ruff.lint.per-file-ignores]
+"apps/**" = [
+    "F841",   # variables inutilisées (l'appel peut avoir des effets de bord)
+    "E711",   # comparaison à None
+    "E712",   # comparaison à True/False (valeurs non booléennes possibles)
+    "E741",   # noms de variables ambigus
+    "B007",   # variable de boucle inutilisée
+    "B020",   # variable de boucle qui écrase l'itérable
+    "DJ006",  # ModelForm avec exclude
+    "DJ007",  # ModelForm avec __all__
+    "DJ012",  # ordre des éléments dans les modèles
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "config"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py", "tests.py"]
+addopts = "--reuse-db -p no:cacheprovider"

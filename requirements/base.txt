@@ -1,0 +1,10 @@
+Django==5.2.18
+crispy-bootstrap5==2026.9
+dj-database-url==3.1.2
+django-crispy-forms==2.7
+django-import-export==4.4.1
+openpyxl==3.1.5
+pillow==12.3.0
+psycopg[binary]==3.3.6
+python-decouple==3.8
+whitenoise[brotli]==6.12.0

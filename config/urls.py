@@ -1,36 +1,20 @@
-"""
-URL configuration for config project.
+"""Routes racine du projet."""
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
+from django.conf import settings
 from django.contrib import admin
-from django.urls import path, include
-from apps.noyau.commun import views as commun_views
+from django.urls import include, path, re_path
+from django.views.static import serve
 
 urlpatterns = [
-    # Administration
-    path('admin/', admin.site.urls),
-
-    # URLs Noyau
-    path('', include('apps.noyau.commun.urls', namespace='comm')),
-    path('', include('apps.noyau.authentification.urls', namespace='auth')),
-
-    # URLs Academique
-    path('universite/', include('apps.academique.universite.urls', namespace='univ')),
-    path('faculte/', include('apps.academique.faculte.urls', namespace='facu')),
-    path('departement/', include('apps.academique.departement.urls', namespace='depa')),
-    path('enseignant/', include('apps.academique.enseignant.urls', namespace='ense')),
-    path('etudiant/', include('apps.academique.etudiant.urls', namespace='etud')),
-    path('affectation/', include('apps.academique.affectation.urls', namespace='affe')),
+    path("admin/", admin.site.urls),
+    path("", include("apps.noyau.commun.urls", namespace="comm")),
+    path("", include("apps.noyau.authentification.urls", namespace="auth")),
+    path("universite/", include("apps.academique.universite.urls", namespace="univ")),
+    path("faculte/", include("apps.academique.faculte.urls", namespace="facu")),
+    path("departement/", include("apps.academique.departement.urls", namespace="depa")),
+    path("enseignant/", include("apps.academique.enseignant.urls", namespace="ense")),
+    path("etudiant/", include("apps.academique.etudiant.urls", namespace="etud")),
+    path("affectation/", include("apps.academique.affectation.urls", namespace="affe")),
+    # Fichiers envoyés par les utilisateurs (logos) : peu nombreux, servis par Django
+    re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
 ]

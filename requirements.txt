@@ -1,19 +1,2 @@
-asgiref==3.11.0
-crispy-bootstrap5==2025.6
-diff-match-patch==20241021
-Django==5.2.9
-django-crispy-forms==2.3
-django-debug-toolbar==4.4.6
-django-import-export==4.3.3
-djangorestframework==3.15.2
-et_xmlfile==2.0.0
-openpyxl==3.1.5
-pillow==10.4.0
-psycopg2==2.9.11
-psycopg2-binary==2.9.10
-python-decouple==3.8
-python-dotenv==1.2.1
-pytz==2024.2
-sqlparse==0.5.4
-tablib==3.9.0
-tzdata==2025.2
+# Heroku installe depuis ce fichier
+-r requirements/prod.txt
