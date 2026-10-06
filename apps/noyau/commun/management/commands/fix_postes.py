@@ -1,12 +1,13 @@
 # apps/noyau/commun/management/commands/fix_postes.py
 
 from django.core.management.base import BaseCommand
-from apps.noyau.commun.models import Poste
+
 from apps.noyau.authentification.models import CustomUser
+from apps.noyau.commun.models import Poste
 
 
 class Command(BaseCommand):
-    help = 'Corrige les postes ENS et ETU en les remplacant par enseignant et etudiant'
+    help = "Corrige les postes ENS et ETU en les remplacant par enseignant et etudiant"
 
     def handle(self, *args, **kwargs):
         self.stdout.write("=" * 50)
@@ -15,14 +16,14 @@ class Command(BaseCommand):
 
         # Recuperer les postes corrects
         try:
-            poste_enseignant = Poste.objects.get(code='enseignant')
+            poste_enseignant = Poste.objects.get(code="enseignant")
             self.stdout.write(self.style.SUCCESS("[OK] Poste 'enseignant' trouve"))
         except Poste.DoesNotExist:
             self.stdout.write(self.style.ERROR("[ERREUR] Poste 'enseignant' introuvable!"))
             return
 
         try:
-            poste_etudiant = Poste.objects.get(code='etudiant')
+            poste_etudiant = Poste.objects.get(code="etudiant")
             self.stdout.write(self.style.SUCCESS("[OK] Poste 'etudiant' trouve"))
         except Poste.DoesNotExist:
             self.stdout.write(self.style.ERROR("[ERREUR] Poste 'etudiant' introuvable!"))
@@ -32,7 +33,7 @@ class Command(BaseCommand):
 
         # Traiter les postes 'ENS'
         try:
-            poste_ens = Poste.objects.get(code='ENS')
+            poste_ens = Poste.objects.get(code="ENS")
             self.stdout.write("-> Poste 'ENS' trouve")
 
             # Reaffecter tous les utilisateurs avec poste_principal='ENS' vers 'enseignant'
@@ -47,7 +48,9 @@ class Command(BaseCommand):
             for user in users_secondaires:
                 user.postes_secondaires.remove(poste_ens)
                 user.postes_secondaires.add(poste_enseignant)
-            self.stdout.write(self.style.SUCCESS(f"  [OK] {count_secondaires} utilisateurs reaffectes (postes secondaires)"))
+            self.stdout.write(
+                self.style.SUCCESS(f"  [OK] {count_secondaires} utilisateurs reaffectes (postes secondaires)")
+            )
 
             # Supprimer le poste 'ENS'
             poste_ens.delete()
@@ -60,7 +63,7 @@ class Command(BaseCommand):
 
         # Traiter les postes 'ETU'
         try:
-            poste_etu = Poste.objects.get(code='ETU')
+            poste_etu = Poste.objects.get(code="ETU")
             self.stdout.write("-> Poste 'ETU' trouve")
 
             # Reaffecter tous les utilisateurs avec poste_principal='ETU' vers 'etudiant'
@@ -75,7 +78,9 @@ class Command(BaseCommand):
             for user in users_secondaires:
                 user.postes_secondaires.remove(poste_etu)
                 user.postes_secondaires.add(poste_etudiant)
-            self.stdout.write(self.style.SUCCESS(f"  [OK] {count_secondaires} utilisateurs reaffectes (postes secondaires)"))
+            self.stdout.write(
+                self.style.SUCCESS(f"  [OK] {count_secondaires} utilisateurs reaffectes (postes secondaires)")
+            )
 
             # Supprimer le poste 'ETU'
             poste_etu.delete()

@@ -1,41 +1,51 @@
-# apps/academique/enseignant/utils.py
+import logging
 
+# apps/academique/enseignant/utils.py
 from apps.noyau.authentification.models import CustomUser
 from apps.noyau.commun.models import Poste
 
+logger = logging.getLogger(__name__)
 
 # Dictionnaire de translitération Arabe → Français
 ARABIC_TO_FRENCH = {
-    'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'a', 'ؤ': 'ou',
-    'ب': 'b',
-    'ت': 't', 'ة': 't',
-    'ث': 'th',
-    'ج': 'dj',
-    'ح': 'h',
-    'خ': 'kh',
-    'د': 'd',
-    'ذ': 'dh',
-    'ر': 'r',
-    'ز': 'z',
-    'س': 's',
-    'ش': 'sh',
-    'ص': 's',
-    'ض': 'd',
-    'ط': 't',
-    'ظ': 'dh',
-    'ع': 'a',
-    'غ': 'gh',
-    'ف': 'f',
-    'ق': 'q',
-    'ك': 'k',
-    'ل': 'l',
-    'م': 'm',
-    'ن': 'n',
-    'ه': 'h',
-    'و': 'ou',
-    'ي': 'i', 'ى': 'a',
-    'ئ': 'i',
-    ' ': '', '-': '', '_': '',
+    "ا": "a",
+    "أ": "a",
+    "إ": "i",
+    "آ": "a",
+    "ؤ": "ou",
+    "ب": "b",
+    "ت": "t",
+    "ة": "t",
+    "ث": "th",
+    "ج": "dj",
+    "ح": "h",
+    "خ": "kh",
+    "د": "d",
+    "ذ": "dh",
+    "ر": "r",
+    "ز": "z",
+    "س": "s",
+    "ش": "sh",
+    "ص": "s",
+    "ض": "d",
+    "ط": "t",
+    "ظ": "dh",
+    "ع": "a",
+    "غ": "gh",
+    "ف": "f",
+    "ق": "q",
+    "ك": "k",
+    "ل": "l",
+    "م": "m",
+    "ن": "n",
+    "ه": "h",
+    "و": "ou",
+    "ي": "i",
+    "ى": "a",
+    "ئ": "i",
+    " ": "",
+    "-": "",
+    "_": "",
 }
 
 
@@ -99,8 +109,8 @@ def generate_password(nom_fr, nom_ar, prenom_fr, prenom_ar):
     prenom = get_french_name(prenom_fr, prenom_ar, max_length=7)
 
     # Prendre les 2 premières lettres (ou compléter avec 'x' si moins de 2)
-    ab = (nom[:2] if len(nom) >= 2 else nom + 'x' * (2 - len(nom))).lower()
-    cd = (prenom[:2] if len(prenom) >= 2 else prenom + 'x' * (2 - len(prenom))).lower()
+    ab = (nom[:2] if len(nom) >= 2 else nom + "x" * (2 - len(nom))).lower()
+    cd = (prenom[:2] if len(prenom) >= 2 else prenom + "x" * (2 - len(prenom))).lower()
 
     password = f"...{ab}{cd}123"
     return password
@@ -119,34 +129,24 @@ def create_user_for_enseignant(enseignant):
         return (None, "Cet enseignant a déjà un utilisateur.")
 
     # Générer login et mot de passe
-    login = generate_login(
-        enseignant.nom_fr,
-        enseignant.nom_ar,
-        enseignant.prenom_fr,
-        enseignant.prenom_ar
-    )
+    login = generate_login(enseignant.nom_fr, enseignant.nom_ar, enseignant.prenom_fr, enseignant.prenom_ar)
 
-    password = generate_password(
-        enseignant.nom_fr,
-        enseignant.nom_ar,
-        enseignant.prenom_fr,
-        enseignant.prenom_ar
-    )
+    password = generate_password(enseignant.nom_fr, enseignant.nom_ar, enseignant.prenom_fr, enseignant.prenom_ar)
 
     # Créer l'utilisateur
     try:
         # Récupérer ou créer le poste "enseignant"
         poste_enseignant, _ = Poste.objects.get_or_create(
-            code='enseignant',
+            code="enseignant",
             defaults={
-                'type': 'enseignant',
-                'nom_ar': 'أستاذ',
-                'nom_fr': 'Enseignant',
-                'nom_ar_mini': 'أ',
-                'nom_fr_mini': 'Ens',
-                'niveau': 1,
-                'est_actif': True
-            }
+                "type": "enseignant",
+                "nom_ar": "أستاذ",
+                "nom_fr": "Enseignant",
+                "nom_ar_mini": "أ",
+                "nom_fr_mini": "Ens",
+                "niveau": 1,
+                "est_actif": True,
+            },
         )
 
         user = CustomUser.objects.create_user(
@@ -160,14 +160,14 @@ def create_user_for_enseignant(enseignant):
 
         # Affecter le poste principal
         user.poste_principal = poste_enseignant
-        user.save(update_fields=['poste_principal'])
+        user.save(update_fields=["poste_principal"])
 
         # Lier l'utilisateur à l'enseignant
         enseignant.user = user
-        enseignant.save(update_fields=['user'])
+        enseignant.save(update_fields=["user"])
 
         return (user, None)
     except Exception as e:
         error_msg = f"Erreur: {str(e)}"
-        print(f"Erreur lors de la création de l'utilisateur pour {enseignant}: {e}")
+        logger.debug(f"Erreur lors de la création de l'utilisateur pour {enseignant}: {e}")
         return (None, error_msg)

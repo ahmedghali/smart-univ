@@ -6,21 +6,22 @@ Ce fichier contient toute la logique métier pour déterminer les rôles et gér
 """
 
 from django.shortcuts import redirect
-from django.urls import reverse
+
 from apps.academique.affectation.models import Ens_Dep
+
 from .constants import (
-    ROLE_ETUDIANT,
-    ROLE_ENSEIGNANT,
-    ROLE_LABELS,
-    ROLE_DASHBOARDS,
     ENSEIGNANT_RELATIONS_TO_ROLES,
+    ROLE_DASHBOARDS,
+    ROLE_ENSEIGNANT,
+    ROLE_ETUDIANT,
+    ROLE_LABELS,
     ROLE_POSTE_CODES,
 )
-
 
 # ══════════════════════════════════════════════════════════════
 # RÉCUPÉRATION DES RÔLES DISPONIBLES
 # ══════════════════════════════════════════════════════════════
+
 
 def get_user_roles(user):
     """
@@ -39,11 +40,11 @@ def get_user_roles(user):
     roles = []
 
     # Vérifier si l'utilisateur est un étudiant
-    if hasattr(user, 'etudiant_profile') and user.etudiant_profile:
+    if hasattr(user, "etudiant_profile") and user.etudiant_profile:
         roles.append((ROLE_ETUDIANT, ROLE_LABELS[ROLE_ETUDIANT]))
 
     # Vérifier si l'utilisateur est un enseignant
-    if hasattr(user, 'enseignant_profile') and user.enseignant_profile:
+    if hasattr(user, "enseignant_profile") and user.enseignant_profile:
         roles.append((ROLE_ENSEIGNANT, ROLE_LABELS[ROLE_ENSEIGNANT]))
 
         # Ajouter les rôles administratifs basés sur les relations ForeignKey
@@ -52,7 +53,7 @@ def get_user_roles(user):
             if hasattr(enseignant, relation_name):
                 relation = getattr(enseignant, relation_name)
                 # Vérifier si la relation existe (peut être un RelatedManager ou un objet)
-                if hasattr(relation, 'exists'):
+                if hasattr(relation, "exists"):
                     if relation.exists():
                         roles.append((role_code, ROLE_LABELS[role_code]))
                 elif relation is not None:
@@ -89,6 +90,7 @@ def user_has_role_via_poste(user, role_code):
 # GESTION DES AFFECTATIONS ENSEIGNANT
 # ══════════════════════════════════════════════════════════════
 
+
 def get_enseignant_affectations(user):
     """
     Retourne les affectations départementales d'un enseignant.
@@ -102,7 +104,7 @@ def get_enseignant_affectations(user):
     Raises:
         AttributeError: Si l'utilisateur n'a pas de profil enseignant
     """
-    if not hasattr(user, 'enseignant_profile') or not user.enseignant_profile:
+    if not hasattr(user, "enseignant_profile") or not user.enseignant_profile:
         raise AttributeError("L'utilisateur n'a pas de profil enseignant")
 
     enseignant = user.enseignant_profile
@@ -132,41 +134,36 @@ def handle_enseignant_redirect(user, request):
         affectations = get_enseignant_affectations(user)
 
         if not affectations.exists():
-            return {
-                'error': True,
-                'message': "ليس لديك أي انتماء إلى قسم. يرجى الاتصال بالمسؤول."
-            }
+            return {"error": True, "message": "ليس لديك أي انتماء إلى قسم. يرجى الاتصال بالمسؤول."}
 
         # Sauvegarder le nombre d'affectations dans la session
         affectations_count = affectations.count()
-        request.session['affectations_count'] = affectations_count
+        request.session["affectations_count"] = affectations_count
 
         if affectations_count == 1:
             # Une seule affectation : vérifier si elle est active
             affectation = affectations.first()
             if not affectation.est_actif:
                 return {
-                    'error': True,
-                    'message': "عذراً، حسابك غير مفعّل في هذا القسم. يرجى التواصل مع رئيس القسم لتفعيل حسابك."
+                    "error": True,
+                    "message": "عذراً، حسابك غير مفعّل في هذا القسم. يرجى التواصل مع رئيس القسم لتفعيل حسابك.",
                 }
             departement_id = affectation.departement.id
-            request.session['selected_departement_id'] = departement_id
-            return redirect('ense:dashboard_Ens', dep_id=departement_id)
+            request.session["selected_departement_id"] = departement_id
+            return redirect("ense:dashboard_Ens", dep_id=departement_id)
 
         else:
             # Plusieurs affectations : rediriger vers la sélection
-            return redirect('auth:select_departement')
+            return redirect("auth:select_departement")
 
     except AttributeError:
-        return {
-            'error': True,
-            'message': "لم يتم العثور على ملف تعريف الأستاذ. يرجى الاتصال بالمسؤول."
-        }
+        return {"error": True, "message": "لم يتم العثور على ملف تعريف الأستاذ. يرجى الاتصال بالمسؤول."}
 
 
 # ══════════════════════════════════════════════════════════════
 # REDIRECTION VERS LES DASHBOARDS
 # ══════════════════════════════════════════════════════════════
+
 
 def redirect_to_dashboard(role_code, user, request):
     """
@@ -192,10 +189,7 @@ def redirect_to_dashboard(role_code, user, request):
         return redirect(dashboard_url)
 
     # Rôle inconnu
-    return {
-        'error': True,
-        'message': "المنصب المختار غير صالح."
-    }
+    return {"error": True, "message": "المنصب المختار غير صالح."}
 
 
 def redirect_single_role(role_code, user, request):
@@ -217,6 +211,7 @@ def redirect_single_role(role_code, user, request):
 # ══════════════════════════════════════════════════════════════
 # VALIDATION
 # ══════════════════════════════════════════════════════════════
+
 
 def validate_role_for_user(user, role_code):
     """
