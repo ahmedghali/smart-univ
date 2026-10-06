@@ -34,7 +34,9 @@ jobs:
         with:
           python-version-file: .python-version
           cache: pip
-          cache-dependency-path: requirements/*.txt
+          cache-dependency-path: |
+            requirements.txt
+            requirements/dev.txt
       - run: pip install -r requirements/dev.txt
       - run: python manage.py makemigrations --check --dry-run
       - run: pytest

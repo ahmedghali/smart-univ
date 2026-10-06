@@ -1,4 +1,4 @@
--r base.txt
+-r ../requirements.txt
 factory-boy==3.3.3
 pre-commit==4.6.2
 pytest==9.1.1

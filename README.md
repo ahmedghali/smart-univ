@@ -79,7 +79,8 @@ smart-univ/
 ├── config/
 │   ├── settings/               # base.py, dev.py, prod.py, test.py
 │   └── urls.py
-├── requirements/               # base.txt, dev.txt, prod.txt
+├── requirements.txt            # Dépendances de production
+├── requirements/dev.txt        # + outils de développement
 ├── templates/                  # Gabarits communs et surcharges de l'admin
 ├── static/
 ├── tests/
