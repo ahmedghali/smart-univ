@@ -1,41 +1,51 @@
-# apps/academique/etudiant/utils.py
+import logging
 
+# apps/academique/etudiant/utils.py
 from apps.noyau.authentification.models import CustomUser
 from apps.noyau.commun.models import Poste
 
+logger = logging.getLogger(__name__)
 
 # Dictionnaire de translitération Arabe → Français
 ARABIC_TO_FRENCH = {
-    'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'a', 'ؤ': 'ou',
-    'ب': 'b',
-    'ت': 't', 'ة': 't',
-    'ث': 'th',
-    'ج': 'dj',
-    'ح': 'h',
-    'خ': 'kh',
-    'د': 'd',
-    'ذ': 'dh',
-    'ر': 'r',
-    'ز': 'z',
-    'س': 's',
-    'ش': 'sh',
-    'ص': 's',
-    'ض': 'd',
-    'ط': 't',
-    'ظ': 'dh',
-    'ع': 'a',
-    'غ': 'gh',
-    'ف': 'f',
-    'ق': 'q',
-    'ك': 'k',
-    'ل': 'l',
-    'م': 'm',
-    'ن': 'n',
-    'ه': 'h',
-    'و': 'ou',
-    'ي': 'i', 'ى': 'a',
-    'ئ': 'i',
-    ' ': '', '-': '', '_': '',
+    "ا": "a",
+    "أ": "a",
+    "إ": "i",
+    "آ": "a",
+    "ؤ": "ou",
+    "ب": "b",
+    "ت": "t",
+    "ة": "t",
+    "ث": "th",
+    "ج": "dj",
+    "ح": "h",
+    "خ": "kh",
+    "د": "d",
+    "ذ": "dh",
+    "ر": "r",
+    "ز": "z",
+    "س": "s",
+    "ش": "sh",
+    "ص": "s",
+    "ض": "d",
+    "ط": "t",
+    "ظ": "dh",
+    "ع": "a",
+    "غ": "gh",
+    "ف": "f",
+    "ق": "q",
+    "ك": "k",
+    "ل": "l",
+    "م": "m",
+    "ن": "n",
+    "ه": "h",
+    "و": "ou",
+    "ي": "i",
+    "ى": "a",
+    "ئ": "i",
+    " ": "",
+    "-": "",
+    "_": "",
 }
 
 
@@ -44,7 +54,7 @@ def contains_arabic(text):
     if not text:
         return False
     for char in text:
-        if char in ARABIC_TO_FRENCH or '\u0600' <= char <= '\u06FF':
+        if char in ARABIC_TO_FRENCH or "\u0600" <= char <= "\u06ff":
             return True
     return False
 
@@ -84,7 +94,7 @@ def get_french_name(nom_fr, nom_ar, max_length=7):
     nom = nom.lower().replace(" ", "").replace("-", "").replace("_", "")
 
     # Supprimer les caractères non-ASCII restants
-    nom = ''.join(c for c in nom if c.isascii() and c.isalnum())
+    nom = "".join(c for c in nom if c.isascii() and c.isalnum())
 
     # Si le nom est vide après nettoyage, utiliser un défaut
     if not nom:
@@ -124,8 +134,8 @@ def generate_password(nom_fr, nom_ar, prenom_fr, prenom_ar):
     prenom = get_french_name(prenom_fr, prenom_ar, max_length=7)
 
     # Prendre les 2 premières lettres (ou compléter avec 'x' si moins de 2)
-    ab = (nom[:2] if len(nom) >= 2 else nom + 'x' * (2 - len(nom))).lower()
-    cd = (prenom[:2] if len(prenom) >= 2 else prenom + 'x' * (2 - len(prenom))).lower()
+    ab = (nom[:2] if len(nom) >= 2 else nom + "x" * (2 - len(nom))).lower()
+    cd = (prenom[:2] if len(prenom) >= 2 else prenom + "x" * (2 - len(prenom))).lower()
 
     password = f"...{ab}{cd}123"
     return password
@@ -141,34 +151,24 @@ def create_user_for_etudiant(etudiant):
         return None
 
     # Générer login et mot de passe
-    login = generate_login(
-        etudiant.nom_fr,
-        etudiant.nom_ar,
-        etudiant.prenom_fr,
-        etudiant.prenom_ar
-    )
+    login = generate_login(etudiant.nom_fr, etudiant.nom_ar, etudiant.prenom_fr, etudiant.prenom_ar)
 
-    password = generate_password(
-        etudiant.nom_fr,
-        etudiant.nom_ar,
-        etudiant.prenom_fr,
-        etudiant.prenom_ar
-    )
+    password = generate_password(etudiant.nom_fr, etudiant.nom_ar, etudiant.prenom_fr, etudiant.prenom_ar)
 
     # Créer l'utilisateur
     try:
         # Récupérer ou créer le poste "etudiant"
         poste_etudiant, _ = Poste.objects.get_or_create(
-            code='etudiant',
+            code="etudiant",
             defaults={
-                'type': 'etudiant',
-                'nom_ar': 'طالب',
-                'nom_fr': 'Étudiant',
-                'nom_ar_mini': 'ط',
-                'nom_fr_mini': 'Etu',
-                'niveau': 0,
-                'est_actif': True
-            }
+                "type": "etudiant",
+                "nom_ar": "طالب",
+                "nom_fr": "Étudiant",
+                "nom_ar_mini": "ط",
+                "nom_fr_mini": "Etu",
+                "niveau": 0,
+                "est_actif": True,
+            },
         )
 
         user = CustomUser.objects.create_user(
@@ -179,12 +179,11 @@ def create_user_for_etudiant(etudiant):
             last_name=etudiant.nom_fr or etudiant.nom_ar or "",
         )
 
-
         # Lier l'utilisateur à l'étudiant
         etudiant.user = user
-        etudiant.save(update_fields=['user'])
+        etudiant.save(update_fields=["user"])
 
         return user
     except Exception as e:
-        print(f"Erreur lors de la création de l'utilisateur pour {etudiant}: {e}")
+        logger.debug(f"Erreur lors de la création de l'utilisateur pour {etudiant}: {e}")
         return None

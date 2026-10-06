@@ -19,6 +19,7 @@ class DepAdminSite(AdminSite):
     Site d'administration personnalisé pour le département.
     Accès limité aux utilisateurs ayant la permission can_manage_users.
     """
+
     site_header = "إدارة القسم / Administration Département"
     site_title = "لوحة إدارة القسم"
     index_title = "إدارة الأساتذة والطلبة والمستخدمين"
@@ -33,7 +34,7 @@ class DepAdminSite(AdminSite):
             return False
 
         user = request.user
-        departement_id = request.session.get('selected_departement_id')
+        departement_id = request.session.get("selected_departement_id")
 
         if not departement_id:
             return False
@@ -42,11 +43,7 @@ class DepAdminSite(AdminSite):
         perms = PostePermission.get_permissions(request)
 
         # Vérifier si au moins une permission _view est True
-        has_any_view_permission = any(
-            perms.get(key, False)
-            for key in perms.keys()
-            if key.endswith('_view')
-        )
+        has_any_view_permission = any(perms.get(key, False) for key in perms.keys() if key.endswith("_view"))
 
         if has_any_view_permission:
             return True
@@ -55,28 +52,21 @@ class DepAdminSite(AdminSite):
         if user.is_authenticated:
             annee = AnneeUniversitaire.get_courante()
             affectations = AffectationPoste.objects.filter(
-                user=user,
-                niveau_contexte='departement',
-                departement_id=departement_id,
-                est_actif=True
-            ).select_related('poste__permissions')
+                user=user, niveau_contexte="departement", departement_id=departement_id, est_actif=True
+            ).select_related("poste__permissions")
 
             if annee:
                 affectations = affectations.filter(annee_univ=annee)
 
             for aff in affectations:
-                if hasattr(aff.poste, 'permissions'):
+                if hasattr(aff.poste, "permissions"):
                     # Vérifier si au moins une permission _view est True
                     perm_obj = aff.poste.permissions
                     perm_dict = perm_obj.to_dict()
-                    has_view = any(
-                        perm_dict.get(key, False)
-                        for key in perm_dict.keys()
-                        if key.endswith('_view')
-                    )
+                    has_view = any(perm_dict.get(key, False) for key in perm_dict.keys() if key.endswith("_view"))
                     if has_view:
-                        request.session['current_role_code'] = aff.poste.code
-                        request.session['current_affectation_id'] = aff.id
+                        request.session["current_role_code"] = aff.poste.code
+                        request.session["current_affectation_id"] = aff.id
                         return True
 
         return False
@@ -90,18 +80,14 @@ class DepAdminSite(AdminSite):
 
         # Corriger les URLs pour pointer vers l'admin département
         for app in app_list:
-            for model in app.get('models', []):
+            for model in app.get("models", []):
                 # Remplacer /admin/ par /departement/admin/
-                if 'admin_url' in model and model['admin_url']:
-                    if model['admin_url'].startswith('/admin/'):
-                        model['admin_url'] = model['admin_url'].replace(
-                            '/admin/', '/departement/admin/', 1
-                        )
-                if 'add_url' in model and model['add_url']:
-                    if model['add_url'].startswith('/admin/'):
-                        model['add_url'] = model['add_url'].replace(
-                            '/admin/', '/departement/admin/', 1
-                        )
+                if "admin_url" in model and model["admin_url"]:
+                    if model["admin_url"].startswith("/admin/"):
+                        model["admin_url"] = model["admin_url"].replace("/admin/", "/departement/admin/", 1)
+                if "add_url" in model and model["add_url"]:
+                    if model["add_url"].startswith("/admin/"):
+                        model["add_url"] = model["add_url"].replace("/admin/", "/departement/admin/", 1)
 
         return app_list
 
@@ -111,8 +97,8 @@ class DepAdminSite(AdminSite):
         Fixe le préfixe URL pour les templates admin.
         """
         context = super().each_context(request)
-        context['site_url'] = '/departement/admin/'
-        context['admin_url_prefix'] = '/departement/admin/'
+        context["site_url"] = "/departement/admin/"
+        context["admin_url_prefix"] = "/departement/admin/"
         return context
 
     def admin_view(self, view, cacheable=False):
@@ -147,14 +133,14 @@ class DepAdminSite(AdminSite):
         """Redirige vers la page de login principale si non connecté."""
         if request.user.is_authenticated:
             if self.has_permission(request):
-                return redirect('/departement/admin/')
+                return redirect("/departement/admin/")
             else:
                 # L'utilisateur est connecté mais n'a pas les permissions
-                messages.error(request, 'ليس لديك صلاحية الدخول إلى هذه الصفحة.')
-                return redirect('depa:dashboard_Dep')
+                messages.error(request, "ليس لديك صلاحية الدخول إلى هذه الصفحة.")
+                return redirect("depa:dashboard_Dep")
         # Rediriger vers la page de login principale
-        return redirect('auth:login')
+        return redirect("auth:login")
 
 
 # Créer l'instance du site admin personnalisé
-dep_admin_site = DepAdminSite(name='dep_admin')
+dep_admin_site = DepAdminSite(name="dep_admin")

@@ -7,8 +7,8 @@ from django.utils.html import format_html
 from apps.academique.departement.models import Departement
 from apps.noyau.commun.models import AffectationPoste, AnneeUniversitaire, PostePermission
 
-
 # ══════════════════════════════════════════════════════════════
+
 
 class DepartementFilterMixin:
     """Mixin pour filtrer les données par département de l'utilisateur."""
@@ -18,7 +18,7 @@ class DepartementFilterMixin:
         Récupère le département de l'utilisateur.
         Priorité: session > AffectationPoste
         """
-        departement_id = request.session.get('selected_departement_id')
+        departement_id = request.session.get("selected_departement_id")
         if departement_id:
             try:
                 return Departement.objects.get(id=departement_id)
@@ -32,7 +32,7 @@ class DepartementFilterMixin:
             if departements.exists():
                 dep = departements.first()
                 # Stocker en session pour les prochaines requêtes
-                request.session['selected_departement_id'] = dep.id
+                request.session["selected_departement_id"] = dep.id
                 return dep
 
         return None
@@ -56,53 +56,53 @@ class DepartementFilterMixin:
 # Mapping des modèles vers leurs clés de permission
 MODEL_PERMISSION_MAP = {
     # Affectations
-    'Ens_Dep': 'ens_dep',
-    'Amphi_Dep': 'amphi_dep',
-    'Salle_Dep': 'salle_dep',
-    'Laboratoire_Dep': 'labo_dep',
-    'Classe': 'classe',
-    'Seance': 'seance',
-    'SousGroupe': 'sous_groupe',
-    'EtudiantSousGroupe': 'etu_sous_groupe',
-    'Gestion_Etu_Classe': 'gestion_etu',
-    'Abs_Etu_Seance': 'abs_etu',
+    "Ens_Dep": "ens_dep",
+    "Amphi_Dep": "amphi_dep",
+    "Salle_Dep": "salle_dep",
+    "Laboratoire_Dep": "labo_dep",
+    "Classe": "classe",
+    "Seance": "seance",
+    "SousGroupe": "sous_groupe",
+    "EtudiantSousGroupe": "etu_sous_groupe",
+    "Gestion_Etu_Classe": "gestion_etu",
+    "Abs_Etu_Seance": "abs_etu",
     # Département
-    'Departement': 'departement',
-    'Specialite': 'specialite',
-    'NivSpeDep': 'niv_spe_dep',
-    'NivSpeDep_SG': 'niv_spe_dep_sg',
-    'Matiere': 'matiere',
+    "Departement": "departement",
+    "Specialite": "specialite",
+    "NivSpeDep": "niv_spe_dep",
+    "NivSpeDep_SG": "niv_spe_dep_sg",
+    "Matiere": "matiere",
     # Enseignant/Etudiant
-    'Enseignant': 'enseignant',
-    'Etudiant': 'etudiant',
+    "Enseignant": "enseignant",
+    "Etudiant": "etudiant",
     # Faculté/Université
-    'Faculte': 'faculte',
-    'Filiere': 'filiere',
-    'Universite': 'universite',
-    'Domaine': 'domaine',
+    "Faculte": "faculte",
+    "Filiere": "filiere",
+    "Universite": "universite",
+    "Domaine": "domaine",
     # Authentification
-    'CustomUser': 'user',
+    "CustomUser": "user",
     # Données communes
-    'Poste': 'poste',
-    'AffectationPoste': 'affectation_poste',
-    'AnneeUniversitaire': 'annee_univ',
-    'Cycle': 'cycle',
-    'Niveau': 'niveau',
-    'Grade': 'grade',
-    'Diplome': 'diplome',
-    'Semestre': 'semestre',
-    'Session': 'session',
-    'Reforme': 'reforme',
-    'Parcours': 'parcours',
-    'Unite': 'unite',
-    'Groupe': 'groupe',
-    'Section': 'section',
-    'Identification': 'identification',
-    'Wilaya': 'wilaya',
-    'Pays': 'pays',
-    'Amphi': 'amphi',
-    'Salle': 'salle',
-    'Laboratoire': 'laboratoire',
+    "Poste": "poste",
+    "AffectationPoste": "affectation_poste",
+    "AnneeUniversitaire": "annee_univ",
+    "Cycle": "cycle",
+    "Niveau": "niveau",
+    "Grade": "grade",
+    "Diplome": "diplome",
+    "Semestre": "semestre",
+    "Session": "session",
+    "Reforme": "reforme",
+    "Parcours": "parcours",
+    "Unite": "unite",
+    "Groupe": "groupe",
+    "Section": "section",
+    "Identification": "identification",
+    "Wilaya": "wilaya",
+    "Pays": "pays",
+    "Amphi": "amphi",
+    "Salle": "salle",
+    "Laboratoire": "laboratoire",
 }
 
 
@@ -153,13 +153,13 @@ class PermissionCheckMixinNoImport:
         style = "color: white; padding: 3px 6px; text-decoration: none; border-radius: 3px; font-size: 11px;"
         html = format_html(
             '<a href="{}" title="تعديل / Modifier" style="background-color: #417690; {}">✏️</a>',
-            reverse("%s:%s_%s_change" % info, args=[obj.pk]),
+            reverse("{}:{}_{}_change".format(*info), args=[obj.pk]),
             style,
         )
         if request is not None and self.has_delete_permission(request, obj):
             html += format_html(
                 ' <a href="{}" title="حذف / Supprimer" style="background-color: #8b0000; {}">🗑️</a>',
-                reverse("%s:%s_%s_delete" % info, args=[obj.pk]),
+                reverse("{}:{}_{}_delete".format(*info), args=[obj.pk]),
                 style,
             )
         return html
