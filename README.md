@@ -54,8 +54,8 @@ La CI GitHub Actions lance les mêmes contrôles à chaque push.
 | `ALLOWED_HOSTS` | domaines personnalisés, séparés par des virgules (le domaine Railway est ajouté automatiquement) |
 | `MEDIA_ROOT` | chemin d'un volume Railway pour les logos (optionnel) |
 
-`railway.toml` applique les migrations avant chaque déploiement, collecte les fichiers statiques
-et démarre Gunicorn. La version de Python vient de `.python-version`.
+`railpack.json` applique les migrations, crée les postes de base, collecte les fichiers statiques
+puis démarre Gunicorn à chaque démarrage. La version de Python vient de `.python-version`.
 
 ## Structure du projet
 
