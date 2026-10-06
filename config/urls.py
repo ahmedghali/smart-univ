@@ -14,7 +14,6 @@ urlpatterns = [
     path("departement/", include("apps.academique.departement.urls", namespace="depa")),
     path("enseignant/", include("apps.academique.enseignant.urls", namespace="ense")),
     path("etudiant/", include("apps.academique.etudiant.urls", namespace="etud")),
-    path("affectation/", include("apps.academique.affectation.urls", namespace="affe")),
     # Fichiers envoyés par les utilisateurs (logos) : peu nombreux, servis par Django
     re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
 ]
