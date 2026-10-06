@@ -2,6 +2,6 @@
 builder = "RAILPACK"
 
 [deploy]
-preDeployCommand = ["python manage.py migrate --noinput"]
-startCommand = "python manage.py collectstatic --noinput && gunicorn config.wsgi --bind 0.0.0.0:$PORT --workers 3 --access-logfile -"
+preDeployCommand = ["sh -c 'python manage.py migrate --noinput && python manage.py populate_postes'"]
+startCommand = "sh -c 'python manage.py collectstatic --noinput && exec gunicorn config.wsgi --bind 0.0.0.0:$PORT --workers 3 --access-logfile -'"
 restartPolicyType = "ON_FAILURE"
