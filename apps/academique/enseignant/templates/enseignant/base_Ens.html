@@ -115,6 +115,40 @@
     </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION BASCULEMENT - Postes administratifs et changement de département       -->
+<!-- ═══════════════════════════════════════════════════════════════════════════════ -->
+
+<!-- Postes administratifs dans ce département -->
+{% if has_admin_postes %}
+<hr class="my-2">
+<div class="nav-section text-info">
+    <i class="fas fa-user-tie me-1"></i>
+    المناصب الإدارية
+</div>
+{% for poste in admin_postes %}
+<a class="nav-link text-info" href="{% url 'auth:switch_to_poste' poste.id %}">
+    <i class="fas fa-exchange-alt"></i>
+    {{ poste.poste.nom_ar|default:poste.poste.nom_fr }}
+</a>
+{% endfor %}
+{% endif %}
+
+<!-- Autres départements de l'enseignant -->
+{% if has_autres_departements %}
+<hr class="my-2">
+<div class="nav-section text-warning">
+    <i class="fas fa-building me-1"></i>
+    اختر قسم آخر
+</div>
+{% for aff in autres_departements %}
+<a class="nav-link text-warning" href="{% url 'ense:dashboard_Ens' aff.departement.id %}">
+    <i class="fas fa-arrow-left"></i>
+    {{ aff.departement.nom_ar|default:aff.departement.nom_fr }}
+</a>
+{% endfor %}
+{% endif %}
+
 {% else %}
 {# Menu simplifié pour les pages sans département (profile, etc.) #}
 <div class="nav-section">الإدارة</div>

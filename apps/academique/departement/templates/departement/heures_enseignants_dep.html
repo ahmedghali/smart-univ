@@ -1,0 +1,56 @@
+{% extends 'departement/base_Dep.html' %}
+
+{% block content_dep %}
+<div class="card shadow-sm">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h5 class="mb-0"><i class="fas fa-clock me-2"></i>{{ title }} — السداسي {{ semestre }}</h5>
+        <div class="btn-group btn-group-sm">
+            <a href="{% url 'depa:heures_enseignants_dep' 1 %}" class="btn {% if semestre == 1 %}btn-primary{% else %}btn-outline-primary{% endif %}">S1</a>
+            <a href="{% url 'depa:heures_enseignants_dep' 2 %}" class="btn {% if semestre == 2 %}btn-primary{% else %}btn-outline-primary{% endif %}">S2</a>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>الأستاذ</th>
+                    <th>الصفة</th>
+                    <th class="text-center">الحصص في القسم</th>
+                    <th class="text-center">محاضرة</th>
+                    <th class="text-center">أعمال موجهة</th>
+                    <th class="text-center">أعمال تطبيقية</th>
+                    <th class="text-center">الحجم الساعي</th>
+                    <th class="text-center">خارج القسم</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ens_dep in enseignants %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ ens_dep.enseignant.nom_ar }} {{ ens_dep.enseignant.prenom_ar }}</td>
+                    <td>{{ ens_dep.get_statut_display }}</td>
+                    {% if semestre == 1 %}
+                    <td class="text-center">{{ ens_dep.nbrClas_in_Dep_S1 }}</td>
+                    <td class="text-center">{{ ens_dep.nbrClas_Cours_in_Dep_S1 }}</td>
+                    <td class="text-center">{{ ens_dep.nbrClas_TD_in_Dep_S1 }}</td>
+                    <td class="text-center">{{ ens_dep.nbrClas_TP_in_Dep_S1 }}</td>
+                    <td class="text-center">{{ ens_dep.volHor_in_Dep_S1 }}</td>
+                    <td class="text-center">{{ ens_dep.volHor_out_Dep_S1 }}</td>
+                    {% else %}
+                    <td class="text-center">{{ ens_dep.nbrClas_in_Dep_S2 }}</td>
+                    <td class="text-center">{{ ens_dep.nbrClas_Cours_in_Dep_S2 }}</td>
+                    <td class="text-center">{{ ens_dep.nbrClas_TD_in_Dep_S2 }}</td>
+                    <td class="text-center">{{ ens_dep.nbrClas_TP_in_Dep_S2 }}</td>
+                    <td class="text-center">{{ ens_dep.volHor_in_Dep_S2 }}</td>
+                    <td class="text-center">{{ ens_dep.volHor_out_Dep_S2 }}</td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr><td colspan="9" class="text-center text-muted py-4">لا يوجد أساتذة لهذا السداسي / Aucun enseignant pour ce semestre</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

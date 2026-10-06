@@ -1,3 +1,5 @@
+# apps/academique/etudiant/templatetags/import_stats.py
+
 from django import template
 
 register = template.Library()
@@ -51,15 +53,22 @@ def import_statistics(valid_rows):
     Usage: {% import_statistics result.valid_rows as stats %}
     """
     if not valid_rows:
-        return {"total": 0, "new": 0, "update": 0, "skip": 0, "delete": 0, "error": 0}
+        return {
+            'total': 0,
+            'new': 0,
+            'update': 0,
+            'skip': 0,
+            'delete': 0,
+            'error': 0
+        }
 
     rows_list = list(valid_rows)
     stats = {
-        "total": len(rows_list),
-        "new": sum(1 for row in rows_list if row.import_type == "new"),
-        "update": sum(1 for row in rows_list if row.import_type == "update"),
-        "skip": sum(1 for row in rows_list if row.import_type == "skip"),
-        "delete": sum(1 for row in rows_list if row.import_type == "delete"),
-        "error": sum(1 for row in rows_list if row.import_type == "error"),
+        'total': len(rows_list),
+        'new': sum(1 for row in rows_list if row.import_type == 'new'),
+        'update': sum(1 for row in rows_list if row.import_type == 'update'),
+        'skip': sum(1 for row in rows_list if row.import_type == 'skip'),
+        'delete': sum(1 for row in rows_list if row.import_type == 'delete'),
+        'error': sum(1 for row in rows_list if row.import_type == 'error'),
     }
     return stats

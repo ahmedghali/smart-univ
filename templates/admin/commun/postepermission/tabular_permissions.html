@@ -1,0 +1,520 @@
+{% load i18n admin_urls static admin_modify %}
+
+<style>
+/* ══════════════════════════════════════════════════════════════
+   DARK COMPACT PROFESSIONAL THEME - PERMISSIONS TABLE
+   ══════════════════════════════════════════════════════════════ */
+
+.permissions-wrapper {
+    background: #1e1e2e;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    border: 1px solid #2d2d3d;
+    direction: rtl;
+}
+
+/* Header */
+.permissions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #2d2d3d;
+    margin-bottom: 10px;
+}
+
+.permissions-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.permissions-title h2 {
+    margin: 0;
+    color: #cdd6f4;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.stats-row {
+    display: flex;
+    gap: 8px;
+}
+
+.stat-chip {
+    background: #313244;
+    padding: 4px 10px;
+    border-radius: 4px;
+    color: #a6adc8;
+    font-size: 11px;
+}
+
+/* Control Panel */
+.control-panel {
+    background: #181825;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #2d2d3d;
+}
+
+.control-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.control-label {
+    color: #6c7086;
+    font-size: 11px;
+    min-width: 50px;
+}
+
+.control-group {
+    display: flex;
+    gap: 4px;
+}
+
+.ctrl-btn {
+    padding: 5px 10px;
+    border: 1px solid #45475a;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #313244;
+    color: #cdd6f4;
+}
+
+.ctrl-btn:hover {
+    background: #45475a;
+    border-color: #585b70;
+}
+
+.ctrl-btn.all-on {
+    background: #313244;
+    border-color: #a6e3a1;
+    color: #a6e3a1;
+}
+
+.ctrl-btn.all-on:hover {
+    background: rgba(166, 227, 161, 0.15);
+}
+
+.ctrl-btn.all-off {
+    background: #313244;
+    border-color: #f38ba8;
+    color: #f38ba8;
+}
+
+.ctrl-btn.all-off:hover {
+    background: rgba(243, 139, 168, 0.15);
+}
+
+.ctrl-btn.view { border-color: #94e2d5; color: #94e2d5; }
+.ctrl-btn.add { border-color: #89b4fa; color: #89b4fa; }
+.ctrl-btn.change { border-color: #f9e2af; color: #f9e2af; }
+.ctrl-btn.delete { border-color: #f38ba8; color: #f38ba8; }
+
+.ctrl-btn.view:hover { background: rgba(148, 226, 213, 0.1); }
+.ctrl-btn.add:hover { background: rgba(137, 180, 250, 0.1); }
+.ctrl-btn.change:hover { background: rgba(249, 226, 175, 0.1); }
+.ctrl-btn.delete:hover { background: rgba(243, 139, 168, 0.1); }
+
+.ctrl-btn.off {
+    opacity: 0.5;
+}
+
+/* Category */
+.permissions-category {
+    background: #181825;
+    border: 1px solid #2d2d3d;
+    border-radius: 5px;
+    margin-bottom: 4px;
+    overflow: hidden;
+}
+
+.permissions-category summary {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    list-style: none;
+    border-right: 2px solid #45475a;
+}
+
+.permissions-category summary::-webkit-details-marker { display: none; }
+
+.permissions-category summary:hover {
+    background: #313244;
+}
+
+.category-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.category-icon {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.category-info .label-fr {
+    font-size: 10px;
+    color: #6c7086;
+    margin-right: 6px;
+}
+
+.count-badge {
+    background: #313244;
+    color: #a6adc8;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+}
+
+.arrow {
+    font-size: 9px;
+    opacity: 0.4;
+    transition: transform 0.2s;
+    margin-right: 6px;
+}
+
+.permissions-category[open] .arrow {
+    transform: rotate(90deg);
+}
+
+/* Compact Table */
+.permissions-table-wrap {
+    padding: 6px;
+    background: #11111b;
+}
+
+.permissions-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.permissions-table thead th {
+    padding: 5px 4px;
+    text-align: center;
+    font-weight: 500;
+    color: #6c7086;
+    background: #181825;
+    border-bottom: 1px solid #2d2d3d;
+    font-size: 10px;
+}
+
+.permissions-table thead th:first-child {
+    text-align: right;
+    padding-right: 8px;
+}
+
+.permissions-table thead th.perm-col {
+    width: 50px;
+}
+
+.permissions-table tbody tr {
+    transition: background 0.1s;
+}
+
+.permissions-table tbody tr:hover {
+    background: rgba(69, 71, 90, 0.3);
+}
+
+.permissions-table tbody tr:nth-child(even) {
+    background: rgba(24, 24, 37, 0.5);
+}
+
+.permissions-table td {
+    padding: 4px;
+    border-bottom: 1px solid #1e1e2e;
+    text-align: center;
+}
+
+.permissions-table td.model-cell {
+    text-align: right;
+    padding-right: 8px;
+}
+
+.model-cell .label-ar {
+    color: #bac2de;
+    font-weight: 500;
+    font-size: 11px;
+}
+
+.model-cell .label-fr {
+    color: #585b70;
+    font-size: 9px;
+    margin-right: 5px;
+}
+
+/* Compact Checkbox */
+.permissions-table input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 15px;
+    height: 15px;
+    border: 1px solid #45475a;
+    border-radius: 3px;
+    background: #1e1e2e;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s;
+}
+
+.permissions-table input[type="checkbox"]:hover {
+    border-color: #585b70;
+    background: #313244;
+}
+
+.permissions-table input[type="checkbox"]:checked {
+    border-color: transparent;
+}
+
+.permissions-table input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #1e1e2e;
+    font-size: 9px;
+    font-weight: bold;
+}
+
+/* Column colors - subtle */
+.permissions-table td:nth-child(2) input:checked { background: #94e2d5; }
+.permissions-table td:nth-child(3) input:checked { background: #89b4fa; }
+.permissions-table td:nth-child(4) input:checked { background: #f9e2af; }
+.permissions-table td:nth-child(5) input:checked { background: #f38ba8; }
+
+/* Responsive */
+@media (max-width: 600px) {
+    .control-row { flex-direction: column; align-items: flex-start; }
+    .permissions-table { font-size: 10px; }
+}
+</style>
+
+<div class="js-inline-admin-formset inline-group" id="{{ inline_admin_formset.formset.prefix }}-group"
+     data-inline-type="tabular"
+     data-inline-formset="{{ inline_admin_formset.inline_formset_data }}">
+
+  {{ inline_admin_formset.formset.management_form }}
+  {{ inline_admin_formset.formset.non_form_errors }}
+
+  {% for inline_admin_form in inline_admin_formset %}
+    {% if inline_admin_form.form.non_field_errors %}
+      <div class="row-form-errors">{{ inline_admin_form.form.non_field_errors }}</div>
+    {% endif %}
+
+    {% if inline_admin_form.needs_explicit_pk_field %}{{ inline_admin_form.pk_field.field }}{% endif %}
+    {% if inline_admin_form.fk_field %}{{ inline_admin_form.fk_field.field }}{% endif %}
+
+    <div class="permissions-wrapper">
+
+      <!-- Header -->
+      <div class="permissions-header">
+        <div class="permissions-title">
+          <h2>صلاحيات المنصب / Permissions du Poste</h2>
+        </div>
+        <div class="stats-row">
+          <span class="stat-chip">42 نموذج</span>
+          <span class="stat-chip">168 صلاحية</span>
+        </div>
+      </div>
+
+      <!-- Control Panel -->
+      <div class="control-panel">
+        <div class="control-row" style="margin-bottom: 6px;">
+          <span class="control-label">الكل:</span>
+          <div class="control-group">
+            <button type="button" class="ctrl-btn all-on" onclick="toggleAll(true)">✓ تفعيل</button>
+            <button type="button" class="ctrl-btn all-off" onclick="toggleAll(false)">✕ إلغاء</button>
+          </div>
+        </div>
+        <div class="control-row" style="margin-bottom: 6px;">
+          <span class="control-label">تفعيل:</span>
+          <div class="control-group">
+            <button type="button" class="ctrl-btn view" onclick="toggleColumn('view', true)">عرض</button>
+            <button type="button" class="ctrl-btn add" onclick="toggleColumn('add', true)">إضافة</button>
+            <button type="button" class="ctrl-btn change" onclick="toggleColumn('change', true)">تعديل</button>
+            <button type="button" class="ctrl-btn delete" onclick="toggleColumn('delete', true)">حذف</button>
+          </div>
+        </div>
+        <div class="control-row">
+          <span class="control-label">إلغاء:</span>
+          <div class="control-group">
+            <button type="button" class="ctrl-btn view off" onclick="toggleColumn('view', false)">عرض</button>
+            <button type="button" class="ctrl-btn add off" onclick="toggleColumn('add', false)">إضافة</button>
+            <button type="button" class="ctrl-btn change off" onclick="toggleColumn('change', false)">تعديل</button>
+            <button type="button" class="ctrl-btn delete off" onclick="toggleColumn('delete', false)">حذف</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categories -->
+      <div>
+
+        <!-- AFFECTATION (10) -->
+        <details class="permissions-category" open>
+          <summary>
+            <div class="category-info"><span class="category-icon">📋</span> <span>التخصيصات</span> <span class="label-fr">Affectations</span></div>
+            <div><span class="count-badge">10</span> <span class="arrow">▶</span></div>
+          </summary>
+          <div class="permissions-table-wrap">
+            <table class="permissions-table">
+              <thead><tr><th>النموذج</th><th class="perm-col">عرض</th><th class="perm-col">إضافة</th><th class="perm-col">تعديل</th><th class="perm-col">حذف</th></tr></thead>
+              <tbody>
+                <tr><td class="model-cell"><span class="label-ar">أساتذة-قسم</span><span class="label-fr">Ens-Dép</span></td><td>{{ inline_admin_form.form.ens_dep_view }}</td><td>{{ inline_admin_form.form.ens_dep_add }}</td><td>{{ inline_admin_form.form.ens_dep_change }}</td><td>{{ inline_admin_form.form.ens_dep_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">مدرجات-قسم</span><span class="label-fr">Amphi-Dép</span></td><td>{{ inline_admin_form.form.amphi_dep_view }}</td><td>{{ inline_admin_form.form.amphi_dep_add }}</td><td>{{ inline_admin_form.form.amphi_dep_change }}</td><td>{{ inline_admin_form.form.amphi_dep_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">قاعات-قسم</span><span class="label-fr">Salle-Dép</span></td><td>{{ inline_admin_form.form.salle_dep_view }}</td><td>{{ inline_admin_form.form.salle_dep_add }}</td><td>{{ inline_admin_form.form.salle_dep_change }}</td><td>{{ inline_admin_form.form.salle_dep_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">مخابر-قسم</span><span class="label-fr">Labo-Dép</span></td><td>{{ inline_admin_form.form.labo_dep_view }}</td><td>{{ inline_admin_form.form.labo_dep_add }}</td><td>{{ inline_admin_form.form.labo_dep_change }}</td><td>{{ inline_admin_form.form.labo_dep_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">حصص</span><span class="label-fr">Classes</span></td><td>{{ inline_admin_form.form.classe_view }}</td><td>{{ inline_admin_form.form.classe_add }}</td><td>{{ inline_admin_form.form.classe_change }}</td><td>{{ inline_admin_form.form.classe_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">حصص دراسية</span><span class="label-fr">Séances</span></td><td>{{ inline_admin_form.form.seance_view }}</td><td>{{ inline_admin_form.form.seance_add }}</td><td>{{ inline_admin_form.form.seance_change }}</td><td>{{ inline_admin_form.form.seance_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">مجموعات فرعية</span><span class="label-fr">Sous-grp</span></td><td>{{ inline_admin_form.form.sous_groupe_view }}</td><td>{{ inline_admin_form.form.sous_groupe_add }}</td><td>{{ inline_admin_form.form.sous_groupe_change }}</td><td>{{ inline_admin_form.form.sous_groupe_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">طلاب-مجموعات</span><span class="label-fr">Étu-SG</span></td><td>{{ inline_admin_form.form.etu_sous_groupe_view }}</td><td>{{ inline_admin_form.form.etu_sous_groupe_add }}</td><td>{{ inline_admin_form.form.etu_sous_groupe_change }}</td><td>{{ inline_admin_form.form.etu_sous_groupe_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">إدارة طلاب</span><span class="label-fr">Gest.Étu</span></td><td>{{ inline_admin_form.form.gestion_etu_view }}</td><td>{{ inline_admin_form.form.gestion_etu_add }}</td><td>{{ inline_admin_form.form.gestion_etu_change }}</td><td>{{ inline_admin_form.form.gestion_etu_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">حضور/غياب</span><span class="label-fr">Présences</span></td><td>{{ inline_admin_form.form.abs_etu_view }}</td><td>{{ inline_admin_form.form.abs_etu_add }}</td><td>{{ inline_admin_form.form.abs_etu_change }}</td><td>{{ inline_admin_form.form.abs_etu_delete }}</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <!-- DEPARTEMENT (5) -->
+        <details class="permissions-category">
+          <summary>
+            <div class="category-info"><span class="category-icon">🏛</span> <span>القسم</span> <span class="label-fr">Département</span></div>
+            <div><span class="count-badge">5</span> <span class="arrow">▶</span></div>
+          </summary>
+          <div class="permissions-table-wrap">
+            <table class="permissions-table">
+              <thead><tr><th>النموذج</th><th class="perm-col">عرض</th><th class="perm-col">إضافة</th><th class="perm-col">تعديل</th><th class="perm-col">حذف</th></tr></thead>
+              <tbody>
+                <tr><td class="model-cell"><span class="label-ar">قسم</span><span class="label-fr">Dép</span></td><td>{{ inline_admin_form.form.departement_view }}</td><td>{{ inline_admin_form.form.departement_add }}</td><td>{{ inline_admin_form.form.departement_change }}</td><td>{{ inline_admin_form.form.departement_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">تخصص</span><span class="label-fr">Spé</span></td><td>{{ inline_admin_form.form.specialite_view }}</td><td>{{ inline_admin_form.form.specialite_add }}</td><td>{{ inline_admin_form.form.specialite_change }}</td><td>{{ inline_admin_form.form.specialite_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">مستوى-تخصص</span><span class="label-fr">Niv-Spé</span></td><td>{{ inline_admin_form.form.niv_spe_dep_view }}</td><td>{{ inline_admin_form.form.niv_spe_dep_add }}</td><td>{{ inline_admin_form.form.niv_spe_dep_change }}</td><td>{{ inline_admin_form.form.niv_spe_dep_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">أقسام وأفواج</span><span class="label-fr">Sec/Grp</span></td><td>{{ inline_admin_form.form.niv_spe_dep_sg_view }}</td><td>{{ inline_admin_form.form.niv_spe_dep_sg_add }}</td><td>{{ inline_admin_form.form.niv_spe_dep_sg_change }}</td><td>{{ inline_admin_form.form.niv_spe_dep_sg_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">مادة</span><span class="label-fr">Matière</span></td><td>{{ inline_admin_form.form.matiere_view }}</td><td>{{ inline_admin_form.form.matiere_add }}</td><td>{{ inline_admin_form.form.matiere_change }}</td><td>{{ inline_admin_form.form.matiere_delete }}</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <!-- ENSEIGNANT + ETUDIANT (2) -->
+        <details class="permissions-category">
+          <summary>
+            <div class="category-info"><span class="category-icon">👥</span> <span>الأساتذة والطلبة</span> <span class="label-fr">Ens & Étu</span></div>
+            <div><span class="count-badge">2</span> <span class="arrow">▶</span></div>
+          </summary>
+          <div class="permissions-table-wrap">
+            <table class="permissions-table">
+              <thead><tr><th>النموذج</th><th class="perm-col">عرض</th><th class="perm-col">إضافة</th><th class="perm-col">تعديل</th><th class="perm-col">حذف</th></tr></thead>
+              <tbody>
+                <tr><td class="model-cell"><span class="label-ar">أستاذ</span><span class="label-fr">Ens</span></td><td>{{ inline_admin_form.form.enseignant_view }}</td><td>{{ inline_admin_form.form.enseignant_add }}</td><td>{{ inline_admin_form.form.enseignant_change }}</td><td>{{ inline_admin_form.form.enseignant_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">طالب</span><span class="label-fr">Étu</span></td><td>{{ inline_admin_form.form.etudiant_view }}</td><td>{{ inline_admin_form.form.etudiant_add }}</td><td>{{ inline_admin_form.form.etudiant_change }}</td><td>{{ inline_admin_form.form.etudiant_delete }}</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <!-- FACULTE + UNIVERSITE (4) -->
+        <details class="permissions-category">
+          <summary>
+            <div class="category-info"><span class="category-icon">🎓</span> <span>الكلية والجامعة</span> <span class="label-fr">Fac & Univ</span></div>
+            <div><span class="count-badge">4</span> <span class="arrow">▶</span></div>
+          </summary>
+          <div class="permissions-table-wrap">
+            <table class="permissions-table">
+              <thead><tr><th>النموذج</th><th class="perm-col">عرض</th><th class="perm-col">إضافة</th><th class="perm-col">تعديل</th><th class="perm-col">حذف</th></tr></thead>
+              <tbody>
+                <tr><td class="model-cell"><span class="label-ar">كلية</span><span class="label-fr">Fac</span></td><td>{{ inline_admin_form.form.faculte_view }}</td><td>{{ inline_admin_form.form.faculte_add }}</td><td>{{ inline_admin_form.form.faculte_change }}</td><td>{{ inline_admin_form.form.faculte_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">شعبة</span><span class="label-fr">Fil</span></td><td>{{ inline_admin_form.form.filiere_view }}</td><td>{{ inline_admin_form.form.filiere_add }}</td><td>{{ inline_admin_form.form.filiere_change }}</td><td>{{ inline_admin_form.form.filiere_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">جامعة</span><span class="label-fr">Univ</span></td><td>{{ inline_admin_form.form.universite_view }}</td><td>{{ inline_admin_form.form.universite_add }}</td><td>{{ inline_admin_form.form.universite_change }}</td><td>{{ inline_admin_form.form.universite_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">ميدان</span><span class="label-fr">Dom</span></td><td>{{ inline_admin_form.form.domaine_view }}</td><td>{{ inline_admin_form.form.domaine_add }}</td><td>{{ inline_admin_form.form.domaine_change }}</td><td>{{ inline_admin_form.form.domaine_delete }}</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <!-- AUTHENTIFICATION (1) -->
+        <details class="permissions-category">
+          <summary>
+            <div class="category-info"><span class="category-icon">🔑</span> <span>المصادقة</span> <span class="label-fr">Auth</span></div>
+            <div><span class="count-badge">1</span> <span class="arrow">▶</span></div>
+          </summary>
+          <div class="permissions-table-wrap">
+            <table class="permissions-table">
+              <thead><tr><th>النموذج</th><th class="perm-col">عرض</th><th class="perm-col">إضافة</th><th class="perm-col">تعديل</th><th class="perm-col">حذف</th></tr></thead>
+              <tbody>
+                <tr><td class="model-cell"><span class="label-ar">مستخدم</span><span class="label-fr">User</span></td><td>{{ inline_admin_form.form.user_view }}</td><td>{{ inline_admin_form.form.user_add }}</td><td>{{ inline_admin_form.form.user_change }}</td><td>{{ inline_admin_form.form.user_delete }}</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <!-- DONNEES COMMUNES (20) -->
+        <details class="permissions-category">
+          <summary>
+            <div class="category-info"><span class="category-icon">⚙</span> <span>البيانات المشتركة</span> <span class="label-fr">Données</span></div>
+            <div><span class="count-badge">20</span> <span class="arrow">▶</span></div>
+          </summary>
+          <div class="permissions-table-wrap">
+            <table class="permissions-table">
+              <thead><tr><th>النموذج</th><th class="perm-col">عرض</th><th class="perm-col">إضافة</th><th class="perm-col">تعديل</th><th class="perm-col">حذف</th></tr></thead>
+              <tbody>
+                <tr><td class="model-cell"><span class="label-ar">منصب</span><span class="label-fr">Poste</span></td><td>{{ inline_admin_form.form.poste_view }}</td><td>{{ inline_admin_form.form.poste_add }}</td><td>{{ inline_admin_form.form.poste_change }}</td><td>{{ inline_admin_form.form.poste_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">تعيين منصب</span><span class="label-fr">Aff.Poste</span></td><td>{{ inline_admin_form.form.affectation_poste_view }}</td><td>{{ inline_admin_form.form.affectation_poste_add }}</td><td>{{ inline_admin_form.form.affectation_poste_change }}</td><td>{{ inline_admin_form.form.affectation_poste_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">سنة جامعية</span><span class="label-fr">Année</span></td><td>{{ inline_admin_form.form.annee_univ_view }}</td><td>{{ inline_admin_form.form.annee_univ_add }}</td><td>{{ inline_admin_form.form.annee_univ_change }}</td><td>{{ inline_admin_form.form.annee_univ_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">طور</span><span class="label-fr">Cycle</span></td><td>{{ inline_admin_form.form.cycle_view }}</td><td>{{ inline_admin_form.form.cycle_add }}</td><td>{{ inline_admin_form.form.cycle_change }}</td><td>{{ inline_admin_form.form.cycle_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">مستوى</span><span class="label-fr">Niveau</span></td><td>{{ inline_admin_form.form.niveau_view }}</td><td>{{ inline_admin_form.form.niveau_add }}</td><td>{{ inline_admin_form.form.niveau_change }}</td><td>{{ inline_admin_form.form.niveau_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">رتبة</span><span class="label-fr">Grade</span></td><td>{{ inline_admin_form.form.grade_view }}</td><td>{{ inline_admin_form.form.grade_add }}</td><td>{{ inline_admin_form.form.grade_change }}</td><td>{{ inline_admin_form.form.grade_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">شهادة</span><span class="label-fr">Diplôme</span></td><td>{{ inline_admin_form.form.diplome_view }}</td><td>{{ inline_admin_form.form.diplome_add }}</td><td>{{ inline_admin_form.form.diplome_change }}</td><td>{{ inline_admin_form.form.diplome_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">سداسي</span><span class="label-fr">Sem</span></td><td>{{ inline_admin_form.form.semestre_view }}</td><td>{{ inline_admin_form.form.semestre_add }}</td><td>{{ inline_admin_form.form.semestre_change }}</td><td>{{ inline_admin_form.form.semestre_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">دورة</span><span class="label-fr">Session</span></td><td>{{ inline_admin_form.form.session_view }}</td><td>{{ inline_admin_form.form.session_add }}</td><td>{{ inline_admin_form.form.session_change }}</td><td>{{ inline_admin_form.form.session_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">إصلاح</span><span class="label-fr">Réforme</span></td><td>{{ inline_admin_form.form.reforme_view }}</td><td>{{ inline_admin_form.form.reforme_add }}</td><td>{{ inline_admin_form.form.reforme_change }}</td><td>{{ inline_admin_form.form.reforme_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">مسار</span><span class="label-fr">Parcours</span></td><td>{{ inline_admin_form.form.parcours_view }}</td><td>{{ inline_admin_form.form.parcours_add }}</td><td>{{ inline_admin_form.form.parcours_change }}</td><td>{{ inline_admin_form.form.parcours_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">وحدة</span><span class="label-fr">Unité</span></td><td>{{ inline_admin_form.form.unite_view }}</td><td>{{ inline_admin_form.form.unite_add }}</td><td>{{ inline_admin_form.form.unite_change }}</td><td>{{ inline_admin_form.form.unite_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">فوج</span><span class="label-fr">Groupe</span></td><td>{{ inline_admin_form.form.groupe_view }}</td><td>{{ inline_admin_form.form.groupe_add }}</td><td>{{ inline_admin_form.form.groupe_change }}</td><td>{{ inline_admin_form.form.groupe_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">قسم</span><span class="label-fr">Section</span></td><td>{{ inline_admin_form.form.section_view }}</td><td>{{ inline_admin_form.form.section_add }}</td><td>{{ inline_admin_form.form.section_change }}</td><td>{{ inline_admin_form.form.section_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">تعريف</span><span class="label-fr">Ident</span></td><td>{{ inline_admin_form.form.identification_view }}</td><td>{{ inline_admin_form.form.identification_add }}</td><td>{{ inline_admin_form.form.identification_change }}</td><td>{{ inline_admin_form.form.identification_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">ولاية</span><span class="label-fr">Wilaya</span></td><td>{{ inline_admin_form.form.wilaya_view }}</td><td>{{ inline_admin_form.form.wilaya_add }}</td><td>{{ inline_admin_form.form.wilaya_change }}</td><td>{{ inline_admin_form.form.wilaya_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">بلد</span><span class="label-fr">Pays</span></td><td>{{ inline_admin_form.form.pays_view }}</td><td>{{ inline_admin_form.form.pays_add }}</td><td>{{ inline_admin_form.form.pays_change }}</td><td>{{ inline_admin_form.form.pays_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">مدرج</span><span class="label-fr">Amphi</span></td><td>{{ inline_admin_form.form.amphi_view }}</td><td>{{ inline_admin_form.form.amphi_add }}</td><td>{{ inline_admin_form.form.amphi_change }}</td><td>{{ inline_admin_form.form.amphi_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">قاعة</span><span class="label-fr">Salle</span></td><td>{{ inline_admin_form.form.salle_view }}</td><td>{{ inline_admin_form.form.salle_add }}</td><td>{{ inline_admin_form.form.salle_change }}</td><td>{{ inline_admin_form.form.salle_delete }}</td></tr>
+                <tr><td class="model-cell"><span class="label-ar">مخبر</span><span class="label-fr">Labo</span></td><td>{{ inline_admin_form.form.laboratoire_view }}</td><td>{{ inline_admin_form.form.laboratoire_add }}</td><td>{{ inline_admin_form.form.laboratoire_change }}</td><td>{{ inline_admin_form.form.laboratoire_delete }}</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+      </div>
+    </div>
+
+    {% if inline_admin_formset.formset.can_delete and inline_admin_formset.has_delete_permission and inline_admin_form.original %}
+      <div style="display: none;">{{ inline_admin_form.deletion_field.field }}</div>
+    {% endif %}
+
+  {% endfor %}
+</div>
+
+<script>
+function toggleAll(checked) {
+    document.querySelectorAll('.permissions-wrapper input[type="checkbox"]').forEach(cb => cb.checked = checked);
+}
+function toggleColumn(type, checked) {
+    document.querySelectorAll('.permissions-wrapper input[type="checkbox"]').forEach(cb => {
+        if (cb.name && cb.name.endsWith('_' + type)) cb.checked = checked;
+    });
+}
+</script>

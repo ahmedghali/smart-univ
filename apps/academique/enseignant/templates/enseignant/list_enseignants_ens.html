@@ -215,10 +215,10 @@
                                     {% else %}<span class="badge bg-danger"><i class="fas fa-times-circle"></i> لا</span>{% endif %}
                                 </td>
                                 <td class="teacher-post text-center">
-                                    {% if ens.enseignant.user and ens.enseignant.user.poste_principal %}
-                                        {% if ens.enseignant.user.poste_principal.code == 'ENS' %}<small class="text-muted">-</small>
-                                        {% else %}<small>{{ens.enseignant.user.poste_principal.nom_ar_mini}}</small>{% endif %}
-                                    {% else %}<small class="text-muted">-</small>{% endif %}
+                                    {% with postes=ens.enseignant.user.tous_les_postes %}
+                                        {% if postes %}<small>{{ postes.0.nom_ar_mini }}</small>
+                                        {% else %}<small class="text-muted">-</small>{% endif %}
+                                    {% endwith %}
                                 </td>
                                 <td class="teacher-status text-center">
                                     {% if ens.statut == 'Permanent' %}<span class="badge bg-success">دائم</span>

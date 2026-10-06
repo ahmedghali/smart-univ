@@ -1,0 +1,43 @@
+{% extends 'departement/base_Dep.html' %}
+
+{% block content_dep %}
+<div class="card shadow-sm">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h5 class="mb-0"><i class="fas fa-user-graduate me-2"></i>{{ title }} <span class="badge bg-primary">{{ etudiants|length }}</span></h5>
+        <form method="get" class="d-flex gap-2">
+            <input type="search" name="q" value="{{ request.GET.q }}" class="form-control form-control-sm" placeholder="بحث: الاسم، اللقب، الرقم التسلسلي">
+            <button class="btn btn-sm btn-outline-primary" type="submit"><i class="fas fa-search"></i></button>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>الرقم التسلسلي</th>
+                    <th>اللقب والاسم</th>
+                    <th>Nom et prénom</th>
+                    <th>المستوى</th>
+                    <th>التخصص</th>
+                    <th>الفوج</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for etu in etudiants %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ etu.matricule }}</td>
+                    <td>{{ etu.nom_ar }} {{ etu.prenom_ar }}</td>
+                    <td>{{ etu.nom_fr }} {{ etu.prenom_fr }}</td>
+                    <td>{{ etu.niv_spe_dep_sg.niv_spe_dep.niveau }}</td>
+                    <td>{{ etu.niv_spe_dep_sg.niv_spe_dep.specialite }}</td>
+                    <td>{{ etu.niv_spe_dep_sg }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-4">لا يوجد طلبة / Aucun étudiant</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
