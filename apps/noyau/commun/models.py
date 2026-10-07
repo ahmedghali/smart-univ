@@ -139,6 +139,12 @@ class AnneeUniversitaire(BaseModel):
                     "La date de début doit être antérieure à la date de fin."
                 )
 
+    def save(self, *args, **kwargs):
+        """Désactive est_courante pour les autres années si cette année devient courante (A24)."""
+        if self.est_courante:
+            AnneeUniversitaire.objects.filter(est_courante=True).exclude(pk=self.pk).update(est_courante=False)
+        super().save(*args, **kwargs)
+
     @classmethod
     def get_courante(cls):
         """Retourne l'année universitaire courante."""

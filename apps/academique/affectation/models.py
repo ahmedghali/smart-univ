@@ -1273,7 +1273,7 @@ class Gestion_Etu_Classe(BaseModel):
     # ══════════════════════════════════════════════════════════
 
     def calculate_note_presence(self):
-        """Calcule automatiquement la note de présence."""
+        """Calcule automatiquement la note de présence (A10)."""
         # Calculer nbr_seances_totales dynamiquement
         if self.classe:
             nbr_seances_reelles = self.classe.seances_classe.filter(annuler=False, fait=True).count()
@@ -1281,13 +1281,8 @@ class Gestion_Etu_Classe(BaseModel):
         else:
             self.nbr_seances_totales = 0
 
-        # Si aucune séance n'a eu lieu, note = 0
-        if self.nbr_seances_totales == 0:
-            self.note_presence = Decimal("0.00")
-            return
-
-        # Système: Départ à 5 points, -1 par absence non justifiée
-        absences_non_justifiees = self.nbr_absence - self.nbr_absence_justifiee
+        # Système: Départ à 5 points, -1 par absence non justifiée (minimum 0)
+        absences_non_justifiees = max(0, (self.nbr_absence or 0) - (self.nbr_absence_justifiee or 0))
         self.note_presence = max(Decimal("0.00"), Decimal("5.00") - Decimal(str(absences_non_justifiees)))
 
     def calculate_note_finale(self):
@@ -1396,11 +1391,12 @@ class Gestion_Etu_Classe(BaseModel):
 
     @staticmethod
     def update_all_presence_notes_for_classe(classe):
-        """Met à jour les notes de présence pour tous les étudiants d'une classe."""
-        notes_classe = Gestion_Etu_Classe.objects.filter(classe=classe)
+        """Met à jour les notes de présence et finales pour tous les étudiants d'une classe (A10)."""
+        notes_classe = Gestion_Etu_Classe.objects.filter(classe=classe, validee_par_enseignant=False)
 
         for note in notes_classe:
             note.calculate_note_presence()
+            note.calculate_note_finale()
             note.save(update_fields=["note_presence", "nbr_seances_totales", "note_finale"])
 
 

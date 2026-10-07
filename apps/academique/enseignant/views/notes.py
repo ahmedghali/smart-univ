@@ -113,24 +113,8 @@ def list_Notes_Etu_Classe(request, dep_id, clas_id, enseignant, departement):
         if matiere_nom_fr:
             matiere_complet += f" / {matiere_nom_fr}"
 
-        # Calculer la note de présence automatiquement pour chaque étudiant
-        # Formule: commence à 5, -1 pour chaque absence (minimum 0)
-        # Utiliser une mise à jour directe en base de données avec Case/When
-        from decimal import Decimal
-
-        from django.db.models import Case, Value, When
-
-        # Mise à jour directe en base de données pour les notes non validées
-        Gestion_Etu_Classe.objects.filter(classe=myClasse, validee_par_enseignant=False).update(
-            note_presence=Case(
-                When(nbr_absence__gte=5, then=Value(Decimal("0.00"))),
-                When(nbr_absence=4, then=Value(Decimal("1.00"))),
-                When(nbr_absence=3, then=Value(Decimal("2.00"))),
-                When(nbr_absence=2, then=Value(Decimal("3.00"))),
-                When(nbr_absence=1, then=Value(Decimal("4.00"))),
-                default=Value(Decimal("5.00")),  # 0 absences = 5 points
-            )
-        )
+        # Recalculer les notes de présence et finales via le modèle (A10)
+        Gestion_Etu_Classe.update_all_presence_notes_for_classe(myClasse)
 
         # Récupérer les notes avec valeurs fraîches depuis la base de données
         all_Notes_Classe = list(

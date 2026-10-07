@@ -156,7 +156,9 @@ class StatsCalculator:
         )
 
         # Autres statistiques
-        stats["total_students"] = Etudiant.objects.count()
+        stats["total_students"] = (
+            Etudiant.objects.filter(niv_spe_dep_sg__niv_spe_dep__departement=self.departement).distinct().count()
+        )
         stats["total_matieres"] = (
             Matiere.objects.filter(niv_spe_dep__specialite__departement=self.departement).distinct().count()
         )
@@ -171,7 +173,7 @@ class StatsCalculator:
 
         # Classes
         stats["total_classes"] = Classe.objects.filter(
-            ens_dep__departement=self.departement, ens_dep__annee_univ=self.annee
+            enseignant__departement=self.departement, enseignant__annee_univ=self.annee
         ).count()
 
         stats["annee_courante"] = self.annee

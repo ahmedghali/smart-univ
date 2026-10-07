@@ -251,29 +251,22 @@ class EtudiantResource(resources.ModelResource):
         return self._niv_spe_dep_sg_cache if self._niv_spe_dep_sg_cache is not False else None
 
     def before_import_row(self, row, row_number=None, **kwargs):
-        import uuid
-        from datetime import datetime
-
         niv_spe_dep_sg = self._get_niv_spe_dep_sg()
         if niv_spe_dep_sg:
             row["niv_spe_dep_sg"] = niv_spe_dep_sg.id
 
-        # Générer matricule unique si absent
+        # Validation matricule obligatoire (A11)
         matricule = row.get("matricule", "").strip() if row.get("matricule") else ""
         if not matricule:
-            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-            unique_id = str(uuid.uuid4())[:6].upper()
-            row_num = row_number if row_number else 0
-            row["matricule"] = f"ETU{timestamp}{row_num:03d}{unique_id}"
+            from django.core.exceptions import ValidationError
 
-        # Gérer num_ins: si vide, générer un numéro unique temporaire
-        # car le champ a une contrainte unique dans la BD
+            line_info = f" (ligne {row_number})" if row_number else ""
+            raise ValidationError(f"Le matricule est obligatoire pour chaque étudiant{line_info}.")
+        row["matricule"] = matricule
+
+        # num_ins vide reste None (A11)
         num_ins = row.get("num_ins", "").strip() if row.get("num_ins") else ""
-        if not num_ins:
-            # Générer un num_ins temporaire unique
-            timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")
-            row_num = row_number if row_number else 0
-            row["num_ins"] = f"TMP{timestamp}{row_num:03d}"
+        row["num_ins"] = num_ins if num_ins else None
 
     def after_import_row(self, row, row_result, row_number=None, **kwargs):
         """Collecte les IDs pour traitement batch."""

@@ -1,7 +1,7 @@
 import factory
 from django.contrib.auth import get_user_model
 
-from apps.academique.affectation.models import Classe, Ens_Dep, SousGroupe
+from apps.academique.affectation.models import Classe, Ens_Dep, Gestion_Etu_Classe, SousGroupe
 from apps.academique.departement.models import Departement, Matiere, NivSpeDep, NivSpeDep_SG, Specialite
 from apps.academique.enseignant.models import Enseignant
 from apps.academique.etudiant.models import Etudiant
@@ -221,3 +221,14 @@ class SousGroupeFactory(factory.django.DjangoModelFactory):
     groupe_principal = factory.SubFactory(NivSpeDepSGFactory)
     nom = factory.Sequence(lambda n: f"G{n}")
     actif = True
+
+
+class GestionEtuClasseFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Gestion_Etu_Classe
+
+    classe = factory.SubFactory(ClasseFactory)
+    etudiant = factory.SubFactory(EtudiantFactory)
+    nbr_absence = 0
+    nbr_absence_justifiee = 0
+
