@@ -27,7 +27,13 @@ from apps.noyau.commun.models import (
 )
 
 from .forms import EtudiantDepConfirmImportForm, EtudiantDepImportForm
-from .mixins import DepartementFilterMixin, PermissionCheckMixin, PermissionCheckMixinNoImport, ReadOnlyAdminMixin
+from .mixins import (
+    DepartementFilterMixin,
+    PermissionCheckMixin,
+    PermissionCheckMixinNoImport,
+    ReadOnlyAdminMixin,
+    _admin_request_var,
+)
 from .resources import EnsDepResource, EnseignantResource, EtudiantResource, MatiereResource, SpecialiteResource
 
 
@@ -2360,15 +2366,15 @@ class DepartementReadOnlyAdmin(ReadOnlyAdminMixin, DepartementFilterMixin, admin
     get_faculte.short_description = "الكلية / Faculté"
 
     def changelist_view(self, request, extra_context=None):
-        """Stocke la requête pour l'utiliser dans action_buttons."""
-        self._current_request = request
+        """Mémorise la requête dans un contextvar pour l'utiliser dans action_buttons (A17)."""
+        _admin_request_var.set(request)
         return super().changelist_view(request, extra_context)
 
     def action_buttons(self, obj):
         """Génère les liens d'action selon les permissions."""
-        # Vérifier si on a la permission de modifier
-        if hasattr(self, "_current_request"):
-            perms = PostePermission.get_permissions(self._current_request)
+        req = _admin_request_var.get()
+        if req:
+            perms = PostePermission.get_permissions(req)
             has_change = perms.get("departement_change", False)
         else:
             has_change = False

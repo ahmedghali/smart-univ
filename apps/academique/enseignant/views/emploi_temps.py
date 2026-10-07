@@ -97,7 +97,6 @@ def timeTable_Ens(request, dep_id, enseignant, departement):
                     taux_avancement = ((nbr_Sea_fait.count()) / all_Seances.count()) * 100
                     taux_avancement = round(taux_avancement)
                     idx1.taux_avancement = taux_avancement
-                    idx1.save()
 
             # Vérifier si la classe a des notes et si elles sont validées
             notes_classe = Gestion_Etu_Classe.objects.filter(classe=idx1)

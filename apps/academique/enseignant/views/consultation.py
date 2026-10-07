@@ -502,12 +502,11 @@ def list_NivSpeDep_Ens(request, dep_id, enseignant, departement):
         .order_by("specialite__reforme", "niveau", "specialite__identification")
     )
 
-    # Calcul pour NivSpeDep (nbr_matieres et nbr_etudiants)
+    # Calcul pour NivSpeDep (nbr_matieres et nbr_etudiants) en mémoire pour l'affichage (A15)
     for x in all_NivSpeDep:
         x.nbr_matieres_s1 = Matiere.objects.filter(niv_spe_dep=x, semestre__numero=1).count()
         x.nbr_matieres_s2 = Matiere.objects.filter(niv_spe_dep=x, semestre__numero=2).count()
         x.nbr_etudiants = Etudiant.objects.filter(niv_spe_dep_sg__niv_spe_dep=x).count()
-        x.save()
 
     # Calcul intelligent pour NivSpeDep_SG selon le type d'affectation
     all_niv_spe_dep_sg = NivSpeDep_SG.objects.filter(niv_spe_dep__departement=departement)
@@ -525,7 +524,6 @@ def list_NivSpeDep_Ens(request, dep_id, enseignant, departement):
             niv_spe_dep_sg.nbr_etudiants_SG = Etudiant.objects.filter(
                 niv_spe_dep_sg__niv_spe_dep=niv_spe_dep_sg.niv_spe_dep
             ).count()
-        niv_spe_dep_sg.save()
 
     # Construction des listes pour l'affichage par semestre
     all_NivSpeDep_S1 = []

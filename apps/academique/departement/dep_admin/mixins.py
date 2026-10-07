@@ -1,4 +1,4 @@
-"""Mixins communs aux admins du département : filtrage par département et contrôle des droits par poste."""
+import contextvars
 
 from django.contrib import admin
 from django.urls import reverse
@@ -6,6 +6,9 @@ from django.utils.html import format_html
 
 from apps.academique.departement.models import Departement
 from apps.noyau.commun.models import AffectationPoste, AnneeUniversitaire, PostePermission
+
+# Variable de contexte thread-safe pour stocker la requête courante (A17)
+_admin_request_var = contextvars.ContextVar("admin_request_var", default=None)
 
 # ══════════════════════════════════════════════════════════════
 
@@ -139,14 +142,14 @@ class PermissionCheckMixinNoImport:
         return self._has(request, "delete")
 
     def changelist_view(self, request, extra_context=None):
-        # Mémorise la requête pour les colonnes calculées (action_buttons) qui ne la reçoivent pas.
-        self._current_request = request
+        # Mémorise la requête dans un contextvar thread-safe (A17)
+        _admin_request_var.set(request)
         return super().changelist_view(request, extra_context)
 
     @admin.display(description="الإجراءات / Actions")
     def action_buttons(self, obj):
         """Boutons modifier / supprimer (supprimer seulement si le poste en a le droit)."""
-        request = getattr(self, "_current_request", None)
+        request = _admin_request_var.get()
         match = getattr(request, "resolver_match", None)
         namespace = match.namespace if match and match.namespace else self.admin_site.name
         info = (namespace, obj._meta.app_label, obj._meta.model_name)

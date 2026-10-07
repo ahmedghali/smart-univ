@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.academique.affectation.models import Abs_Etu_Seance, Classe, EtudiantSousGroupe, Seance, SousGroupe
@@ -309,23 +310,22 @@ def update_seance(request, dep_id, sea_id, enseignant, departement):
                         # Par défaut, tous les étudiants du groupe
                         etudiants = Etudiant.objects.filter(niv_spe_dep_sg=niv_spe_dep_sg, est_actif=True)
 
-                    # Créer les entrées d'absence pour chaque étudiant
-                    for etudiant in etudiants:
-                        Abs_Etu_Seance.objects.get_or_create(
-                            seance=seance,
-                            etudiant=etudiant,
-                            defaults={
-                                "present": False,
-                                "justifiee": False,
-                                "participation": False,
-                                "type_audience_lors_creation": seance.type_audience or "groupe_complet",
-                            },
-                        )
-
-                    # Marquer que la liste a été générée
-                    seance.list_abs_etudiant_generee = True
-
-                seance.save()
+                    # Créer les entrées d'absence pour chaque étudiant dans une transaction atomique (A16)
+                    with transaction.atomic():
+                        for etudiant in etudiants:
+                            Abs_Etu_Seance.objects.get_or_create(
+                                seance=seance,
+                                etudiant=etudiant,
+                                defaults={
+                                    "present": False,
+                                    "justifiee": False,
+                                    "participation": False,
+                                    "type_audience_lors_creation": seance.type_audience or "groupe_complet",
+                                },
+                            )
+                        # Marquer que la liste a été générée
+                        seance.list_abs_etudiant_generee = True
+                        seance.save()
 
                 messages.success(request, "تم تحديث الحصة بنجاح")
                 return redirect("ense:list_Sea_Ens", dep_id=dep_id, clas_id=seance.classe.id)

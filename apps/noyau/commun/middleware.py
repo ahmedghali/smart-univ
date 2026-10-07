@@ -2,7 +2,6 @@
 
 import logging
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
 from django.views.defaults import page_not_found
 
@@ -23,10 +22,16 @@ class ObjectDoesNotExistMiddleware:
         return self.get_response(request)
 
     def process_exception(self, request, exception):
-        if not isinstance(exception, ObjectDoesNotExist):
-            return None
-        logger.warning("Objet introuvable sur %s (utilisateur %s) : %s", request.path, request.user, exception)
-        return page_not_found(request, Http404(str(exception)))
+        # A29 : ne convertit en 404 que RelatedObjectDoesNotExist sur enseignant_profile / etudiant_profile.
+        # Les autres DoesNotExist remontent normalement (500 et log).
+        exc_type = type(exception).__name__
+        exc_msg = str(exception).lower()
+        if exc_type == "RelatedObjectDoesNotExist" and (
+            "enseignant_profile" in exc_msg or "etudiant_profile" in exc_msg
+        ):
+            logger.warning("Profil manquant sur %s (utilisateur %s) : %s", request.path, request.user, exception)
+            return page_not_found(request, Http404(str(exception)))
+        return None
 
 
 class MustChangePasswordMiddleware:

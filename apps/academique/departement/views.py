@@ -7,6 +7,7 @@ from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -362,7 +363,7 @@ def heures_enseignants_dep(request, semestre=1):
 @login_required
 @with_departement
 def list_etudiants(request):
-    """Liste des étudiants."""
+    """Liste des étudiants avec pagination (A27)."""
     etudiants = Etudiant.objects.select_related(
         "niv_spe_dep_sg__niv_spe_dep__specialite", "niv_spe_dep_sg__niv_spe_dep__niveau"
     ).filter(niv_spe_dep_sg__niv_spe_dep__departement=request.departement)
@@ -373,12 +374,19 @@ def list_etudiants(request):
             Q(nom_ar__icontains=search) | Q(prenom_ar__icontains=search) | Q(matricule__icontains=search)
         )
 
+    paginator = Paginator(etudiants.order_by("nom_ar"), 25)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     context = get_dep_sidebar_context(request, request.departement)
     context.update(
         {
             "title": "قائمة الطلبة",
             "active_menu": "etudiants",
-            "etudiants": etudiants.order_by("nom_ar"),
+            "etudiants": page_obj,
+            "page_obj": page_obj,
+            "paginator": paginator,
+            "is_paginated": page_obj.has_other_pages(),
         }
     )
     return render(request, "departement/list_etudiants.html", context)
@@ -405,18 +413,25 @@ def import_etudiants(request):
 @login_required
 @with_departement
 def list_Specialite_Dep(request):
-    """Liste des spécialités du département."""
+    """Liste des spécialités du département avec pagination (A27)."""
     specialites = Specialite.objects.filter(departement=request.departement).annotate(
         nb_matieres=Count("nivspedep__matieres", distinct=True),
         nb_etudiants=Count("nivspedep__sections_groupes__etudiants", distinct=True),
     )
+
+    paginator = Paginator(specialites, 25)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
 
     context = get_dep_sidebar_context(request, request.departement)
     context.update(
         {
             "title": "قائمة التخصصات",
             "active_menu": "specialites",
-            "specialites": specialites,
+            "specialites": page_obj,
+            "page_obj": page_obj,
+            "paginator": paginator,
+            "is_paginated": page_obj.has_other_pages(),
         }
     )
     return render(request, "departement/list_Specialite_Dep.html", context)
@@ -425,19 +440,26 @@ def list_Specialite_Dep(request):
 @login_required
 @with_departement
 def list_Mat_Niv(request):
-    """Liste des matières par niveau."""
+    """Liste des matières par niveau avec pagination (A27)."""
     matieres = (
         Matiere.objects.filter(niv_spe_dep__specialite__departement=request.departement)
         .select_related("niv_spe_dep__specialite", "niv_spe_dep__niveau")
         .distinct()
     )
 
+    paginator = Paginator(matieres, 25)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     context = get_dep_sidebar_context(request, request.departement)
     context.update(
         {
             "title": "قائمة المواد",
             "active_menu": "matieres",
-            "matieres": matieres,
+            "matieres": page_obj,
+            "page_obj": page_obj,
+            "paginator": paginator,
+            "is_paginated": page_obj.has_other_pages(),
         }
     )
     return render(request, "departement/list_Mat_Niv.html", context)
