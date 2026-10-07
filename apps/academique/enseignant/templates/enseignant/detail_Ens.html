@@ -1,0 +1,14 @@
+{% extends 'enseignant/base_Ens.html' %}
+
+{% block content_ens %}
+<div class="container-fluid py-4">
+    <h2>{{ title }}</h2>
+    <div class="card p-4 mt-3 shadow-sm">
+        <h4>{{ enseignant.get_nom_complet }}</h4>
+        <p><strong>المعرف / Matricule:</strong> {{ enseignant.matricule }}</p>
+        {% if enseignant.user %}
+        <p><strong>المستخدم / Utilisateur:</strong> {{ enseignant.user.username }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

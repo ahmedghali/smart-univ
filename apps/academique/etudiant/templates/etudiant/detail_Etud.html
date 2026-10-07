@@ -1,0 +1,15 @@
+{% extends 'etudiant/base_Etu.html' %}
+
+{% block content_etu %}
+<div class="container-fluid py-4">
+    <h2>{{ title }}</h2>
+    <div class="card p-4 mt-3">
+        <h4>{{ etudiant.get_nom_complet }}</h4>
+        <p><strong>المعرف / Matricule:</strong> {{ etudiant.matricule }}</p>
+        <p><strong>الفوج / Groupe:</strong> {{ etudiant.niv_spe_dep_sg }}</p>
+        {% if etudiant.user %}
+        <p><strong>المستخدم / Utilisateur:</strong> {{ etudiant.user.username }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -292,9 +292,28 @@ def changePassword_Etud(request):
 
 @login_required
 def list_Etud(request):
-    """Liste de tous les étudiants."""
+    """Liste des étudiants accessible uniquement aux utilisateurs autorisés de leur département (A06)."""
+    from django.core.exceptions import PermissionDenied
+
+    from apps.noyau.authentification.utils import get_active_departement
+    from apps.noyau.commun.models import PostePermission
+
+    perms = PostePermission.get_permissions(request)
+    is_super = request.user.is_superuser
+    has_perm = perms.get("etudiant_view", False)
+
+    if not is_super and not has_perm:
+        raise PermissionDenied("Vous n'avez pas la permission de consulter la liste des étudiants.")
+
+    dep = get_active_departement(request)
+    if not is_super and not dep:
+        raise PermissionDenied("Aucun département actif sélectionné.")
+
     try:
-        etudiants = Etudiant.objects.select_related("user", "niv_spe_dep_sg", "wilaya").all()
+        etudiants = Etudiant.objects.select_related("user", "niv_spe_dep_sg", "wilaya")
+        if not is_super:
+            etudiants = etudiants.filter(niv_spe_dep_sg__niv_spe_dep__departement=dep)
+
         context = {
             "title": "قائمة الطلبة / Liste des étudiants",
             "etudiants": etudiants,
@@ -307,11 +326,38 @@ def list_Etud(request):
 
 @login_required
 def detail_Etud(request, etudiant_id):
-    """Détails complets d'un étudiant."""
-    try:
-        etudiant = get_object_or_404(
-            Etudiant.objects.select_related("user", "niv_spe_dep_sg", "wilaya"), id=etudiant_id
+    """Détails complets d'un étudiant (A06)."""
+    from django.core.exceptions import PermissionDenied
+
+    from apps.noyau.authentification.utils import get_active_departement
+    from apps.noyau.commun.models import PostePermission
+
+    etudiant = get_object_or_404(
+        Etudiant.objects.select_related("user", "niv_spe_dep_sg__niv_spe_dep__departement", "wilaya"),
+        id=etudiant_id,
+    )
+
+    is_self = (
+        hasattr(request.user, "etudiant_profile")
+        and request.user.etudiant_profile
+        and request.user.etudiant_profile.id == etudiant.id
+    )
+
+    if not is_self and not request.user.is_superuser:
+        perms = PostePermission.get_permissions(request)
+        if not perms.get("etudiant_view", False):
+            raise PermissionDenied("Vous n'avez pas la permission de consulter ce profil étudiant.")
+
+        dep = get_active_departement(request)
+        etud_dep = (
+            etudiant.niv_spe_dep_sg.niv_spe_dep.departement
+            if etudiant.niv_spe_dep_sg and etudiant.niv_spe_dep_sg.niv_spe_dep
+            else None
         )
+        if not dep or etud_dep != dep:
+            raise PermissionDenied("Cet étudiant n'appartient pas à votre département.")
+
+    try:
         # Contexte de base
         context = get_etudiant_context(etudiant)
         context["title"] = f"تفاصيل الطالب / Détails étudiant - {etudiant.get_nom_complet()}"
@@ -320,7 +366,7 @@ def detail_Etud(request, etudiant_id):
         return render(request, "etudiant/detail_Etud.html", context)
     except Exception as e:
         messages.error(request, f"خطأ: {str(e)} / Erreur: {str(e)}")
-        return redirect("etudiant:list_Etud")
+        return redirect("comm:home")
 
 
 # ══════════════════════════════════════════════════════════════

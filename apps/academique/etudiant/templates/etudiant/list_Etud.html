@@ -1,0 +1,31 @@
+{% extends 'base_dashboard.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h2>{{ title }}</h2>
+    <div class="card p-3 mt-3 shadow-sm">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>المعرف / Matricule</th>
+                    <th>الاسم واللقب / Nom & Prénom</th>
+                    <th>الفوج / Groupe</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for etudiant in etudiants %}
+                <tr>
+                    <td>{{ etudiant.matricule }}</td>
+                    <td><a href="{% url 'etudiant:detail_Etud' etudiant.id %}">{{ etudiant.get_nom_complet }}</a></td>
+                    <td>{{ etudiant.niv_spe_dep_sg }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center text-muted">لا يوجد طلبة / Aucun étudiant</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

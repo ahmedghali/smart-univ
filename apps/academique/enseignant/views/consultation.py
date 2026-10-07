@@ -22,15 +22,28 @@ from ..services import _safe_str, get_sidebar_context
 @login_required
 def list_Ens(request):
     """
-    Liste de tous les enseignants.
-    Affiche la liste complète des enseignants avec possibilité de recherche et filtrage.
+    Liste des enseignants accessible uniquement aux utilisateurs autorisés du département (A06).
     """
-    try:
-        # Récupérer tous les enseignants actifs
-        enseignants = Enseignant.objects.select_related("user", "grade", "diplome", "wilaya").all()
+    from django.core.exceptions import PermissionDenied
 
-        # TODO: Ajouter des filtres et recherche selon les besoins
-        # Par exemple: filter par grade, diplome, wilaya, etc.
+    from apps.noyau.authentification.utils import get_active_departement
+    from apps.noyau.commun.models import PostePermission
+
+    perms = PostePermission.get_permissions(request)
+    is_super = request.user.is_superuser
+    has_perm = perms.get("enseignant_view", False)
+
+    if not is_super and not has_perm:
+        raise PermissionDenied("Vous n'avez pas la permission de consulter la liste des enseignants.")
+
+    dep = get_active_departement(request)
+    if not is_super and not dep:
+        raise PermissionDenied("Aucun département actif sélectionné.")
+
+    try:
+        enseignants = Enseignant.objects.select_related("user", "grade", "diplome", "wilaya")
+        if not is_super:
+            enseignants = enseignants.filter(ens_dep__departement=dep).distinct()
 
         context = {
             "title": "قائمة الأساتذة / Liste des enseignants",
@@ -46,14 +59,33 @@ def list_Ens(request):
 @login_required
 def detail_Ens(request, enseignant_id):
     """
-    Détails complets d'un enseignant.
-    Affiche toutes les informations détaillées d'un enseignant spécifique.
+    Détails complets d'un enseignant (A06).
     """
-    try:
-        enseignant = get_object_or_404(
-            Enseignant.objects.select_related("user", "grade", "diplome", "wilaya"), id=enseignant_id
-        )
+    from django.core.exceptions import PermissionDenied
 
+    from apps.noyau.authentification.utils import get_active_departement
+    from apps.noyau.commun.models import PostePermission
+
+    enseignant = get_object_or_404(
+        Enseignant.objects.select_related("user", "grade", "diplome", "wilaya"), id=enseignant_id
+    )
+
+    is_self = (
+        hasattr(request.user, "enseignant_profile")
+        and request.user.enseignant_profile
+        and request.user.enseignant_profile.id == enseignant.id
+    )
+
+    if not is_self and not request.user.is_superuser:
+        perms = PostePermission.get_permissions(request)
+        if not perms.get("enseignant_view", False):
+            raise PermissionDenied("Vous n'avez pas la permission de consulter ce profil enseignant.")
+
+        dep = get_active_departement(request)
+        if not dep or not Ens_Dep.objects.filter(enseignant=enseignant, departement=dep).exists():
+            raise PermissionDenied("Cet enseignant n'appartient pas à votre département.")
+
+    try:
         context = {
             "title": f"تفاصيل الأستاذ / Détails enseignant - {enseignant.get_nom_complet()}",
             "enseignant": enseignant,
@@ -62,7 +94,7 @@ def detail_Ens(request, enseignant_id):
 
     except Exception as e:
         messages.error(request, f"خطأ: {str(e)} / Erreur: {str(e)}")
-        return redirect("ense:list_Ens")
+        return redirect("comm:home")
 
 
 @enseignant_access_required

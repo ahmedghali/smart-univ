@@ -32,6 +32,19 @@ class EtudiantDepImportForm(ImportForm):
 
 
 class EtudiantDepConfirmImportForm(ConfirmImportForm):
-    """Confirmation de l'import : reporte le groupe choisi à l'étape précédente."""
+    """Confirmation de l'import : reporte le groupe choisi à l'étape précédente (A08)."""
 
-    niv_spe_dep_sg = forms.ModelChoiceField(queryset=NivSpeDep_SG.objects.all(), widget=forms.HiddenInput())
+    niv_spe_dep_sg = forms.ModelChoiceField(
+        queryset=NivSpeDep_SG.objects.none(),
+        widget=forms.HiddenInput(),
+        required=True,
+    )
+
+    def __init__(self, *args, departement_id=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if departement_id:
+            self.fields["niv_spe_dep_sg"].queryset = NivSpeDep_SG.objects.filter(
+                niv_spe_dep__departement_id=departement_id
+            ).select_related("niv_spe_dep__niveau", "niv_spe_dep__specialite")
+        else:
+            self.fields["niv_spe_dep_sg"].queryset = NivSpeDep_SG.objects.none()

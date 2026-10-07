@@ -6,7 +6,7 @@ Classes d'administration pour le département.
 from django.contrib import admin, messages
 from django.contrib.auth.models import Group
 from django.db.models import Case, IntegerField, OuterRef, Subquery, Value, When
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.utils.html import format_html
 from import_export.admin import ImportExportMixin
 
@@ -478,7 +478,19 @@ class EtudiantDepAdmin(PermissionCheckMixin, DepartementFilterMixin, ImportExpor
             if hasattr(super(), "get_import_form_kwargs")
             else {}
         )
-        kw["departement_id"] = request.session.get("selected_departement_id")
+        dep = self.get_departement(request)
+        kw["departement_id"] = dep.id if dep else None
+        return kw
+
+    def get_confirm_form_kwargs(self, request, *args, **kwargs):
+        """Passe le département au formulaire de confirmation (A08)."""
+        kw = (
+            super().get_confirm_form_kwargs(request, *args, **kwargs)
+            if hasattr(super(), "get_confirm_form_kwargs")
+            else {}
+        )
+        dep = self.get_departement(request)
+        kw["departement_id"] = dep.id if dep else None
         return kw
 
     def get_confirm_form_initial(self, request, import_form):
@@ -495,7 +507,7 @@ class EtudiantDepAdmin(PermissionCheckMixin, DepartementFilterMixin, ImportExpor
         return initial
 
     def get_import_resource_kwargs(self, request, **kwargs):
-        """Passe le groupe à la resource."""
+        """Passe le groupe à la resource avec vérification de département (A08)."""
         kw = (
             super().get_import_resource_kwargs(request, **kwargs)
             if hasattr(super(), "get_import_resource_kwargs")
@@ -503,7 +515,13 @@ class EtudiantDepAdmin(PermissionCheckMixin, DepartementFilterMixin, ImportExpor
         )
         niv_spe_dep_sg_id = request.POST.get("niv_spe_dep_sg")
         if niv_spe_dep_sg_id:
-            kw["niv_spe_dep_sg_id"] = int(niv_spe_dep_sg_id)
+            dep = self.get_departement(request)
+            sg = NivSpeDep_SG.objects.filter(
+                id=niv_spe_dep_sg_id,
+                niv_spe_dep__departement=dep,
+            ).first()
+            if sg:
+                kw["niv_spe_dep_sg_id"] = sg.id
         return kw
 
     list_display = (
@@ -1312,11 +1330,29 @@ class UserDepAdmin(PermissionCheckMixinNoImport, DepartementFilterMixin, admin.M
         try:
             user = CustomUser.objects.get(pk=user_id)
 
-            # Vérifier que l'utilisateur appartient au département
+            # Vérifier que l'utilisateur appartient au département (A02)
             departement = self.get_departement(request)
             if not departement:
                 messages.error(request, "لا يوجد قسم محدد.")
                 return redirect("/departement/admin/authentification/customuser/")
+
+            annee = self.get_annee_courante()
+            allowed_ids = self.get_user_ids_for_department(departement, annee)
+            if user.pk not in allowed_ids:
+                messages.error(
+                    request,
+                    "المستخدم لا ينتمي إلى هذا القسم. / L'utilisateur n'appartient pas à ce département.",
+                )
+                return redirect("/departement/admin/authentification/customuser/")
+
+            # A03: Confirmation requise, modification uniquement via POST
+            if request.method != "POST":
+                context = {
+                    "title": f"تأكيد إعادة تعيين كلمة المرور لـ {user.username}",
+                    "user_obj": user,
+                    "opts": self.model._meta,
+                }
+                return render(request, "admin/dep_admin/reset_password_confirm.html", context)
 
             # Générer le nouveau mot de passe
             new_password = generate_password(user.last_name, user.last_name, user.first_name, user.first_name)
@@ -1341,15 +1377,26 @@ class UserDepAdmin(PermissionCheckMixinNoImport, DepartementFilterMixin, admin.M
         return redirect("/departement/admin/authentification/customuser/")
 
     def set_password_view(self, request, user_id):
-        """Vue pour définir un mot de passe personnalisé."""
+        """Vue pour définir un mot de passe personnalisé (A02, A05, A20)."""
+        from django.contrib.auth.password_validation import validate_password
+        from django.core.exceptions import ValidationError
 
         try:
             user = CustomUser.objects.get(pk=user_id)
 
-            # Vérifier que l'utilisateur appartient au département
+            # Vérifier que l'utilisateur appartient au département (A02)
             departement = self.get_departement(request)
             if not departement:
                 messages.error(request, "لا يوجد قسم محدد.")
+                return redirect("/departement/admin/authentification/customuser/")
+
+            annee = self.get_annee_courante()
+            allowed_ids = self.get_user_ids_for_department(departement, annee)
+            if user.pk not in allowed_ids:
+                messages.error(
+                    request,
+                    "المستخدم لا ينتمي إلى هذا القسم. / L'utilisateur n'appartient pas à ce département.",
+                )
                 return redirect("/departement/admin/authentification/customuser/")
 
             if request.method == "POST":
@@ -1358,84 +1405,34 @@ class UserDepAdmin(PermissionCheckMixinNoImport, DepartementFilterMixin, admin.M
 
                 if not new_password:
                     messages.error(request, "كلمة المرور مطلوبة / Le mot de passe est requis")
-                elif len(new_password) < 4:
-                    messages.error(
-                        request, "كلمة المرور قصيرة جداً (4 أحرف على الأقل) / Mot de passe trop court (min 4 caractères)"
-                    )
                 elif new_password != confirm_password:
                     messages.error(request, "كلمتا المرور غير متطابقتين / Les mots de passe ne correspondent pas")
                 else:
-                    user.set_password(new_password)
-                    user.save(update_fields=["password"])
-                    messages.success(
-                        request,
-                        format_html("تم تعيين كلمة المرور الجديدة للمستخدم <strong>{}</strong> بنجاح", user.username),
-                    )
-                    return redirect("/departement/admin/authentification/customuser/")
+                    try:
+                        # Validation selon les validateurs Django (A20)
+                        validate_password(new_password, user)
+                        user.set_password(new_password)
+                        user.save(update_fields=["password"])
+                        messages.success(
+                            request,
+                            format_html(
+                                "تم تعيين كلمة المرور الجديدة للمستخدم <strong>{}</strong> بنجاح",
+                                user.username,
+                            ),
+                        )
+                        return redirect("/departement/admin/authentification/customuser/")
+                    except ValidationError as e:
+                        for err in e.messages:
+                            messages.error(request, err)
 
-            # Afficher le formulaire
             context = {
                 "title": f"تعيين كلمة مرور جديدة لـ {user.username}",
                 "user_obj": user,
                 "opts": self.model._meta,
                 "has_view_permission": True,
             }
-
-            # Rendu HTML inline simple
-            html_content = f'''
-            <!DOCTYPE html>
-            <html dir="rtl">
-            <head>
-                <meta charset="UTF-8">
-                <title>تعيين كلمة مرور جديدة</title>
-                <style>
-                    body {{ font-family: 'Segoe UI', Tahoma, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }}
-                    .container {{ max-width: 500px; margin: 50px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }}
-                    h1 {{ color: #1e293b; font-size: 20px; margin-bottom: 10px; }}
-                    .user-info {{ background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; }}
-                    .user-info strong {{ color: #3b82f6; }}
-                    label {{ display: block; margin-bottom: 5px; color: #475569; font-weight: 500; }}
-                    input[type="password"] {{ width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 15px; font-size: 14px; box-sizing: border-box; }}
-                    input[type="password"]:focus {{ outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }}
-                    .btn {{ padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; }}
-                    .btn-primary {{ background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }}
-                    .btn-secondary {{ background: #e2e8f0; color: #475569; margin-right: 10px; text-decoration: none; display: inline-block; }}
-                    .buttons {{ display: flex; gap: 10px; margin-top: 20px; }}
-                    .messages {{ margin-bottom: 15px; }}
-                    .error {{ background: #fef2f2; color: #dc2626; padding: 10px; border-radius: 6px; }}
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h1>🔑 تعيين كلمة مرور جديدة</h1>
-                    <div class="user-info">
-                        <strong>👤 {user.nom_complet}</strong><br>
-                        <span style="color: #64748b;">@{user.username}</span>
-                    </div>
-                    <form method="post">
-                        <input type="hidden" name="csrfmiddlewaretoken" value="{request.META.get("CSRF_COOKIE", "")}">
-                        <label>كلمة المرور الجديدة / Nouveau mot de passe</label>
-                        <input type="password" name="new_password" required autofocus>
-                        <label>تأكيد كلمة المرور / Confirmer le mot de passe</label>
-                        <input type="password" name="confirm_password" required>
-                        <div class="buttons">
-                            <button type="submit" class="btn btn-primary">✓ حفظ / Enregistrer</button>
-                            <a href="/departement/admin/authentification/customuser/" class="btn btn-secondary">✕ إلغاء / Annuler</a>
-                        </div>
-                    </form>
-                </div>
-            </body>
-            </html>
-            '''
-            from django.http import HttpResponse
-            from django.middleware.csrf import get_token
-
-            # Get CSRF token
-            csrf_token = get_token(request)
-            html_content = html_content.replace(
-                f'value="{request.META.get("CSRF_COOKIE", "")}"', f'value="{csrf_token}"'
-            )
-            return HttpResponse(html_content)
+            # Rendu via template Django sécurisé (A05)
+            return render(request, "admin/dep_admin/set_password.html", context)
 
         except CustomUser.DoesNotExist:
             messages.error(request, "المستخدم غير موجود.")

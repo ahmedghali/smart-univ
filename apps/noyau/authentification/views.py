@@ -296,6 +296,9 @@ def switch_to_poste(request, affectation_id):
 def logout_view(request):
     """
     Déconnecte l'utilisateur et le redirige vers la page d'accueil.
+    Accepte POST pour la déconnexion. Une requête GET affiche une confirmation.
     """
-    logout(request)
-    return redirect("comm:home")
+    if request.method == "POST":
+        logout(request)
+        return redirect("comm:home")
+    return render(request, "authentification/logout_confirm.html")

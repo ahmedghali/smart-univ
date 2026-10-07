@@ -244,3 +244,28 @@ def get_user_postes_in_departement(user, departement_id):
         niveau_contexte=AffectationPoste.NIVEAU_DEPARTEMENT,
         departement_id=departement_id,
     )
+
+
+def get_active_departement(request):
+    """
+    Récupère le département actif de la requête.
+    Priorité: session['selected_departement_id'] > première affectation active au niveau département.
+    """
+    if not request or not hasattr(request, "user") or not request.user.is_authenticated:
+        return None
+
+    dep_id = request.session.get("selected_departement_id")
+    if dep_id:
+        from apps.academique.departement.models import Departement
+
+        dep = Departement.objects.filter(id=dep_id).first()
+        if dep:
+            return dep
+
+    deps = AffectationPoste.get_departements_user(request.user)
+    if deps.exists():
+        dep = deps.first()
+        request.session["selected_departement_id"] = dep.id
+        return dep
+
+    return None

@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from django.contrib import messages
 from django.db.models import Count
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.academique.affectation.models import Classe, EtudiantSousGroupe, Seance, SousGroupe, SousGroupeManager
@@ -227,8 +227,13 @@ def niveaux_enseigner(request, dep_id, enseignant, departement):
 
 @enseignant_access_required
 def page_nombre_sous_groupes(request, dep_id, classe_id, enseignant, departement):
-    """Page pour choisir le nombre de sous-groupes"""
-    classe = get_object_or_404(Classe, id=classe_id)
+    """Page pour choisir le nombre de sous-groupes (A07)."""
+    classe = get_object_or_404(
+        Classe,
+        id=classe_id,
+        enseignant__enseignant=enseignant,
+        enseignant__departement=departement,
+    )
     if request.method == "POST":
         nombre = int(request.POST.get("nombre", 2))
         SousGroupeManager.creer_sous_groupes_automatiques(
@@ -243,8 +248,13 @@ def page_nombre_sous_groupes(request, dep_id, classe_id, enseignant, departement
 
 @enseignant_access_required
 def affecter_etudiants_sous_groupes(request, dep_id, classe_id, enseignant, departement):
-    """Page pour affecter les étudiants aux sous-groupes"""
-    classe = get_object_or_404(Classe, id=classe_id)
+    """Page pour affecter les étudiants aux sous-groupes (A07)."""
+    classe = get_object_or_404(
+        Classe,
+        id=classe_id,
+        enseignant__enseignant=enseignant,
+        enseignant__departement=departement,
+    )
     sous_groupes = SousGroupe.objects.filter(groupe_principal=classe.niv_spe_dep_sg, actif=True).order_by(
         "ordre_affichage"
     )
@@ -269,8 +279,19 @@ def affecter_etudiants_sous_groupes(request, dep_id, classe_id, enseignant, depa
 
 @enseignant_access_required
 def liste_sous_groupes(request, dep_id, niv_spe_dep_sg_id, enseignant, departement):
-    """Afficher la liste des sous-groupes et leurs étudiants"""
-    niv_spe_dep_sg = get_object_or_404(NivSpeDep_SG, id=niv_spe_dep_sg_id)
+    """Afficher la liste des sous-groupes et leurs étudiants (A07)."""
+    niv_spe_dep_sg = get_object_or_404(
+        NivSpeDep_SG,
+        id=niv_spe_dep_sg_id,
+        niv_spe_dep__departement=departement,
+    )
+    if not Classe.objects.filter(
+        enseignant__enseignant=enseignant,
+        enseignant__departement=departement,
+        niv_spe_dep_sg=niv_spe_dep_sg,
+    ).exists():
+        raise Http404("Vous n'enseignez pas ce groupe.")
+
     sous_groupes = SousGroupe.objects.filter(groupe_principal=niv_spe_dep_sg, actif=True).order_by("ordre_affichage")
     tous_etudiants = Etudiant.objects.filter(niv_spe_dep_sg=niv_spe_dep_sg).order_by("nom_ar", "prenom_ar")
     etudiants_affectes_ids = EtudiantSousGroupe.objects.filter(sous_groupe__in=sous_groupes, actif=True).values_list(
@@ -299,7 +320,19 @@ def liste_sous_groupes(request, dep_id, niv_spe_dep_sg_id, enseignant, departeme
 
 @enseignant_access_required
 def affecter_direct_sous_groupes(request, dep_id, niv_spe_dep_sg_id, enseignant, departement):
-    """Traiter l'affectation directe des étudiants aux sous-groupes"""
+    """Traiter l'affectation directe des étudiants aux sous-groupes (A07)."""
+    niv_spe_dep_sg = get_object_or_404(
+        NivSpeDep_SG,
+        id=niv_spe_dep_sg_id,
+        niv_spe_dep__departement=departement,
+    )
+    if not Classe.objects.filter(
+        enseignant__enseignant=enseignant,
+        enseignant__departement=departement,
+        niv_spe_dep_sg=niv_spe_dep_sg,
+    ).exists():
+        raise Http404("Vous n'enseignez pas ce groupe.")
+
     if request.method == "POST":
         niv_spe_dep_sg = get_object_or_404(NivSpeDep_SG, id=niv_spe_dep_sg_id)
         tous_etudiants = Etudiant.objects.filter(niv_spe_dep_sg=niv_spe_dep_sg)
