@@ -1373,11 +1373,32 @@ class UserDepAdmin(PermissionCheckMixinNoImport, DepartementFilterMixin, admin.M
         return custom_urls + urls
 
     def reset_password_view(self, request, user_id):
-        """Vue pour réinitialiser le mot de passe d'un utilisateur (automatique)."""
+        """Vue pour réinitialiser le mot de passe d'un utilisateur (automatique) (R5)."""
         from apps.academique.etudiant.utils import generate_password
+
+        # 1. Vérifier la permission de modification sur le modèle CustomUser (R5)
+        if not self.has_change_permission(request):
+            messages.error(
+                request,
+                "غير مصرح لك بتعديل المستخدمين. / Vous n'avez pas la permission de modifier les utilisateurs.",
+            )
+            return redirect("/departement/admin/authentification/customuser/")
 
         try:
             user = CustomUser.objects.get(pk=user_id)
+
+            # 2. Refuser si cible est superuser, staff ou possède une AffectationPoste active (R5)
+            if (
+                user.is_superuser
+                or user.is_staff
+                or AffectationPoste.objects.filter(user=user, est_actif=True).exists()
+            ):
+                messages.error(
+                    request,
+                    "لا يمكن تعديل كلمة مرور مسؤول أو صاحب منصب. / "
+                    "Impossible de modifier le mot de passe d'un administrateur ou d'un utilisateur ayant un poste actif.",
+                )
+                return redirect("/departement/admin/authentification/customuser/")
 
             # Vérifier que l'utilisateur appartient au département (A02)
             departement = self.get_departement(request)
@@ -1403,10 +1424,11 @@ class UserDepAdmin(PermissionCheckMixinNoImport, DepartementFilterMixin, admin.M
                 }
                 return render(request, "admin/dep_admin/reset_password_confirm.html", context)
 
-            # Générer le nouveau mot de passe
+            # Générer le nouveau mot de passe et activer le drapeau (R5)
             new_password = generate_password(user.last_name, user.last_name, user.first_name, user.first_name)
             user.set_password(new_password)
-            user.save(update_fields=["password"])
+            user.doit_changer_mot_de_passe = True
+            user.save(update_fields=["password", "doit_changer_mot_de_passe"])
 
             messages.success(
                 request,
@@ -1426,12 +1448,33 @@ class UserDepAdmin(PermissionCheckMixinNoImport, DepartementFilterMixin, admin.M
         return redirect("/departement/admin/authentification/customuser/")
 
     def set_password_view(self, request, user_id):
-        """Vue pour définir un mot de passe personnalisé (A02, A05, A20)."""
+        """Vue pour définir un mot de passe personnalisé (A02, A05, A20, R5)."""
         from django.contrib.auth.password_validation import validate_password
         from django.core.exceptions import ValidationError
 
+        # 1. Vérifier la permission de modification sur le modèle CustomUser (R5)
+        if not self.has_change_permission(request):
+            messages.error(
+                request,
+                "غير مصرح لك بتعديل المستخدمين. / Vous n'avez pas la permission de modifier les utilisateurs.",
+            )
+            return redirect("/departement/admin/authentification/customuser/")
+
         try:
             user = CustomUser.objects.get(pk=user_id)
+
+            # 2. Refuser si cible est superuser, staff ou possède une AffectationPoste active (R5)
+            if (
+                user.is_superuser
+                or user.is_staff
+                or AffectationPoste.objects.filter(user=user, est_actif=True).exists()
+            ):
+                messages.error(
+                    request,
+                    "لا يمكن تعديل كلمة مرور مسؤول أو صاحب منصب. / "
+                    "Impossible de modifier le mot de passe d'un administrateur ou d'un utilisateur ayant un poste actif.",
+                )
+                return redirect("/departement/admin/authentification/customuser/")
 
             # Vérifier que l'utilisateur appartient au département (A02)
             departement = self.get_departement(request)
@@ -1461,7 +1504,8 @@ class UserDepAdmin(PermissionCheckMixinNoImport, DepartementFilterMixin, admin.M
                         # Validation selon les validateurs Django (A20)
                         validate_password(new_password, user)
                         user.set_password(new_password)
-                        user.save(update_fields=["password"])
+                        user.doit_changer_mot_de_passe = True
+                        user.save(update_fields=["password", "doit_changer_mot_de_passe"])
                         messages.success(
                             request,
                             format_html(
@@ -1559,11 +1603,25 @@ class UserDepAdmin(PermissionCheckMixinNoImport, DepartementFilterMixin, admin.M
 
     @admin.action(description="إعادة تعيين كلمة المرور / Réinitialiser le mot de passe")
     def reset_password_action(self, request, queryset):
-        """Réinitialise le mot de passe des utilisateurs sélectionnés."""
+        """Réinitialise le mot de passe des utilisateurs sélectionnés (R5)."""
         from apps.academique.etudiant.utils import generate_password
+
+        if not self.has_change_permission(request):
+            messages.error(
+                request,
+                "غير مصرح لك بتعديل المستخدمين. / Vous n'avez pas la permission de modifier les utilisateurs.",
+            )
+            return
 
         reset_count = 0
         for user in queryset:
+            if (
+                user.is_superuser
+                or user.is_staff
+                or AffectationPoste.objects.filter(user=user, est_actif=True).exists()
+            ):
+                continue
+
             # Générer un nouveau mot de passe basé sur le nom
             new_password = generate_password(
                 user.last_name,
@@ -1572,13 +1630,13 @@ class UserDepAdmin(PermissionCheckMixinNoImport, DepartementFilterMixin, admin.M
                 user.first_name,  # Fallback arabe
             )
             user.set_password(new_password)
-            user.save(update_fields=["password"])
+            user.doit_changer_mot_de_passe = True
+            user.save(update_fields=["password", "doit_changer_mot_de_passe"])
             reset_count += 1
 
         messages.success(
             request,
-            f"تم إعادة تعيين كلمة المرور لـ {reset_count} مستخدم(ين). "
-            f"كلمة المرور الجديدة: ...XX123 (XX = أول حرفين من الاسم واللقب)",
+            f"تم إعادة تعيين كلمة المرور لـ {reset_count} مستخدم(ين).",
         )
 
     reset_password_action.short_description = "إعادة تعيين كلمة المرور / Réinitialiser le mot de passe"

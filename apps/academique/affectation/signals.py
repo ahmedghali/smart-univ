@@ -18,22 +18,24 @@ logger = logging.getLogger(__name__)
 
 @receiver(post_save, sender=Classe)
 def on_classe_save(sender, instance, **kwargs):
-    """Recalcule les compteurs Ens_Dep après création ou modification d'une classe (A09)."""
+    """Recalcule les compteurs Ens_Dep après création ou modification d'une classe (A09, R6)."""
     if instance.enseignant_id:
         try:
             recalculer_statistiques_ens_dep(instance.enseignant)
         except Exception:
-            pass
+            logger.exception("Erreur lors du recalcul des compteurs Ens_Dep: %s", instance.enseignant_id)
 
 
 @receiver(post_delete, sender=Classe)
 def on_classe_delete(sender, instance, **kwargs):
-    """Recalcule les compteurs Ens_Dep après suppression d'une classe (A09)."""
+    """Recalcule les compteurs Ens_Dep après suppression d'une classe (A09, R6)."""
     if instance.enseignant_id:
         try:
             recalculer_statistiques_ens_dep(instance.enseignant)
         except Exception:
-            pass
+            logger.exception(
+                "Erreur lors du recalcul des compteurs Ens_Dep après suppression: %s", instance.enseignant_id
+            )
 
 
 # ══════════════════════════════════════════════════════════════
