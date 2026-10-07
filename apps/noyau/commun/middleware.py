@@ -27,3 +27,34 @@ class ObjectDoesNotExistMiddleware:
             return None
         logger.warning("Objet introuvable sur %s (utilisateur %s) : %s", request.path, request.user, exception)
         return page_not_found(request, Http404(str(exception)))
+
+
+class MustChangePasswordMiddleware:
+    """
+    Redirige les utilisateurs dont doit_changer_mot_de_passe=True
+    vers la page de changement de mot de passe à la connexion tant qu'il vaut vrai (A01).
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        user = getattr(request, "user", None)
+        if user and user.is_authenticated and getattr(user, "doit_changer_mot_de_passe", False):
+            path = request.path
+            allowed_prefixes = (
+                "/authentification/logout/",
+                "/etudiant/profile/change-password/",
+                "/enseignant/change-password/",
+                "/admin/password_change/",
+                "/static/",
+                "/media/",
+            )
+            if not any(path.startswith(prefix) for prefix in allowed_prefixes):
+                from django.shortcuts import redirect
+
+                if hasattr(user, "etudiant_profile"):
+                    return redirect("etudiant:changePassword_Etud")
+                elif hasattr(user, "enseignant_profile"):
+                    return redirect("ense:change_password_Ens_simple")
+        return self.get_response(request)

@@ -43,6 +43,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "apps.noyau.commun.middleware.MustChangePasswordMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.noyau.commun.middleware.ObjectDoesNotExistMiddleware",
 ]

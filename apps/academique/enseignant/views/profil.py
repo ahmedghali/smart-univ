@@ -144,6 +144,7 @@ def change_password_Ens(request):
                 )
             else:
                 request.user.set_password(new_password)
+                request.user.doit_changer_mot_de_passe = False
                 request.user.save()
                 update_session_auth_hash(request, request.user)
                 messages.success(request, "تم تغيير كلمة المرور بنجاح / Mot de passe modifié avec succès")
@@ -250,6 +251,7 @@ def change_password_ens_dep(request, dep_id, enseignant, departement):
             )
         else:
             request.user.set_password(new_password)
+            request.user.doit_changer_mot_de_passe = False
             request.user.save()
             update_session_auth_hash(request, request.user)
             messages.success(request, "تم تغيير كلمة المرور بنجاح / Mot de passe modifié avec succès")

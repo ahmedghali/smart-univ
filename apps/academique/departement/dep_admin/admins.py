@@ -352,7 +352,8 @@ class EnseignantDepAdmin(PermissionCheckMixin, DepartementFilterMixin, ImportExp
 
             user, _ = create_user_for_enseignant(obj)
             if user:
-                messages.success(request, f"Utilisateur créé - Login: {user.username}")
+                pwd_info = f" - Mot de passe temporaire : {user._generated_password}" if getattr(user, "_generated_password", None) else ""
+                messages.success(request, f"Utilisateur créé - Login: {user.username}{pwd_info}")
 
     def get_urls(self):
         """Ajoute une URL personnalisée pour créer un utilisateur."""
@@ -379,7 +380,8 @@ class EnseignantDepAdmin(PermissionCheckMixin, DepartementFilterMixin, ImportExp
             else:
                 user, error = create_user_for_enseignant(enseignant)
                 if user:
-                    messages.success(request, f"Utilisateur créé - Login: {user.username}")
+                    pwd_info = f" - Mot de passe temporaire : {user._generated_password}" if getattr(user, "_generated_password", None) else ""
+                    messages.success(request, f"Utilisateur créé - Login: {user.username}{pwd_info}")
                 else:
                     messages.error(request, error or "Erreur lors de la création de l'utilisateur.")
         except Enseignant.DoesNotExist:
@@ -725,7 +727,8 @@ class EtudiantDepAdmin(PermissionCheckMixin, DepartementFilterMixin, ImportExpor
 
             user = create_user_for_etudiant(obj)
             if user:
-                messages.success(request, f"Utilisateur créé - Login: {user.username}")
+                pwd_info = f" - Mot de passe temporaire : {user._generated_password}" if getattr(user, "_generated_password", None) else ""
+                messages.success(request, f"Utilisateur créé - Login: {user.username}{pwd_info}")
 
     def get_urls(self):
         """Ajoute une URL personnalisée pour créer un utilisateur."""
@@ -752,7 +755,8 @@ class EtudiantDepAdmin(PermissionCheckMixin, DepartementFilterMixin, ImportExpor
             else:
                 user = create_user_for_etudiant(etudiant)
                 if user:
-                    messages.success(request, f"Utilisateur créé - Login: {user.username}")
+                    pwd_info = f" - Mot de passe temporaire : {user._generated_password}" if getattr(user, "_generated_password", None) else ""
+                    messages.success(request, f"Utilisateur créé - Login: {user.username}{pwd_info}")
                 else:
                     messages.error(request, "Erreur lors de la création de l'utilisateur.")
         except Etudiant.DoesNotExist:

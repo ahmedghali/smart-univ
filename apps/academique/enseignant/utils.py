@@ -1,4 +1,6 @@
 import logging
+import secrets
+import string
 
 # apps/academique/enseignant/utils.py
 from apps.noyau.authentification.models import CustomUser
@@ -99,26 +101,28 @@ def generate_login(nom_fr, nom_ar, prenom_fr, prenom_ar):
     return login
 
 
-def generate_password(nom_fr, nom_ar, prenom_fr, prenom_ar):
+def generate_password(*args, length=14, **kwargs):
     """
-    Génère un mot de passe au format: ...abcd123
-    ab = 2 premières lettres du nom
-    cd = 2 premières lettres du prénom
+    Génère un mot de passe aléatoire sécurisé (A01).
+    Longueur minimum de 12 caractères avec minuscules, majuscules, chiffres et caractères spéciaux.
     """
-    nom = get_french_name(nom_fr, nom_ar, max_length=7)
-    prenom = get_french_name(prenom_fr, prenom_ar, max_length=7)
-
-    # Prendre les 2 premières lettres (ou compléter avec 'x' si moins de 2)
-    ab = (nom[:2] if len(nom) >= 2 else nom + "x" * (2 - len(nom))).lower()
-    cd = (prenom[:2] if len(prenom) >= 2 else prenom + "x" * (2 - len(prenom))).lower()
-
-    password = f"...{ab}{cd}123"
-    return password
+    if length < 12:
+        length = 12
+    alphabet = string.ascii_letters + string.digits + "!@#$%^&*()-_=+"
+    chars = [
+        secrets.choice(string.ascii_lowercase),
+        secrets.choice(string.ascii_uppercase),
+        secrets.choice(string.digits),
+        secrets.choice("!@#$%^&*()-_=+"),
+    ]
+    chars += [secrets.choice(alphabet) for _ in range(length - len(chars))]
+    secrets.SystemRandom().shuffle(chars)
+    return "".join(chars)
 
 
 def create_user_for_enseignant(enseignant):
     """
-    Crée automatiquement un utilisateur pour un enseignant s'il n'en a pas déjà un.
+    Crée automatiquement un utilisateur pour un enseignant s'il n'en a pas déjà un (A01).
 
     Retourne un tuple (user, error_message):
     - (user, None) si succès
@@ -128,10 +132,9 @@ def create_user_for_enseignant(enseignant):
     if enseignant.user:
         return (None, "Cet enseignant a déjà un utilisateur.")
 
-    # Générer login et mot de passe
+    # Générer login et mot de passe sécurisé
     login = generate_login(enseignant.nom_fr, enseignant.nom_ar, enseignant.prenom_fr, enseignant.prenom_ar)
-
-    password = generate_password(enseignant.nom_fr, enseignant.nom_ar, enseignant.prenom_fr, enseignant.prenom_ar)
+    password = generate_password()
 
     # Créer l'utilisateur
     try:
@@ -156,7 +159,9 @@ def create_user_for_enseignant(enseignant):
             first_name=enseignant.prenom_fr or enseignant.prenom_ar or "",
             last_name=enseignant.nom_fr or enseignant.nom_ar or "",
             telephone=enseignant.telmobile1 or "",
+            doit_changer_mot_de_passe=True,
         )
+        user._generated_password = password
 
         # Lier l'utilisateur à l'enseignant
         enseignant.user = user

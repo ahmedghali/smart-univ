@@ -268,6 +268,7 @@ def changePassword_Etud(request):
 
             # Changer le mot de passe
             request.user.set_password(new_password)
+            request.user.doit_changer_mot_de_passe = False
             request.user.save()
 
             # Reconnecter l'utilisateur

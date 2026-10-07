@@ -39,6 +39,12 @@ class CustomUser(AbstractUser):
         verbose_name="اللغة المفضلة",
     )
 
+    doit_changer_mot_de_passe = models.BooleanField(
+        default=False,
+        verbose_name="يجب تغيير كلمة المرور / Doit changer le mot de passe",
+        help_text="Si coché, l'utilisateur doit renouveler son mot de passe dès sa prochaine connexion.",
+    )
+
     # ══════════════════════════════════════════════════════════════
     # AUDIT
     # ══════════════════════════════════════════════════════════════
@@ -104,11 +110,3 @@ class CustomUser(AbstractUser):
     def est_etudiant(self):
         """Vérifie si l'utilisateur a un profil étudiant."""
         return hasattr(self, "etudiant_profile")
-
-    def get_profile(self):
-        """Retourne le profil associé (Enseignant ou Etudiant)."""
-        if hasattr(self, "enseignant"):
-            return self.enseignant
-        if hasattr(self, "etudiant"):
-            return self.etudiant
-        return None
