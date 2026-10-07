@@ -3,6 +3,9 @@
 Resources pour import/export Excel des données du département.
 """
 
+import io
+
+import openpyxl
 from import_export import fields, resources
 from import_export.widgets import ForeignKeyWidget
 
@@ -74,6 +77,28 @@ def transliterate_arabic_to_french(arabic_text):
     return result.strip().title() if result else ""
 
 
+def generate_credentials_excel(accounts):
+    """Génère en mémoire un fichier Excel contenant les identifiants temporaires des comptes créés."""
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Identifiants"
+    ws.append(["Nom", "Prénom", "Identifiant", "Mot de passe temporaire"])
+
+    for acc in accounts:
+        ws.append(
+            [
+                acc.get("nom", ""),
+                acc.get("prenom", ""),
+                acc.get("username", ""),
+                acc.get("password", ""),
+            ]
+        )
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    return buf.getvalue()
+
+
 class EnseignantResource(resources.ModelResource):
     """Resource pour import/export des enseignants."""
 
@@ -97,6 +122,11 @@ class EnseignantResource(resources.ModelResource):
         self._departement_cache = None
         self._annee_cache = None
         self._poste_cache = None
+        self.created_accounts = []
+
+    def before_import(self, dataset, **kwargs):
+        self.created_accounts = []
+        super().before_import(dataset, **kwargs)
 
     def _get_departement(self):
         if self._departement_cache is None and self.departement_id:
@@ -134,6 +164,8 @@ class EnseignantResource(resources.ModelResource):
         return self._poste_cache
 
     def after_import_row(self, row, row_result, row_number=None, **kwargs):
+        if kwargs.get("dry_run", False):
+            return
         if not row_result.object_id:
             return
         try:
@@ -170,11 +202,26 @@ class EnseignantResource(resources.ModelResource):
                 first_name=enseignant.prenom_fr or enseignant.prenom_ar or "",
                 last_name=enseignant.nom_fr or enseignant.nom_ar or "",
                 telephone=enseignant.telmobile1 or "",
+                doit_changer_mot_de_passe=True,
             )
             enseignant.user = user
             enseignant.save(update_fields=["user"])
+            if not hasattr(self, "created_accounts"):
+                self.created_accounts = []
+            self.created_accounts.append(
+                {
+                    "nom": enseignant.nom_fr or enseignant.nom_ar or "",
+                    "prenom": enseignant.prenom_fr or enseignant.prenom_ar or "",
+                    "username": login,
+                    "password": password,
+                }
+            )
         except Exception:
             pass
+
+    def after_import(self, dataset, result, **kwargs):
+        super().after_import(dataset, result, **kwargs)
+        result.created_accounts = getattr(self, "created_accounts", [])
 
     def before_import_row(self, row, row_number=None, **_kwargs):
         import uuid
@@ -241,6 +288,12 @@ class EtudiantResource(resources.ModelResource):
         self.niv_spe_dep_sg_id = niv_spe_dep_sg_id
         self._niv_spe_dep_sg_cache = None
         self._imported_etudiant_ids = []
+        self.created_accounts = []
+
+    def before_import(self, dataset, **kwargs):
+        self._imported_etudiant_ids = []
+        self.created_accounts = []
+        super().before_import(dataset, **kwargs)
 
     def _get_niv_spe_dep_sg(self):
         if self._niv_spe_dep_sg_cache is None and self.niv_spe_dep_sg_id:
@@ -276,6 +329,7 @@ class EtudiantResource(resources.ModelResource):
     def after_import(self, dataset, result, using_transactions=True, dry_run=False, **kwargs):
         """Crée les utilisateurs en batch après l'import."""
         if dry_run or not self._imported_etudiant_ids:
+            result.created_accounts = getattr(self, "created_accounts", [])
             return
 
         from django.db import transaction
@@ -288,6 +342,7 @@ class EtudiantResource(resources.ModelResource):
         )
 
         if not etudiants:
+            result.created_accounts = getattr(self, "created_accounts", [])
             return
 
         # Charger tous les usernames existants en mémoire (cache)
@@ -316,10 +371,22 @@ class EtudiantResource(resources.ModelResource):
                 first_name=etudiant.prenom_fr or etudiant.prenom_ar or "",
                 last_name=etudiant.nom_fr or etudiant.nom_ar or "",
                 telephone=etudiant.tel_mobile1 or "",
+                doit_changer_mot_de_passe=True,
             )
             user.set_password(password)
             users_to_create.append(user)
             etudiant_user_map[etudiant.id] = login
+
+            if not hasattr(self, "created_accounts"):
+                self.created_accounts = []
+            self.created_accounts.append(
+                {
+                    "nom": etudiant.nom_fr or etudiant.nom_ar or "",
+                    "prenom": etudiant.prenom_fr or etudiant.prenom_ar or "",
+                    "username": login,
+                    "password": password,
+                }
+            )
 
         # Création batch des utilisateurs
         with transaction.atomic():
@@ -342,6 +409,7 @@ class EtudiantResource(resources.ModelResource):
                 Etudiant.objects.bulk_update(etudiants_to_update, ["user"], batch_size=200)
 
         # Nettoyer la liste
+        result.created_accounts = getattr(self, "created_accounts", [])
         self._imported_etudiant_ids = []
 
 

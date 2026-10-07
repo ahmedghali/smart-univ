@@ -29,6 +29,7 @@ from apps.noyau.commun.models import (
 from .forms import EtudiantDepConfirmImportForm, EtudiantDepImportForm
 from .mixins import (
     DepartementFilterMixin,
+    ImportCredentialsAdminMixin,
     PermissionCheckMixin,
     PermissionCheckMixinNoImport,
     ReadOnlyAdminMixin,
@@ -37,7 +38,13 @@ from .mixins import (
 from .resources import EnsDepResource, EnseignantResource, EtudiantResource, MatiereResource, SpecialiteResource
 
 
-class EnseignantDepAdmin(PermissionCheckMixin, DepartementFilterMixin, ImportExportMixin, admin.ModelAdmin):
+class EnseignantDepAdmin(
+    PermissionCheckMixin,
+    DepartementFilterMixin,
+    ImportCredentialsAdminMixin,
+    ImportExportMixin,
+    admin.ModelAdmin,
+):
     """
     Administration des enseignants pour le chef de département.
     Permissions contrôlées par PostePermission.
@@ -358,7 +365,11 @@ class EnseignantDepAdmin(PermissionCheckMixin, DepartementFilterMixin, ImportExp
 
             user, _ = create_user_for_enseignant(obj)
             if user:
-                pwd_info = f" - Mot de passe temporaire : {user._generated_password}" if getattr(user, "_generated_password", None) else ""
+                pwd_info = (
+                    f" - Mot de passe temporaire : {user._generated_password}"
+                    if getattr(user, "_generated_password", None)
+                    else ""
+                )
                 messages.success(request, f"Utilisateur créé - Login: {user.username}{pwd_info}")
 
     def get_urls(self):
@@ -371,6 +382,11 @@ class EnseignantDepAdmin(PermissionCheckMixin, DepartementFilterMixin, ImportExp
                 "<int:enseignant_id>/create-user/",
                 self.admin_site.admin_view(self.create_user_view),
                 name="enseignant_enseignant_create_user",
+            ),
+            path(
+                "download-credentials/",
+                self.admin_site.admin_view(self.download_credentials_view),
+                name="enseignant_enseignant_download_credentials",
             ),
         ]
         return custom_urls + urls
@@ -386,7 +402,11 @@ class EnseignantDepAdmin(PermissionCheckMixin, DepartementFilterMixin, ImportExp
             else:
                 user, error = create_user_for_enseignant(enseignant)
                 if user:
-                    pwd_info = f" - Mot de passe temporaire : {user._generated_password}" if getattr(user, "_generated_password", None) else ""
+                    pwd_info = (
+                        f" - Mot de passe temporaire : {user._generated_password}"
+                        if getattr(user, "_generated_password", None)
+                        else ""
+                    )
                     messages.success(request, f"Utilisateur créé - Login: {user.username}{pwd_info}")
                 else:
                     messages.error(request, error or "Erreur lors de la création de l'utilisateur.")
@@ -459,7 +479,13 @@ class EnseignantDepAdmin(PermissionCheckMixin, DepartementFilterMixin, ImportExp
 # ══════════════════════════════════════════════════════════════
 
 
-class EtudiantDepAdmin(PermissionCheckMixin, DepartementFilterMixin, ImportExportMixin, admin.ModelAdmin):
+class EtudiantDepAdmin(
+    PermissionCheckMixin,
+    DepartementFilterMixin,
+    ImportCredentialsAdminMixin,
+    ImportExportMixin,
+    admin.ModelAdmin,
+):
     """
     Administration des étudiants pour le chef de département.
     Import/Export Excel activé avec sélection du groupe obligatoire.
@@ -733,7 +759,11 @@ class EtudiantDepAdmin(PermissionCheckMixin, DepartementFilterMixin, ImportExpor
 
             user = create_user_for_etudiant(obj)
             if user:
-                pwd_info = f" - Mot de passe temporaire : {user._generated_password}" if getattr(user, "_generated_password", None) else ""
+                pwd_info = (
+                    f" - Mot de passe temporaire : {user._generated_password}"
+                    if getattr(user, "_generated_password", None)
+                    else ""
+                )
                 messages.success(request, f"Utilisateur créé - Login: {user.username}{pwd_info}")
 
     def get_urls(self):
@@ -746,6 +776,11 @@ class EtudiantDepAdmin(PermissionCheckMixin, DepartementFilterMixin, ImportExpor
                 "<int:etudiant_id>/create-user/",
                 self.admin_site.admin_view(self.create_user_view),
                 name="etudiant_etudiant_create_user",
+            ),
+            path(
+                "download-credentials/",
+                self.admin_site.admin_view(self.download_credentials_view),
+                name="etudiant_etudiant_download_credentials",
             ),
         ]
         return custom_urls + urls
@@ -761,7 +796,11 @@ class EtudiantDepAdmin(PermissionCheckMixin, DepartementFilterMixin, ImportExpor
             else:
                 user = create_user_for_etudiant(etudiant)
                 if user:
-                    pwd_info = f" - Mot de passe temporaire : {user._generated_password}" if getattr(user, "_generated_password", None) else ""
+                    pwd_info = (
+                        f" - Mot de passe temporaire : {user._generated_password}"
+                        if getattr(user, "_generated_password", None)
+                        else ""
+                    )
                     messages.success(request, f"Utilisateur créé - Login: {user.username}{pwd_info}")
                 else:
                     messages.error(request, "Erreur lors de la création de l'utilisateur.")

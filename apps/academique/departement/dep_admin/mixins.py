@@ -1,6 +1,8 @@
 import contextvars
 
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -180,3 +182,45 @@ class PermissionCheckMixin(PermissionCheckMixinNoImport):
 
 class ReadOnlyAdminMixin(PermissionCheckMixinNoImport):
     """Modèles de référence : mêmes contrôles de droits, sans import/export."""
+
+
+class ImportCredentialsAdminMixin:
+    """Propose un téléchargement unique du fichier Excel contenant les identifiants créés lors d'un import."""
+
+    def process_result(self, result, request):
+        created_accounts = getattr(result, "created_accounts", [])
+        if created_accounts:
+            session_key = f"_import_credentials_{self.model._meta.model_name}"
+            request.session[session_key] = created_accounts
+            download_url = (
+                f"/departement/admin/{self.model._meta.app_label}/{self.model._meta.model_name}/download-credentials/"
+            )
+            messages.info(
+                request,
+                format_html(
+                    "⚠️ <strong>Comptes créés :</strong> {} compte(s) généré(s). "
+                    '<a class="button" href="{}" style="background-color: #28a745; color: white; padding: 4px 8px; border-radius: 4px; text-decoration: none; font-weight: bold; margin-left: 10px;">'
+                    "📥 Télécharger les identifiants (fichier Excel)</a> "
+                    "<em>(Ce fichier n'est téléchargeable qu'une seule fois)</em>",
+                    len(created_accounts),
+                    download_url,
+                ),
+            )
+        return super().process_result(result, request)
+
+    def download_credentials_view(self, request):
+        from .resources import generate_credentials_excel
+
+        session_key = f"_import_credentials_{self.model._meta.model_name}"
+        accounts = request.session.pop(session_key, None)
+        if not accounts:
+            messages.warning(request, "Aucun identifiant à télécharger ou le fichier a déjà été téléchargé.")
+            return redirect(f"/departement/admin/{self.model._meta.app_label}/{self.model._meta.model_name}/")
+
+        excel_data = generate_credentials_excel(accounts)
+        response = HttpResponse(
+            excel_data,
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = 'attachment; filename="comptes_crees.xlsx"'
+        return response

@@ -2,7 +2,10 @@
 
 import logging
 
+from django.conf import settings
 from django.http import Http404
+from django.shortcuts import redirect
+from django.urls import reverse
 from django.views.defaults import page_not_found
 
 logger = logging.getLogger(__name__)
@@ -35,9 +38,9 @@ class ObjectDoesNotExistMiddleware:
 
 
 class MustChangePasswordMiddleware:
-    """
-    Redirige les utilisateurs dont doit_changer_mot_de_passe=True
-    vers la page de changement de mot de passe à la connexion tant qu'il vaut vrai (A01).
+    """Redirige les utilisateurs dont doit_changer_mot_de_passe=True
+
+    vers la page de changement de mot de passe à la connexion tant qu'il vaut vrai (A01, R2).
     """
 
     def __init__(self, get_response):
@@ -47,19 +50,39 @@ class MustChangePasswordMiddleware:
         user = getattr(request, "user", None)
         if user and user.is_authenticated and getattr(user, "doit_changer_mot_de_passe", False):
             path = request.path
-            allowed_prefixes = (
-                "/authentification/logout/",
-                "/etudiant/profile/change-password/",
-                "/enseignant/change-password/",
-                "/admin/password_change/",
-                "/static/",
-                "/media/",
-            )
-            if not any(path.startswith(prefix) for prefix in allowed_prefixes):
-                from django.shortcuts import redirect
+            allowed_exact = set()
+            allowed_prefixes = []
 
-                if hasattr(user, "etudiant_profile"):
-                    return redirect("etudiant:changePassword_Etud")
-                elif hasattr(user, "enseignant_profile"):
-                    return redirect("ense:change_password_Ens_simple")
+            for route_name in (
+                "auth:logout",
+                "etud:changePassword_Etud",
+                "ense:change_password_Ens_simple",
+                "admin:password_change",
+            ):
+                try:
+                    url = reverse(route_name)
+                    allowed_exact.add(url)
+                    if route_name == "ense:change_password_Ens_simple":
+                        allowed_prefixes.append(url)
+                except Exception:
+                    pass
+
+            if getattr(settings, "STATIC_URL", None):
+                allowed_prefixes.append(settings.STATIC_URL)
+            if getattr(settings, "MEDIA_URL", None):
+                allowed_prefixes.append(settings.MEDIA_URL)
+
+            if path in allowed_exact or any(path.startswith(prefix) for prefix in allowed_prefixes):
+                return self.get_response(request)
+
+            if hasattr(user, "etudiant_profile"):
+                return redirect("etud:changePassword_Etud")
+            elif hasattr(user, "enseignant_profile"):
+                return redirect("ense:change_password_Ens_simple")
+            else:
+                try:
+                    return redirect("admin:password_change")
+                except Exception:
+                    pass
+
         return self.get_response(request)
