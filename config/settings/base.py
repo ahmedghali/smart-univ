@@ -80,6 +80,8 @@ else:
             "PASSWORD": config("DATABASE_PASSWORD", default=""),
             "HOST": config("DATABASE_HOST", default="localhost"),
             "PORT": config("DATABASE_PORT", default="5432"),
+            # Échec rapide si PostgreSQL est arrêté, au lieu d'une attente de plusieurs minutes
+            "OPTIONS": {"connect_timeout": 5},
         }
     }
 
