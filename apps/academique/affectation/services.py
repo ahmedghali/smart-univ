@@ -130,12 +130,97 @@ def recalculer_statistiques_ens_dep(ens_dep):
     return ens_dep
 
 
-def recalculer_tous_les_compteurs():
-    """Recalcule les statistiques de tous les enregistrements Ens_Dep existants (A09)."""
-    from apps.academique.affectation.models import Ens_Dep
+def recalculer_avancement_classe(classe):
+    """Recalcule et met à jour le taux d'avancement de la classe en fonction des séances effectuées (R3)."""
+    if not classe:
+        return 0
+    from apps.academique.affectation.models import Classe
 
-    total = 0
+    total = classe.seances_classe.count()
+    if total > 0:
+        fait = classe.seances_classe.filter(fait=True).count()
+        taux = round((fait / total) * 100)
+    else:
+        taux = 0
+    Classe.objects.filter(pk=classe.pk).update(taux_avancement=taux)
+    classe.taux_avancement = taux
+    return taux
+
+
+def recalculer_statistiques_nivspedep(niv_spe_dep):
+    """Recalcule le nombre de matières S1, S2 et le nombre d'étudiants pour un NivSpeDep (R3)."""
+    if not niv_spe_dep:
+        return None
+    from apps.academique.departement.models import Matiere, NivSpeDep
+    from apps.academique.etudiant.models import Etudiant
+
+    s1 = Matiere.objects.filter(niv_spe_dep=niv_spe_dep, semestre__numero=1).count()
+    s2 = Matiere.objects.filter(niv_spe_dep=niv_spe_dep, semestre__numero=2).count()
+    nbr_etu = Etudiant.objects.filter(niv_spe_dep_sg__niv_spe_dep=niv_spe_dep).count()
+
+    NivSpeDep.objects.filter(pk=niv_spe_dep.pk).update(
+        nbr_matieres_s1=s1,
+        nbr_matieres_s2=s2,
+        nbr_etudiants=nbr_etu,
+    )
+    niv_spe_dep.nbr_matieres_s1 = s1
+    niv_spe_dep.nbr_matieres_s2 = s2
+    niv_spe_dep.nbr_etudiants = nbr_etu
+    return niv_spe_dep
+
+
+def recalculer_statistiques_nivspedep_sg(niv_spe_dep_sg):
+    """Recalcule le nombre d'étudiants pour un NivSpeDep_SG selon le type d'affectation (R3)."""
+    if not niv_spe_dep_sg:
+        return None
+    from apps.academique.departement.models import NivSpeDep_SG
+    from apps.academique.etudiant.models import Etudiant
+
+    type_aff = getattr(niv_spe_dep_sg, "type_affectation", "par_groupe")
+    if type_aff == "par_groupe":
+        nbr = Etudiant.objects.filter(niv_spe_dep_sg=niv_spe_dep_sg).count()
+    elif type_aff == "par_section":
+        nbr = Etudiant.objects.filter(
+            niv_spe_dep_sg__niv_spe_dep=niv_spe_dep_sg.niv_spe_dep,
+            niv_spe_dep_sg__section=niv_spe_dep_sg.section,
+            niv_spe_dep_sg__type_affectation="par_groupe",
+        ).count()
+    elif type_aff == "tous_etudiants":
+        nbr = Etudiant.objects.filter(niv_spe_dep_sg__niv_spe_dep=niv_spe_dep_sg.niv_spe_dep).count()
+    else:
+        nbr = Etudiant.objects.filter(niv_spe_dep_sg=niv_spe_dep_sg).count()
+
+    NivSpeDep_SG.objects.filter(pk=niv_spe_dep_sg.pk).update(nbr_etudiants_SG=nbr)
+    niv_spe_dep_sg.nbr_etudiants_SG = nbr
+    return niv_spe_dep_sg
+
+
+def recalculer_tous_les_compteurs():
+    """Recalcule l'ensemble des statistiques et compteurs existants (A09, R3)."""
+    from apps.academique.affectation.models import Classe, Ens_Dep
+    from apps.academique.departement.models import NivSpeDep, NivSpeDep_SG
+
+    counts = {
+        "ens_dep": 0,
+        "classes": 0,
+        "niv_spe_dep": 0,
+        "niv_spe_dep_sg": 0,
+    }
+
     for ens_dep in Ens_Dep.objects.all():
         recalculer_statistiques_ens_dep(ens_dep)
-        total += 1
-    return total
+        counts["ens_dep"] += 1
+
+    for classe in Classe.objects.all():
+        recalculer_avancement_classe(classe)
+        counts["classes"] += 1
+
+    for nsd in NivSpeDep.objects.all():
+        recalculer_statistiques_nivspedep(nsd)
+        counts["niv_spe_dep"] += 1
+
+    for nsd_sg in NivSpeDep_SG.objects.all():
+        recalculer_statistiques_nivspedep_sg(nsd_sg)
+        counts["niv_spe_dep_sg"] += 1
+
+    return counts
