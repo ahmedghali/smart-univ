@@ -84,7 +84,9 @@ class TestLot4PerfFiabilite:
             with patch.object(NivSpeDep_SG, "save", autospec=True) as mock_save_sg:
                 list_NivSpeDep_Ens(request, dep_id=dep.id, enseignant=ens, departement=dep)
                 assert mock_save_niv.call_count == 0, "NivSpeDep.save() ne doit pas être appelé en boucle dans un GET !"
-                assert mock_save_sg.call_count == 0, "NivSpeDep_SG.save() ne doit pas être appelé en boucle dans un GET !"
+                assert mock_save_sg.call_count == 0, (
+                    "NivSpeDep_SG.save() ne doit pas être appelé en boucle dans un GET !"
+                )
 
     # ══════════════════════════════════════════════════════════
     # A16 : Transaction atomique sur la génération des absences
@@ -120,13 +122,17 @@ class TestLot4PerfFiabilite:
 
         with patch.object(admin.ModelAdmin, "changelist_view", return_value=MagicMock()):
             admin_instance.changelist_view(request)
-            assert not hasattr(admin_instance, "_current_request"), "L'instance ModelAdmin ne doit plus porter _current_request !"
+            assert not hasattr(admin_instance, "_current_request"), (
+                "L'instance ModelAdmin ne doit plus porter _current_request !"
+            )
             assert _admin_request_var.get() == request
 
             # Vérifier aussi DepartementReadOnlyAdmin
             dep_admin = DepartementReadOnlyAdmin(Departement, MagicMock())
             dep_admin.changelist_view(request)
-            assert not hasattr(dep_admin, "_current_request"), "DepartementReadOnlyAdmin ne doit plus porter _current_request !"
+            assert not hasattr(dep_admin, "_current_request"), (
+                "DepartementReadOnlyAdmin ne doit plus porter _current_request !"
+            )
 
     # ══════════════════════════════════════════════════════════
     # A27 : Pagination des listes de departement/views.py

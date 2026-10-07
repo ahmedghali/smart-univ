@@ -418,9 +418,13 @@ def import_etudiants(request):
 @with_departement
 def list_Specialite_Dep(request):
     """Liste des spécialités du département avec pagination (A27)."""
-    specialites = Specialite.objects.filter(departement=request.departement).annotate(
-        nb_matieres=Count("nivspedep__matieres", distinct=True),
-        nb_etudiants=Count("nivspedep__sections_groupes__etudiants", distinct=True),
+    specialites = (
+        Specialite.objects.filter(departement=request.departement)
+        .annotate(
+            nb_matieres=Count("nivspedep__matieres", distinct=True),
+            nb_etudiants=Count("nivspedep__sections_groupes__etudiants", distinct=True),
+        )
+        .order_by("nom_ar")
     )
 
     paginator = Paginator(specialites, 25)

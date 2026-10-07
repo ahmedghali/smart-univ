@@ -231,4 +231,3 @@ class GestionEtuClasseFactory(factory.django.DjangoModelFactory):
     etudiant = factory.SubFactory(EtudiantFactory)
     nbr_absence = 0
     nbr_absence_justifiee = 0
-

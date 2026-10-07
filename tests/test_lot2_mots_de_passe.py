@@ -29,11 +29,15 @@ class TestLot2MotsDePasse:
 
         # Vérifier qu'on n'a plus l'ancien format prévisible ...nomprenom123
         assert not pass_etu.startswith("..."), "Le mot de passe étudiant ne doit plus suivre l'ancien format prévisible"
-        assert not pass_ens.startswith("..."), "Le mot de passe enseignant ne doit plus suivre l'ancien format prévisible"
+        assert not pass_ens.startswith("..."), (
+            "Le mot de passe enseignant ne doit plus suivre l'ancien format prévisible"
+        )
 
         # Vérifier le caractère aléatoire
         pass_etu2 = generate_password_etu("Benali", "بن علي", "Mohamed", "محمد")
-        assert pass_etu != pass_etu2, "Deux générations successives pour les mêmes noms doivent produire des mots de passe différents"
+        assert pass_etu != pass_etu2, (
+            "Deux générations successives pour les mêmes noms doivent produire des mots de passe différents"
+        )
 
     def test_a01_created_user_has_flag_doit_changer_mot_de_passe(self):
         """A01: Les nouveaux comptes créés ont doit_changer_mot_de_passe = True."""

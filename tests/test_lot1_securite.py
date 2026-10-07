@@ -55,7 +55,9 @@ class TestLot1Securite:
         client.post(url, follow=True)
 
         user_b.refresh_from_db()
-        assert user_b.check_password("OldPassword123!"), "Le mot de passe de l'utilisateur d'un autre département a été modifié !"
+        assert user_b.check_password("OldPassword123!"), (
+            "Le mot de passe de l'utilisateur d'un autre département a été modifié !"
+        )
 
     def test_a03_reset_password_requires_post(self, client):
         """A03: reset_password_view ne doit pas modifier le mot de passe sur un simple GET."""
@@ -84,7 +86,9 @@ class TestLot1Securite:
         client.get(url)
 
         etud_user.refresh_from_db()
-        assert etud_user.check_password("SecretInitialPass123!"), "Le mot de passe ne doit PAS être modifié sur un GET !"
+        assert etud_user.check_password("SecretInitialPass123!"), (
+            "Le mot de passe ne doit PAS être modifié sur un GET !"
+        )
 
     def test_a20_set_password_validates_password_strength(self, client):
         """A20: set_password_view doit rejeter les mots de passe trop faibles via validate_password."""

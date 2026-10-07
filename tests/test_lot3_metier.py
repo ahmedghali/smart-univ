@@ -195,12 +195,14 @@ class TestLot3CalculsEtMetier:
 
         annee = AnneeUniversitaireFactory()
         calculator = StatsCalculator(departement=dep1, annee_univ=annee)
-        calculator.get_teacher_stats = MagicMock(return_value={
-            "vacataire_teachers": 0,
-            "associe_teachers": 0,
-            "doctorant_teachers": 0,
-            "permanent_vacataire_teachers": 0,
-        })
+        calculator.get_teacher_stats = MagicMock(
+            return_value={
+                "vacataire_teachers": 0,
+                "associe_teachers": 0,
+                "doctorant_teachers": 0,
+                "permanent_vacataire_teachers": 0,
+            }
+        )
 
         stats = calculator.get_all_stats()
         assert stats["total_students"] == 2
