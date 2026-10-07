@@ -52,10 +52,22 @@ La CI GitHub Actions lance les mêmes contrôles à chaque push.
 | `SECRET_KEY` | valeur longue et aléatoire |
 | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` |
 | `ALLOWED_HOSTS` | domaines personnalisés, séparés par des virgules (le domaine Railway est ajouté automatiquement) |
-| `MEDIA_ROOT` | chemin d'un volume Railway pour les logos (optionnel) |
+| `MEDIA_ROOT` | chemin absolu du volume Railway monté (ex: `/app/media`) |
 
 `railpack.json` applique les migrations, crée les postes de base, collecte les fichiers statiques
 puis démarre Gunicorn à chaque démarrage. La version de Python vient de `.python-version`.
+
+### Persistance des fichiers médias (Logos et documents - A04)
+
+Les conteneurs de déploiement Railway utilisant un système de fichiers éphémère, les fichiers médias téléversés (logos d'universités, facultés, départements) sont perdus à chaque redéploiement si aucun stockage persistant n'est configuré.
+
+Pour assurer la persistance des médias sans dépendance externe (pas de bucket S3 requis) :
+1. Dans le tableau de bord Railway de votre projet, sélectionnez votre service Django.
+2. Allez dans l'onglet **Volumes** et cliquez sur **Add Volume** (ou créez un volume persistant).
+3. Configurez le point de montage du volume : par exemple `/app/media` (ou `/data/media`).
+4. Dans l'onglet **Variables** du service, configurez la variable d'environnement :
+   `MEDIA_ROOT=/app/media` (pointant exactement vers le point de montage du volume).
+5. Redéployez le service : les logos et fichiers médias téléversés seront désormais conservés sur le volume persistant au fil des redéploiements successifs.
 
 ## Structure du projet
 
