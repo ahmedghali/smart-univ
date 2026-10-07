@@ -8,6 +8,7 @@ from django.contrib.auth.models import Group
 from django.db.models import Case, IntegerField, OuterRef, Subquery, Value, When
 from django.shortcuts import redirect, render
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from import_export.admin import ImportExportMixin
 
 from apps.academique.affectation.models import (
@@ -172,8 +173,8 @@ class EnseignantDepAdmin(
         if obj.user and obj.user.last_login:
             return obj.user.last_login.strftime("%Y-%m-%d %H:%M")
         elif obj.user:
-            return format_html('<span style="color: #9ca3af;">لم يسجل بعد</span>')
-        return format_html('<span style="color: #ef4444;">-</span>')
+            return mark_safe('<span style="color: #9ca3af;">لم يسجل بعد</span>')
+        return mark_safe('<span style="color: #ef4444;">-</span>')
 
     get_last_login.short_description = "آخر دخول / Dernier login"
     get_last_login.admin_order_field = "user__last_login"
@@ -667,8 +668,8 @@ class EtudiantDepAdmin(
         if obj.user and obj.user.last_login:
             return obj.user.last_login.strftime("%Y-%m-%d %H:%M")
         elif obj.user:
-            return format_html('<span style="color: #9ca3af;">لم يسجل بعد</span>')
-        return format_html('<span style="color: #ef4444;">-</span>')
+            return mark_safe('<span style="color: #9ca3af;">لم يسجل بعد</span>')
+        return mark_safe('<span style="color: #ef4444;">-</span>')
 
     get_last_login.short_description = "آخر دخول / Dernier login"
     get_last_login.admin_order_field = "user__last_login"
@@ -1045,8 +1046,8 @@ class EnsDep_DepAdmin(PermissionCheckMixin, DepartementFilterMixin, admin.ModelA
         if obj.enseignant.user and obj.enseignant.user.last_login:
             return obj.enseignant.user.last_login.strftime("%Y-%m-%d %H:%M")
         elif obj.enseignant.user:
-            return format_html('<span style="color: #9ca3af;">لم يسجل بعد</span>')
-        return format_html('<span style="color: #ef4444;">-</span>')
+            return mark_safe('<span style="color: #9ca3af;">لم يسجل بعد</span>')
+        return mark_safe('<span style="color: #ef4444;">-</span>')
 
     get_last_login.short_description = "آخر دخول"
 
@@ -1056,15 +1057,15 @@ class EnsDep_DepAdmin(PermissionCheckMixin, DepartementFilterMixin, admin.ModelA
             return format_html(
                 '<span style="color: #28a745; font-weight: bold;">✓ {}</span>', obj.enseignant.user.username
             )
-        return format_html('<span style="color: #dc3545;">✗ لا يوجد</span>')
+        return mark_safe('<span style="color: #dc3545;">✗ لا يوجد</span>')
 
     get_user_display.short_description = "Utilisateur"
 
     def get_est_actif(self, obj):
         """Affiche le statut actif."""
         if obj.est_actif:
-            return format_html('<span style="color: #28a745;">✓</span>')
-        return format_html('<span style="color: #dc3545;">✗</span>')
+            return mark_safe('<span style="color: #28a745;">✓</span>')
+        return mark_safe('<span style="color: #dc3545;">✗</span>')
 
     get_est_actif.short_description = "Actif"
     get_est_actif.admin_order_field = "est_actif"
@@ -1304,10 +1305,10 @@ class UserDepAdmin(PermissionCheckMixinNoImport, DepartementFilterMixin, admin.M
     def get_type_utilisateur(self, obj):
         """Affiche le type d'utilisateur (Enseignant ou Étudiant)."""
         if hasattr(obj, "enseignant_profile") and obj.enseignant_profile:
-            return format_html('<span style="color: #2196F3;">أستاذ</span>')
+            return mark_safe('<span style="color: #2196F3;">أستاذ</span>')
         elif hasattr(obj, "etudiant_profile") and obj.etudiant_profile:
-            return format_html('<span style="color: #4CAF50;">طالب</span>')
-        return format_html('<span style="color: #9E9E9E;">-</span>')
+            return mark_safe('<span style="color: #4CAF50;">طالب</span>')
+        return mark_safe('<span style="color: #9E9E9E;">-</span>')
 
     get_type_utilisateur.short_description = "النوع / Type"
 
@@ -2484,7 +2485,7 @@ class DepartementReadOnlyAdmin(ReadOnlyAdminMixin, DepartementFilterMixin, admin
                 obj.pk,
             )
         else:
-            return format_html('<span style="color: #6c757d; font-size: 12px;">عرض فقط / Lecture seule</span>')
+            return mark_safe('<span style="color: #6c757d; font-size: 12px;">عرض فقط / Lecture seule</span>')
 
     action_buttons.short_description = "الإجراءات / Actions"
 

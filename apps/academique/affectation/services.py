@@ -195,6 +195,19 @@ def recalculer_statistiques_nivspedep_sg(niv_spe_dep_sg):
     return niv_spe_dep_sg
 
 
+def recalculer_effectifs_niveau(niv_spe_dep):
+    """
+    Recalcule l'effectif d'un niveau-spécialité et de TOUS ses groupes.
+    Un groupe « par section » ou « tous les étudiants » compte des étudiants inscrits dans
+    d'autres groupes du même niveau : un changement dans un groupe les concerne aussi.
+    """
+    if not niv_spe_dep:
+        return
+    recalculer_statistiques_nivspedep(niv_spe_dep)
+    for groupe in niv_spe_dep.sections_groupes.all():
+        recalculer_statistiques_nivspedep_sg(groupe)
+
+
 def recalculer_tous_les_compteurs():
     """Recalcule l'ensemble des statistiques et compteurs existants (A09, R3)."""
     from apps.academique.affectation.models import Classe, Ens_Dep

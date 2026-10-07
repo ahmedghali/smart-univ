@@ -4,6 +4,7 @@ from django import forms
 from django.contrib import admin, messages
 from django.db.models import Count
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.forms import ConfirmImportForm, ImportForm
@@ -332,8 +333,8 @@ class EtudiantAdmin(ImportExportModelAdmin):
         if obj.user and obj.user.last_login:
             return obj.user.last_login.strftime("%Y-%m-%d %H:%M")
         elif obj.user:
-            return format_html('<span style="color: #9ca3af;">لم يسجل بعد</span>')
-        return format_html('<span style="color: #ef4444;">-</span>')
+            return mark_safe('<span style="color: #9ca3af;">لم يسجل بعد</span>')
+        return mark_safe('<span style="color: #ef4444;">-</span>')
 
     get_last_login.short_description = "آخر دخول / Dernier login"
     get_last_login.admin_order_field = "user__last_login"

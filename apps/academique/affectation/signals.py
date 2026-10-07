@@ -6,9 +6,9 @@ from django.dispatch import receiver
 from apps.academique.affectation.models import Classe, Seance
 from apps.academique.affectation.services import (
     recalculer_avancement_classe,
+    recalculer_effectifs_niveau,
     recalculer_statistiques_ens_dep,
     recalculer_statistiques_nivspedep,
-    recalculer_statistiques_nivspedep_sg,
 )
 from apps.academique.departement.models import Matiere, NivSpeDep_SG
 from apps.academique.etudiant.models import Etudiant
@@ -116,17 +116,13 @@ def on_etudiant_save(sender, instance, **kwargs):
     if old_sg_id:
         try:
             old_sg = NivSpeDep_SG.objects.get(pk=old_sg_id)
-            recalculer_statistiques_nivspedep_sg(old_sg)
-            if old_sg.niv_spe_dep_id:
-                recalculer_statistiques_nivspedep(old_sg.niv_spe_dep)
+            recalculer_effectifs_niveau(old_sg.niv_spe_dep)
         except Exception:
             logger.exception("Erreur lors du recalcul de l'ancien groupe étudiant: %s", old_sg_id)
 
     if instance.niv_spe_dep_sg_id:
         try:
-            recalculer_statistiques_nivspedep_sg(instance.niv_spe_dep_sg)
-            if instance.niv_spe_dep_sg.niv_spe_dep_id:
-                recalculer_statistiques_nivspedep(instance.niv_spe_dep_sg.niv_spe_dep)
+            recalculer_effectifs_niveau(instance.niv_spe_dep_sg.niv_spe_dep)
         except Exception:
             logger.exception("Erreur lors du recalcul des effectifs étudiant: %s", instance.niv_spe_dep_sg_id)
 
@@ -136,9 +132,7 @@ def on_etudiant_delete(sender, instance, **kwargs):
     """Recalcule les effectifs NivSpeDep et NivSpeDep_SG après suppression d'un étudiant (R3)."""
     if instance.niv_spe_dep_sg_id:
         try:
-            recalculer_statistiques_nivspedep_sg(instance.niv_spe_dep_sg)
-            if instance.niv_spe_dep_sg.niv_spe_dep_id:
-                recalculer_statistiques_nivspedep(instance.niv_spe_dep_sg.niv_spe_dep)
+            recalculer_effectifs_niveau(instance.niv_spe_dep_sg.niv_spe_dep)
         except Exception:
             logger.exception(
                 "Erreur lors du recalcul des effectifs étudiant après suppression: %s", instance.niv_spe_dep_sg_id

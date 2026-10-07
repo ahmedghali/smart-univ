@@ -4,6 +4,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 
@@ -1383,10 +1384,10 @@ class Abs_Etu_SeanceAdmin(ImportExportModelAdmin):
     def get_presence_display(self, obj):
         """Affichage de la présence avec couleur."""
         if obj.present:
-            return format_html('<span style="color: green;">✓ حاضر</span>')
+            return mark_safe('<span style="color: green;">✓ حاضر</span>')
         elif obj.justifiee:
-            return format_html('<span style="color: orange;">⚠ مبرر</span>')
+            return mark_safe('<span style="color: orange;">⚠ مبرر</span>')
         else:
-            return format_html('<span style="color: red;">✗ غائب</span>')
+            return mark_safe('<span style="color: red;">✗ غائب</span>')
 
     get_presence_display.short_description = "الحضور / Présence"

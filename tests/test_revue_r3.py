@@ -181,3 +181,19 @@ class TestR3ValeursCalculeesSignaux:
 
         nsd_sg.refresh_from_db()
         assert nsd_sg.nbr_etudiants_SG == 1
+
+
+@pytest.mark.django_db
+def test_r3_groupe_tous_etudiants_compte_les_etudiants_des_autres_groupes():
+    """Un étudiant ajouté à un groupe du niveau est aussi compté dans le groupe « tous les étudiants »."""
+    nsd = NivSpeDepFactory()
+    tous = NivSpeDepSGFactory(niv_spe_dep=nsd, type_affectation="tous_etudiants")
+    groupe = NivSpeDepSGFactory(niv_spe_dep=nsd, type_affectation="par_groupe")
+
+    etudiant = EtudiantFactory(niv_spe_dep_sg=groupe)
+    tous.refresh_from_db()
+    assert tous.nbr_etudiants_SG == 1
+
+    etudiant.delete()
+    tous.refresh_from_db()
+    assert tous.nbr_etudiants_SG == 0
