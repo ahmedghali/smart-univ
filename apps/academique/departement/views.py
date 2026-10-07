@@ -3,6 +3,7 @@
 Vues du département - Version optimisée.
 """
 
+import logging
 from functools import wraps
 
 from django.contrib import messages
@@ -18,6 +19,8 @@ from apps.noyau.commun.models import AffectationPoste, AnneeUniversitaire, Poste
 
 from .forms import DepartementForm
 from .models import Departement, Matiere, Specialite
+
+logger = logging.getLogger(__name__)
 
 # ═══════════════════════════════════════════════════════════════════════════
 # MIXINS ET DÉCORATEURS
@@ -192,6 +195,7 @@ def get_department_stats(departement, annee_univ=None):
     try:
         return StatsCalculator(departement, annee_univ).get_all_stats()
     except Exception:
+        logger.exception("Erreur lors du calcul des statistiques du département")
         return get_default_stats()
 
 
@@ -488,6 +492,8 @@ def import_emploi(request):
 def dashboard_stats_api(request):
     """API pour les statistiques du dashboard (AJAX)."""
     stats = get_department_stats(request.departement, request.annee_courante)
+    if "annee_courante" in stats and stats["annee_courante"] is not None:
+        stats["annee_courante"] = str(stats["annee_courante"])
     return JsonResponse(stats)
 
 
