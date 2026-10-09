@@ -907,12 +907,16 @@
             <a href="{% url 'depa:dashboard_Dep' %}" class="sidebar-brand" id="sidebarBrandBase" title="لوحة التحكم الرئيسية">
             {% elif current_role == 'enseignant' %}
             <a href="{% url 'ense:dashboard_Ens_clean' %}" class="sidebar-brand" id="sidebarBrandBase" title="لوحة التحكم الرئيسية">
+            {% elif current_role == 'etudiant' %}
+            <a href="{% url 'etud:dashboard_Etu' %}" class="sidebar-brand" id="sidebarBrandBase" title="لوحة التحكم الرئيسية">
             {% elif my_Fac %}
             <a href="{% url 'facu:dashboard_Fac' %}" class="sidebar-brand" id="sidebarBrandBase" title="لوحة التحكم الرئيسية">
             {% elif my_Dep or is_admin_poste %}
             <a href="{% url 'depa:dashboard_Dep' %}" class="sidebar-brand" id="sidebarBrandBase" title="لوحة التحكم الرئيسية">
             {% elif user.enseignant_profile %}
             <a href="{% url 'ense:dashboard_Ens_clean' %}" class="sidebar-brand" id="sidebarBrandBase" title="لوحة التحكم الرئيسية">
+            {% elif user.etudiant_profile %}
+            <a href="{% url 'etud:dashboard_Etu' %}" class="sidebar-brand" id="sidebarBrandBase" title="لوحة التحكم الرئيسية">
             {% else %}
             <a href="{% url 'auth:dashboard' %}" class="sidebar-brand" id="sidebarBrandBase" title="لوحة التحكم الرئيسية">
             {% endif %}
@@ -1309,13 +1313,24 @@
                                 pathNorm === '/faculte/dashboard' || 
                                 pathNorm === '/enseignant/dashboard' || 
                                 /^\/enseignant\/\d+\/dashboard$/.test(pathNorm) ||
+                                pathNorm === '/etudiant/dashboard' ||
                                 pathNorm === '/dashboard';
 
-        if (isDashboardPage) {
-            // Sur la page لوحة التحكم الرئيسية (قسم، كلية، أستاذ) : tout le menu latéral doit être collapsé par défaut
+        // Vérifier si la redirection provient exclusivement d'un clic sur "Smart-Univ" (logo ou texte)
+        let forceCollapse = false;
+        try {
+            forceCollapse = sessionStorage.getItem('smartuniv.force_collapse') === 'true';
+            if (forceCollapse) {
+                sessionStorage.removeItem('smartuniv.force_collapse');
+            }
+        } catch (e) {}
+
+        if (forceCollapse) {
+            // SEUL le clic sur "Smart-Univ" (logo ou texte) provoque le repli complet du menu latéral
             collapseAllBranches();
         } else {
-            // Sur les autres pages : restaurer l'état mémorisé
+            // Dans tous les autres cas (y compris clic sur "لوحة التحكم الرئيسية" ou navigation normale),
+            // restaurer l'état des rubriques mémorisé dans le localStorage
             document.querySelectorAll('.sap-tree-branch').forEach(function (branch) {
                 try {
                     const saved = localStorage.getItem(menuKey(branch));
@@ -1338,33 +1353,25 @@
             });
         });
 
-        // Clic sur "Smart-Univ" ou "لوحة التحكم الرئيسية" :
-        // Rediriger vers le tableau de bord avec tout le menu latéral collapsé
-        document.querySelectorAll('a.sidebar-brand, a.sap-tree-item').forEach(function (link) {
-            const href = link.getAttribute('href') || '';
-            const text = (link.textContent || '').trim();
-            const isBrand = link.classList.contains('sidebar-brand');
-            const isDashboardLink = href.includes('/departement/dashboard') || 
-                                    href.includes('/faculte/dashboard') || 
-                                    href.includes('/enseignant/dashboard') ||
-                                    /\/enseignant\/\d+\/dashboard/.test(href) ||
-                                    href.endsWith('/dashboard/') ||
-                                    href.endsWith('/dashboard') ||
-                                    text.includes('لوحة التحكم الرئيسية');
+        // Clic sur "Smart-Univ" (logo ou texte - a.sidebar-brand) :
+        // SEUL ce clic déclenche la redirection vers le dashboard de l'utilisateur avec le menu latéral TOUT COLLAPSÉ
+        document.querySelectorAll('a.sidebar-brand').forEach(function (brandLink) {
+            brandLink.addEventListener('click', function (e) {
+                const href = this.getAttribute('href') || '';
+                try {
+                    sessionStorage.setItem('smartuniv.force_collapse', 'true');
+                } catch (err) {}
+                collapseAllBranches();
 
-            if (isBrand || isDashboardLink) {
-                link.addEventListener('click', function (e) {
-                    collapseAllBranches();
-                    if (isDashboardPage) {
-                        // Déjà sur le tableau de bord : fermer immédiatement toutes les branches et remonter en haut
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        if (window.location.search || window.location.hash) {
-                            e.preventDefault();
-                            window.location.href = href || (pathNorm + '/');
-                        }
+                if (isDashboardPage) {
+                    // Déjà sur le tableau de bord : fermer immédiatement toutes les branches et remonter en haut
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    if (window.location.search || window.location.hash) {
+                        e.preventDefault();
+                        window.location.href = href || (pathNorm + '/');
                     }
-                });
-            }
+                }
+            });
         });
 
         // Année courante dans le footer
