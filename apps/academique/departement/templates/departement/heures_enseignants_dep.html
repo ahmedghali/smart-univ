@@ -1,56 +1,142 @@
 {% extends 'departement/base_Dep.html' %}
+{% load static %}
+
+{% block title %}ساعات العمل والأنصبة - قسم {{ my_Dep.nom_ar }}{% endblock %}
 
 {% block content_dep %}
-<div class="card shadow-sm">
-    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <h5 class="mb-0"><i class="fas fa-clock me-2"></i>{{ title }} — السداسي {{ semestre }}</h5>
-        <div class="btn-group btn-group-sm">
-            <a href="{% url 'depa:heures_enseignants_dep' 1 %}" class="btn {% if semestre == 1 %}btn-primary{% else %}btn-outline-primary{% endif %}">S1</a>
-            <a href="{% url 'depa:heures_enseignants_dep' 2 %}" class="btn {% if semestre == 2 %}btn-primary{% else %}btn-outline-primary{% endif %}">S2</a>
+<div class="dep-page-container">
+
+    <!-- ─── HERO HEADER UNIFIÉ ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-business-time" style="color: #ffd700;"></i>
+                    <span>ساعات العمل والأنصبة البيداغوجية</span>
+                </h1>
+                <p class="dep-hero-subtitle">
+                    <span>قسم {{ my_Dep.nom_ar }}</span>
+                    <span>•</span>
+                    <span>متابعة أنصبة أساتذة وهيئة التدريس والحجم الساعي الأسبوعي</span>
+                    <span class="dep-hero-badge">
+                        <i class="fas fa-calendar-week"></i>
+                        السداسي {{ semestre }}
+                    </span>
+                </p>
+            </div>
+            <div class="dep-hero-actions">
+                <!-- Sélecteur de Semestre style Pill Fiori -->
+                <div class="d-inline-flex p-1 rounded-pill bg-dark bg-opacity-25 border border-white border-opacity-25 gap-1">
+                    <a href="{% url 'depa:heures_enseignants_dep' 1 %}" class="btn btn-sm rounded-pill px-3 py-1 fw-bold text-decoration-none {% if semestre == 1 %}btn-hero-gold text-dark{% else %}text-white-50{% endif %}">
+                        السداسي الأول (S1)
+                    </a>
+                    <a href="{% url 'depa:heures_enseignants_dep' 2 %}" class="btn btn-sm rounded-pill px-3 py-1 fw-bold text-decoration-none {% if semestre == 2 %}btn-hero-gold text-dark{% else %}text-white-50{% endif %}">
+                        السداسي الثاني (S2)
+                    </a>
+                </div>
+
+            </div>
         </div>
     </div>
-    <div class="table-responsive">
-        <table class="table table-hover table-sm align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>#</th>
-                    <th>الأستاذ</th>
-                    <th>الصفة</th>
-                    <th class="text-center">الحصص في القسم</th>
-                    <th class="text-center">محاضرة</th>
-                    <th class="text-center">أعمال موجهة</th>
-                    <th class="text-center">أعمال تطبيقية</th>
-                    <th class="text-center">الحجم الساعي</th>
-                    <th class="text-center">خارج القسم</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for ens_dep in enseignants %}
-                <tr>
-                    <td>{{ forloop.counter }}</td>
-                    <td>{{ ens_dep.enseignant.nom_ar }} {{ ens_dep.enseignant.prenom_ar }}</td>
-                    <td>{{ ens_dep.get_statut_display }}</td>
-                    {% if semestre == 1 %}
-                    <td class="text-center">{{ ens_dep.nbrClas_in_Dep_S1 }}</td>
-                    <td class="text-center">{{ ens_dep.nbrClas_Cours_in_Dep_S1 }}</td>
-                    <td class="text-center">{{ ens_dep.nbrClas_TD_in_Dep_S1 }}</td>
-                    <td class="text-center">{{ ens_dep.nbrClas_TP_in_Dep_S1 }}</td>
-                    <td class="text-center">{{ ens_dep.volHor_in_Dep_S1 }}</td>
-                    <td class="text-center">{{ ens_dep.volHor_out_Dep_S1 }}</td>
-                    {% else %}
-                    <td class="text-center">{{ ens_dep.nbrClas_in_Dep_S2 }}</td>
-                    <td class="text-center">{{ ens_dep.nbrClas_Cours_in_Dep_S2 }}</td>
-                    <td class="text-center">{{ ens_dep.nbrClas_TD_in_Dep_S2 }}</td>
-                    <td class="text-center">{{ ens_dep.nbrClas_TP_in_Dep_S2 }}</td>
-                    <td class="text-center">{{ ens_dep.volHor_in_Dep_S2 }}</td>
-                    <td class="text-center">{{ ens_dep.volHor_out_Dep_S2 }}</td>
-                    {% endif %}
-                </tr>
-                {% empty %}
-                <tr><td colspan="9" class="text-center text-muted py-4">لا يوجد أساتذة لهذا السداسي / Aucun enseignant pour ce semestre</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+    <!-- ─── CARTE TABLEAU ERP ─── -->
+    <div class="dep-table-card">
+        <div class="dep-table-header">
+            <div class="d-flex align-items-center gap-2">
+                <h5>
+                    <i class="fas fa-clock text-primary"></i>
+                    <span>توزيع الحصص والأنصبة الساعية بالقسم وخارجه</span>
+                </h5>
+                <span class="badge bg-light text-dark border ms-2">
+                    {{ enseignants|length }} أستاذ
+                </span>
+            </div>
+
+            <div class="text-muted small">
+                الموسم الجامعي: <strong>{{ annee_courante|default:"الحالي" }}</strong>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="dep-table align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>الأستاذ</th>
+                        <th>الصفة</th>
+                        <th class="text-center">الحصص بالقسم</th>
+                        <th class="text-center">محاضرة</th>
+                        <th class="text-center">أعمال موجهة</th>
+                        <th class="text-center">أعمال تطبيقية</th>
+                        <th class="text-center">خرجة علمية</th>
+                        <th class="text-center">الحجم الساعي بالقسم</th>
+                        <th class="text-center">خارج القسم</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ens_dep in enseignants %}
+                    <tr>
+                        <td class="text-muted fw-bold">{{ forloop.counter }}</td>
+                        <td class="fw-bold" style="color: #1b262c;">
+                            <a href="{% url 'depa:timetable_enseignant_dep' ens_dep.enseignant.id semestre %}" class="text-decoration-none text-dark" title="عرض استعمال الزمن للأستاذ">
+                                {{ ens_dep.enseignant.nom_ar }} {{ ens_dep.enseignant.prenom_ar }}
+                                <i class="fas fa-calendar-alt text-primary ms-1 small opacity-75"></i>
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">
+                                {{ ens_dep.get_statut_display|default:ens_dep.statut }}
+                            </span>
+                        </td>
+                        {% if semestre == 1 %}
+                        <td class="text-center fw-bold">{{ ens_dep.nbrClas_in_Dep_S1|default:"0" }}</td>
+                        <td class="text-center">{{ ens_dep.nbrClas_Cours_in_Dep_S1|default:"0" }}</td>
+                        <td class="text-center">{{ ens_dep.nbrClas_TD_in_Dep_S1|default:"0" }}</td>
+                        <td class="text-center">{{ ens_dep.nbrClas_TP_in_Dep_S1|default:"0" }}</td>
+                        <td class="text-center">{{ ens_dep.nbrClas_SS_in_Dep_S1|default:"0" }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fw-bold">
+                                {{ ens_dep.volHor_in_Dep_S1|default:"0" }} سا
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary-subtle text-secondary px-2 py-1">
+                                {{ ens_dep.volHor_out_Dep_S1|default:"0" }} سا
+                            </span>
+                        </td>
+                        {% else %}
+                        <td class="text-center fw-bold">{{ ens_dep.nbrClas_in_Dep_S2|default:"0" }}</td>
+                        <td class="text-center">{{ ens_dep.nbrClas_Cours_in_Dep_S2|default:"0" }}</td>
+                        <td class="text-center">{{ ens_dep.nbrClas_TD_in_Dep_S2|default:"0" }}</td>
+                        <td class="text-center">{{ ens_dep.nbrClas_TP_in_Dep_S2|default:"0" }}</td>
+                        <td class="text-center">{{ ens_dep.nbrClas_SS_in_Dep_S2|default:"0" }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fw-bold">
+                                {{ ens_dep.volHor_in_Dep_S2|default:"0" }} سا
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary-subtle text-secondary px-2 py-1">
+                                {{ ens_dep.volHor_out_Dep_S2|default:"0" }} سا
+                            </span>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center py-5">
+                            <div class="py-3">
+                                <i class="fas fa-calendar-xmark text-muted mb-3" style="font-size: 3rem; opacity: 0.4;"></i>
+                                <h6 class="fw-bold text-dark mb-1">لا توجد بيانات ساعات عمل لهذا السداسي</h6>
+                                <p class="text-muted small mb-0">لم يتم تسجيل حصص أو ساعات عمل للأساتذة في السداسي {{ semestre }}.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
+
 </div>
 {% endblock %}

@@ -3,6 +3,7 @@ from collections import defaultdict
 
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
+from django.db.models.functions import Length
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.academique.affectation.models import (
@@ -85,7 +86,7 @@ def timeTable_Ens(request, dep_id, enseignant, departement):
                 nbr_TP += 1
             elif idx1.type == "TD":
                 nbr_TD += 1
-            elif idx1.type == "Sortie Scientifique":
+            elif idx1.type in ["Sortie Scientifique", "Sortie", "SS"]:
                 nbr_SS += 1
 
             # Calculer le taux d'avancement pour les classes avec seances
@@ -223,7 +224,7 @@ def timeTable_Niv_Ens(request, dep_id, niv_spe_dep_id, semestre_num, enseignant,
     nbr_Cours = all_Classe_Niv.filter(type="Cours").count()
     nbr_TP = all_Classe_Niv.filter(type="TP").count()
     nbr_TD = all_Classe_Niv.filter(type="TD").count()
-    nbr_SS = all_Classe_Niv.filter(type="Sortie Scientifique").count()
+    nbr_SS = all_Classe_Niv.filter(type__in=["Sortie Scientifique", "Sortie", "SS"]).count()
 
     all_classes = nbr_Cours + nbr_TP + nbr_TD + nbr_SS
 
@@ -253,22 +254,35 @@ def timeTable_Niv_Ens(request, dep_id, niv_spe_dep_id, semestre_num, enseignant,
 
 @enseignant_access_required
 def list_Amphi_Ens(request, dep_id, enseignant, departement):
-    """Liste des amphithéâtres du département."""
+    """Liste des amphithéâtres du département (الهياكل والمقررات) - classée selon le numéro."""
     try:
-        base_qs = Amphi_Dep.objects.filter(departement=departement, est_actif=True).select_related("amphi")
-        all_S1 = base_qs.filter(semestre_1=True).order_by("amphi__numero")
-        all_S2 = base_qs.filter(semestre_2=True).order_by("amphi__numero")
+        base_qs = (
+            Amphi_Dep.objects.filter(departement=departement)
+            .select_related("amphi")
+            .order_by(Length("amphi__numero"), "amphi__numero")
+        )
+        all_S1 = base_qs.filter(semestre_1=True, est_actif=True)
+        all_S2 = base_qs.filter(semestre_2=True, est_actif=True)
+        total_amphis = base_qs.count()
+        amphis_s1 = all_S1.count()
+        amphis_s2 = all_S2.count()
+        capacite_totale = sum(a.amphi.capacite or 0 for a in base_qs)
 
         context = get_sidebar_context(request, enseignant, departement)
         context.update(
             {
-                "title": "قائمة المدرجات",
-                "active_menu": "amphi",
+                "title": "قائمة المدرجات - الهياكل والمقررات",
+                "active_menu": "amphis",
+                "amphis": base_qs,
+                "total_amphis": total_amphis,
+                "amphis_s1": amphis_s1,
+                "amphis_s2": amphis_s2,
+                "capacite_totale": capacite_totale,
                 "all_Amphi_Dep_S1": all_S1,
                 "all_Amphi_Dep_S2": all_S2,
-                "total_amphi_s1": all_S1.count(),
-                "total_amphi_s2": all_S2.count(),
-                "total_amphi": all_S1.count() + all_S2.count(),
+                "total_amphi_s1": amphis_s1,
+                "total_amphi_s2": amphis_s2,
+                "total_amphi": total_amphis,
                 "capacite_s1": sum(a.amphi.capacite or 0 for a in all_S1),
                 "capacite_s2": sum(a.amphi.capacite or 0 for a in all_S2),
             }
@@ -282,22 +296,35 @@ def list_Amphi_Ens(request, dep_id, enseignant, departement):
 
 @enseignant_access_required
 def list_Salle_Ens(request, dep_id, enseignant, departement):
-    """Liste des salles du département."""
+    """Liste des salles du département (الهياكل والمقررات) - classée selon le numéro."""
     try:
-        base_qs = Salle_Dep.objects.filter(departement=departement, est_actif=True).select_related("salle")
-        all_S1 = base_qs.filter(semestre_1=True).order_by("salle__numero")
-        all_S2 = base_qs.filter(semestre_2=True).order_by("salle__numero")
+        base_qs = (
+            Salle_Dep.objects.filter(departement=departement)
+            .select_related("salle")
+            .order_by(Length("salle__numero"), "salle__numero")
+        )
+        all_S1 = base_qs.filter(semestre_1=True, est_actif=True)
+        all_S2 = base_qs.filter(semestre_2=True, est_actif=True)
+        total_salles = base_qs.count()
+        salles_s1 = all_S1.count()
+        salles_s2 = all_S2.count()
+        capacite_totale = sum(s.salle.capacite or 0 for s in base_qs)
 
         context = get_sidebar_context(request, enseignant, departement)
         context.update(
             {
-                "title": "قائمة القاعات",
-                "active_menu": "salle",
+                "title": "قائمة القاعات الدراسية - الهياكل والمقررات",
+                "active_menu": "salles",
+                "salles": base_qs,
+                "total_salles": total_salles,
+                "salles_s1": salles_s1,
+                "salles_s2": salles_s2,
+                "capacite_totale": capacite_totale,
                 "all_Salle_Dep_S1": all_S1,
                 "all_Salle_Dep_S2": all_S2,
-                "total_salle_s1": all_S1.count(),
-                "total_salle_s2": all_S2.count(),
-                "total_salle": all_S1.count() + all_S2.count(),
+                "total_salle_s1": salles_s1,
+                "total_salle_s2": salles_s2,
+                "total_salle": total_salles,
                 "capacite_s1": sum(s.salle.capacite or 0 for s in all_S1),
                 "capacite_s2": sum(s.salle.capacite or 0 for s in all_S2),
             }
@@ -311,22 +338,35 @@ def list_Salle_Ens(request, dep_id, enseignant, departement):
 
 @enseignant_access_required
 def list_Labo_Ens(request, dep_id, enseignant, departement):
-    """Liste des laboratoires du département."""
+    """Liste des laboratoires du département (الهياكل والمقررات) - classée selon le numéro."""
     try:
-        base_qs = Laboratoire_Dep.objects.filter(departement=departement, est_actif=True).select_related("laboratoire")
-        all_S1 = base_qs.filter(semestre_1=True).order_by("laboratoire__numero")
-        all_S2 = base_qs.filter(semestre_2=True).order_by("laboratoire__numero")
+        base_qs = (
+            Laboratoire_Dep.objects.filter(departement=departement)
+            .select_related("laboratoire")
+            .order_by(Length("laboratoire__numero"), "laboratoire__numero")
+        )
+        all_S1 = base_qs.filter(semestre_1=True, est_actif=True)
+        all_S2 = base_qs.filter(semestre_2=True, est_actif=True)
+        total_labos = base_qs.count()
+        labos_s1 = all_S1.count()
+        labos_s2 = all_S2.count()
+        capacite_totale = sum(l.laboratoire.capacite or 0 for l in base_qs)
 
         context = get_sidebar_context(request, enseignant, departement)
         context.update(
             {
-                "title": "قائمة المخابر",
-                "active_menu": "labo",
+                "title": "قائمة المخابر - الهياكل والمقررات",
+                "active_menu": "labos",
+                "labos": base_qs,
+                "total_labos": total_labos,
+                "labos_s1": labos_s1,
+                "labos_s2": labos_s2,
+                "capacite_totale": capacite_totale,
                 "all_Labo_Dep_S1": all_S1,
                 "all_Labo_Dep_S2": all_S2,
-                "total_labo_s1": all_S1.count(),
-                "total_labo_s2": all_S2.count(),
-                "total_labo": all_S1.count() + all_S2.count(),
+                "total_labo_s1": labos_s1,
+                "total_labo_s2": labos_s2,
+                "total_labo": total_labos,
                 "capacite_s1": sum(l.laboratoire.capacite or 0 for l in all_S1),
                 "capacite_s2": sum(l.laboratoire.capacite or 0 for l in all_S2),
             }

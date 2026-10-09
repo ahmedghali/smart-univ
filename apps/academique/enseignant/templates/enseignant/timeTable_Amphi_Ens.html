@@ -125,6 +125,11 @@
     background: #f0f9fb;
 }
 
+.class-item.ss {
+    border-right: 3px solid #6f42c1;
+    background: #f8f0fc;
+}
+
 /* En-tête du cours */
 .class-header {
     margin-bottom: 3px;
@@ -310,25 +315,19 @@
 {% endblock %}
 
 {% block content_ens %}
-<div class="grey_zone m-1 p-2">
-    <!-- EN-TÊTE PRINCIPAL -->
-    <div class="main-header d-flex justify-content-between align-items-center mb-3">
-        <h4 class="page-title border-bottom border-danger text-dark mb-0">
-            <i class="fas fa-chalkboard text-primary"></i>
-            استعمال الزمن - {{amphi_dep.amphi.nom_ar|default:amphi_dep.amphi.nom_fr}}
-            <small class="text-muted ms-2">(السداسي {{semestre_numero}})</small>
-        </h4>
-
-        <!-- Boutons d'action -->
-        <div class="btn-group" role="group">
-            <a href="{% url 'ense:list_Amphi_Ens' my_Dep.id %}" class="btn btn-outline-secondary btn-sm">
-                <i class="fas fa-arrow-right"></i> العودة للقائمة
-            </a>
-            {% if all_classes > 0 %}
-            <button class="btn btn-outline-primary btn-sm" onclick="printTimetable()">
-                <i class="fas fa-print"></i> طباعة
-            </button>
-            {% endif %}
+<div class="dep-page-container">
+    <!-- ─── Bandeau de titre (modèle commun) ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-chalkboard text-primary" style="color: #ffd700;"></i>
+                    <span>استعمال الزمن</span>
+                </h1>
+                <p class="dep-hero-subtitle"><span>{{amphi_dep.amphi.nom_ar|default:amphi_dep.amphi.nom_fr}} <small class="text-muted ms-2">(السداسي {{semestre_numero}})</small></span></p>
+            </div>
+            <div class="dep-hero-actions">
+            </div>
         </div>
     </div>
 
@@ -379,6 +378,14 @@
                         </div>
                     </div>
                     {% endif %}
+                    {% if nbr_SS > 0 %}
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card-timetable bg-secondary-subtle rounded">
+                            <h3 class="text-secondary mb-0">{{nbr_SS}}</h3>
+                            <small class="text-muted">خرجات علمية (SS)</small>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -418,9 +425,9 @@
                                 <td class="class-cell">
                                     {% for classe in all_Classe_Amp %}
                                         {% if classe.temps == creneau and classe.jour == day %}
-                                        <div class="class-item {% if classe.type == 'Cours' %}cours{% elif classe.type == 'TD' %}td{% elif classe.type == 'TP' %}tp{% endif %}">
+                                        <div class="class-item {% if classe.type == 'Cours' %}cours{% elif classe.type == 'TD' %}td{% elif classe.type == 'TP' %}tp{% else %}ss{% endif %}">
                                             <div class="class-header">
-                                                <span class="type-badge {% if classe.type == 'Cours' %}bg-success{% elif classe.type == 'TD' %}bg-warning{% elif classe.type == 'TP' %}bg-info{% else %}bg-secondary{% endif %}">
+                                                <span class="type-badge {% if classe.type == 'Cours' %}bg-success{% elif classe.type == 'TD' %}bg-warning text-dark{% elif classe.type == 'TP' %}bg-info{% else %}bg-purple text-white{% endif %}" {% if classe.type != 'Cours' and classe.type != 'TD' and classe.type != 'TP' %}style="background-color: #6f42c1;"{% endif %}>
                                                     {{classe.type}}
                                                 </span>
                                             </div>
@@ -489,7 +496,7 @@
                 <div class="col-md-6 text-end">
                     <small class="text-muted">
                         <i class="fas fa-university"></i>
-                        {{my_Dep.nom_ar}} - {{my_Fac.nom_ar}}
+                        {{my_Dep.nom_ar}} - {{ my_Fac.nom_complet_ar }}
                     </small>
                 </div>
             </div>

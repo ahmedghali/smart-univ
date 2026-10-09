@@ -1,811 +1,341 @@
-{% extends 'enseignant/base_Ens.html' %}
+{% extends base_template|default:'enseignant/base_Ens.html' %}
 {% load static %}
+
+{% comment %}
+  PROFILE_ENS.HTML — Fiche d'un enseignant.
+  Utilisée dans l'espace enseignant (base_Ens) et dans l'espace département
+  (base_Dep, in_departement=True). Structure : bandeau d'identité · indicateurs
+  Google Scholar · informations (académiques, personnelles, départements) ·
+  contact, plateformes et profils académiques.
+{% endcomment %}
+
+{% block title %}{{ title }} - {{ enseignant.nom_ar|default:my_Ens.nom_ar }} {{ enseignant.prenom_ar|default:my_Ens.prenom_ar }}{% endblock %}
 
 {% block extra_css_ens %}
 <style>
-    /* ===== PROFILE HEADER ===== */
-    .profile-header {
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        border-radius: 20px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-        overflow: hidden;
-        margin-bottom: 30px;
-        position: relative;
-    }
-
-    .header-pattern {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background-image: repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.05) 35px, rgba(255,255,255,.05) 70px);
-        pointer-events: none;
-    }
-
-    .header-content {
-        position: relative;
-        z-index: 2;
-        padding: 40px;
-        color: white;
-    }
-
-    .header-actions {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 30px;
-        flex-wrap: wrap;
-    }
-
-    .btn-action {
-        padding: 10px 20px;
-        border-radius: 25px;
-        border: 2px solid rgba(255,255,255,0.3);
-        background: rgba(255,255,255,0.1);
-        color: white;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 14px;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-    }
-
-    .btn-action:hover {
-        background: rgba(255,255,255,0.25);
-        border-color: rgba(255,255,255,0.5);
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    }
-
-    .btn-action.btn-danger {
-        background: linear-gradient(135deg, #dc3545, #c82333);
-        border: none;
-    }
-
-    .profile-main-info { text-align: center; }
-
-    .profile-avatar {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea, #764ba2);
+    .pf-identity {
         display: flex;
         align-items: center;
-        justify-content: center;
-        margin: 0 auto 20px;
-        border: 5px solid rgba(255,255,255,0.3);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-    }
-
-    .profile-avatar i { font-size: 70px; color: white; }
-
-    .profile-name {
-        font-size: 2.2rem;
-        font-weight: 800;
-        margin-bottom: 10px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-    }
-
-    .profile-subtitle {
-        font-size: 1.1rem;
-        opacity: 0.95;
-        margin-bottom: 15px;
-        line-height: 1.6;
-    }
-
-    .profile-badges {
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-top: 20px;
-    }
-
-    .badge-custom {
-        padding: 8px 18px;
-        border-radius: 20px;
-        background: rgba(255,255,255,0.2);
-        border: 1px solid rgba(255,255,255,0.3);
-        backdrop-filter: blur(10px);
-        font-size: 14px;
-        font-weight: 600;
-    }
-
-    /* ===== SECTION CARDS ===== */
-    .section-card {
-        background: white;
-        border-radius: 20px;
-        padding: 30px;
-        box-shadow: 0 5px 25px rgba(0,0,0,0.1);
-        margin-bottom: 25px;
-        transition: all 0.3s ease;
-    }
-
-    .section-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 35px rgba(0,0,0,0.15);
-    }
-
-    .section-header {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        margin-bottom: 25px;
-        padding-bottom: 15px;
-        border-bottom: 3px solid #f0f0f0;
-    }
-
-    .section-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 24px;
-        box-shadow: 0 4px 15px rgba(102,126,234,0.3);
-    }
-
-    .section-title {
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: #2c3e50;
-        margin: 0;
-    }
-
-    /* ===== INFO GRID ===== */
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 18px;
     }
 
-    .info-item {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        padding: 18px;
-        border-radius: 12px;
-        border-right: 4px solid #667eea;
-        transition: all 0.3s ease;
-    }
-
-    .info-item:hover {
-        transform: translateX(-5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-
-    .info-label {
-        font-weight: 700;
-        color: #495057;
-        font-size: 0.85rem;
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        display: flex;
+    .pf-avatar {
+        width: 72px;
+        height: 72px;
+        flex-shrink: 0;
+        display: inline-flex;
         align-items: center;
-        gap: 8px;
+        justify-content: center;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+        color: #0d1b2a;
+        font-size: 1.4rem;
+        font-weight: 700;
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12);
     }
 
-    .info-label i { color: #667eea; font-size: 14px; }
+    .pf-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+    }
 
-    .info-value {
-        color: #2c3e50;
-        font-size: 1rem;
+    .pf-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.78rem;
+    }
+
+    .pf-chip i { color: #ffd700; }
+
+    /* Listes libellé → valeur */
+    .pf-list {
+        margin: 0;
+    }
+
+    .pf-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 9px 0;
+        border-bottom: 1px solid #edf0eb;
+        font-size: 0.9rem;
+    }
+
+    .pf-row:last-child { border-bottom: 0; }
+
+    .pf-row dt {
+        color: #66737a;
+        font-weight: 500;
+    }
+
+    .pf-row dd {
+        margin: 0;
+        color: #11191e;
         font-weight: 600;
+        text-align: left;
         word-break: break-word;
     }
 
-    .info-value a {
-        color: #667eea;
-        text-decoration: none;
-        transition: all 0.3s ease;
+    .pf-row dd.ltr { direction: ltr; }
+
+    .pf-empty { color: #b7c0bb; font-weight: 400; }
+
+    .pf-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.8rem;
+        font-weight: 600;
     }
 
-    .info-value a:hover {
-        color: #764ba2;
-        text-decoration: underline;
-    }
+    .pf-status.on { color: #1f7a4d; }
+    .pf-status.off { color: #9aa5a0; }
 
-    /* ===== DEPARTMENTS BOX ===== */
-    .departments-box {
-        background: linear-gradient(135deg, #fff5f5, #ffe5e5);
-        border: 2px solid #ffc9c9;
-        border-radius: 15px;
-        padding: 20px;
-        margin-top: 20px;
-    }
-
-    .departments-title {
-        font-weight: 700;
-        color: #c92a2a;
-        margin-bottom: 15px;
+    .pf-dep {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: 10px;
+        padding: 9px 0;
+        border-bottom: 1px solid #edf0eb;
+        font-size: 0.9rem;
     }
 
-    .department-item {
-        background: white;
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        border-right: 4px solid #dc3545;
-        box-shadow: 0 2px 10px rgba(220,53,69,0.1);
-    }
+    .pf-dep:last-child { border-bottom: 0; }
 
-    /* ===== STATUS GRID ===== */
-    .status-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 15px;
-    }
+    .pf-dep small { color: #66737a; }
 
-    .status-item {
-        padding: 18px 20px;
-        border-radius: 12px;
+    /* ─── Mise en page compacte : 3 colonnes, espacements réduits ─── */
+    .pf-page .dep-page-hero { padding: 1rem 1.4rem; margin-bottom: 14px; }
+    .pf-page .pf-avatar { width: 54px; height: 54px; font-size: 1.05rem; }
+    .pf-page .pf-chips { margin-top: 6px; }
+    .pf-page .dsh-kpis { gap: 12px; margin-bottom: 12px; }
+    .pf-page .dsh-kpi { flex-direction: row; align-items: center; justify-content: space-between; padding: 10px 14px; }
+    .pf-page .dsh-kpi-head { gap: 8px; flex-direction: row-reverse; }
+    .pf-page .dsh-kpi-head i { width: 30px; height: 30px; }
+    .pf-page .dsh-kpi-value { font-size: 1.35rem; }
+    .pf-page .dsh-kpi-sub { display: none; }
+    .pf-page .pf-scholar-bar { margin: 0 0 14px; padding: 8px 14px; }
+    .pf-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+    .pf-page .dsh-panel { padding: 14px 16px; }
+    .pf-page .dsh-panel + .dsh-panel { margin-top: 14px; }
+    .pf-page .dsh-panel-title { margin-bottom: 8px; }
+    .pf-page .pf-row, .pf-page .pf-dep { padding: 6px 0; font-size: 0.86rem; }
+    @media (max-width: 1200px) { .pf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 768px) { .pf-grid { grid-template-columns: 1fr; } }
+
+    .pf-scholar-bar {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: 12px;
-        font-weight: 600;
-        font-size: 0.95rem;
-        transition: all 0.3s ease;
-    }
-
-    .status-item:hover {
-        transform: scale(1.02);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-
-    .status-item i { font-size: 20px; }
-
-    .status-yes {
-        background: linear-gradient(135deg, #d4edda, #c3e6cb);
-        border: 2px solid #28a745;
-        color: #155724;
-    }
-
-    .status-no {
-        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
-        border: 2px solid #dc3545;
-        color: #721c24;
-    }
-
-    /* ===== SOCIAL GRID ===== */
-    .social-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 15px;
-    }
-
-    .social-item {
-        background: #f8f9fa;
-        padding: 18px;
+        flex-wrap: wrap;
+        margin: -8px 0 24px;
+        padding: 10px 16px;
+        background: #fff;
         border-radius: 12px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        border-right: 4px solid #6c757d;
-        transition: all 0.3s ease;
-    }
-
-    .social-item:hover {
-        transform: translateX(-5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-
-    .social-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        color: white;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        flex-shrink: 0;
-    }
-
-    .social-google { background: linear-gradient(135deg, #ea4335, #d33426); }
-    .social-research { background: linear-gradient(135deg, #00d4bd, #00b8a6); }
-    .social-orcid { background: linear-gradient(135deg, #a6ce39, #8fb828); }
-    .social-linkedin { background: linear-gradient(135deg, #0077b5, #006399); }
-    .social-facebook { background: linear-gradient(135deg, #1877f2, #166fe5); }
-    .social-twitter { background: linear-gradient(135deg, #1da1f2, #1a91da); }
-    .social-tiktok { background: linear-gradient(135deg, #000, #333); }
-    .social-telegram { background: linear-gradient(135deg, #0088cc, #0077b3); }
-
-    .social-content { flex: 1; min-width: 0; }
-
-    .social-label {
-        font-weight: 700;
-        color: #495057;
+        color: #66737a;
         font-size: 0.85rem;
-        margin-bottom: 5px;
-        text-transform: uppercase;
-    }
-
-    .social-link { font-size: 0.9rem; word-break: break-all; }
-    .social-link a { color: #667eea; text-decoration: none; }
-    .social-link a:hover { color: #764ba2; text-decoration: underline; }
-
-    /* ===== SCHOLAR STATS ===== */
-    .scholar-visual {
-        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-        border-radius: 15px;
-        padding: 30px;
-        margin-top: 20px;
-    }
-
-    .stats-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 20px;
-        text-align: center;
-    }
-
-    .stat-box {
-        background: white;
-        padding: 25px 15px;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        transition: all 0.3s ease;
-    }
-
-    .stat-box:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-    }
-
-    .stat-box h3 {
-        font-size: 2rem;
-        font-weight: 800;
-        margin-bottom: 5px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .stat-box small {
-        font-size: 0.85rem;
-        color: #6c757d;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 768px) {
-        .header-content { padding: 25px 20px; }
-        .profile-name { font-size: 1.5rem; }
-        .profile-avatar { width: 120px; height: 120px; }
-        .profile-avatar i { font-size: 55px; }
-        .section-card { padding: 20px; }
-        .info-grid, .status-grid, .social-grid, .stats-row { grid-template-columns: 1fr; }
-        .header-actions { flex-direction: column; }
-        .btn-action { width: 100%; justify-content: center; }
-    }
-
-    @media print {
-        .header-actions { display: none; }
-        .section-card { box-shadow: none; border: 1px solid #dee2e6; }
+        box-shadow: 0 4px 18px rgba(27, 38, 44, 0.06);
     }
 </style>
 {% endblock %}
 
 {% block content_ens %}
-<div class="grey_zone m-1 p-2">
-    <!-- Header Section -->
-    <div class="profile-header">
-        <div class="header-pattern"></div>
-        <div class="header-content">
-            <!-- Action Buttons -->
-            <div class="header-actions">
-                {% if my_Dep %}
-                <a href="{% url 'ense:dashboard_Ens' my_Dep.id %}" class="btn-action">
-                    <i class="fas fa-home"></i>
-                    لوحة التحكم
-                </a>
-                <a href="{% url 'ense:profileUpdate_ens_dep' my_Dep.id %}" class="btn-action">
-                    <i class="fas fa-edit"></i>
-                    تحرير الملف
-                </a>
-                <a href="{% url 'ense:change_password_Ens' my_Dep.id %}" class="btn-action btn-danger">
-                    <i class="fas fa-key"></i>
-                    تغيير كلمة المرور
-                </a>
-                {% else %}
-                <a href="{% url 'ense:profileUpdate_Ens' %}" class="btn-action">
-                    <i class="fas fa-edit"></i>
-                    تحرير الملف
-                </a>
-                {% endif %}
+{% with my_Ens=enseignant ens_user=enseignant.user %}
+<div class="dep-page-container pf-page">
+
+    <!-- ─── Bandeau d'identité ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="pf-identity">
+                <span class="pf-avatar">{{ my_Ens.initiales }}</span>
+                <div class="dep-hero-titles">
+                    <h1><span>{{ my_Ens.nom_ar }} {{ my_Ens.prenom_ar }}</span></h1>
+                    <p class="dep-hero-subtitle">
+                        <span dir="ltr">{{ my_Ens.nom_fr }} {{ my_Ens.prenom_fr }}</span>
+                        {% if ens_user.email %}<span>•</span><span dir="ltr">{{ ens_user.email }}</span>{% endif %}
+                    </p>
+                    <div class="pf-chips">
+                        {% if my_Ens.grade %}<span class="pf-chip"><i class="fas fa-award"></i>{{ my_Ens.grade }}</span>{% endif %}
+                        {% if my_Ens.diplome %}<span class="pf-chip"><i class="fas fa-graduation-cap"></i>{{ my_Ens.diplome }}</span>{% endif %}
+                        {% if real_Dep %}<span class="pf-chip"><i class="fas fa-user-check"></i>{{ real_Dep.get_statut_display|default:real_Dep.statut }}</span>{% endif %}
+                    </div>
+                </div>
             </div>
 
-            <!-- Profile Main Info -->
-            <div class="profile-main-info">
-                <div class="profile-avatar">
-                    <i class="fas fa-user-graduate"></i>
-                </div>
-
-                <h1 class="profile-name">
-                    {{my_Ens.nom_ar}} {{my_Ens.prenom_ar}}
-                </h1>
-
-                <div class="profile-subtitle">
-                    <div>{{my_Ens.nom_fr}} {{my_Ens.prenom_fr}}</div>
-                    <div class="mt-2">
-                        <i class="fas fa-envelope me-2"></i>{{user.email}}
-                        <span class="mx-3">|</span>
-                        <i class="fas fa-user me-2"></i>{{user.username}}
-                    </div>
-                </div>
-
-                <div class="profile-badges">
-                    <div class="badge-custom">
-                        <i class="fas fa-award me-2"></i>
-                        {{my_Ens.grade}}
-                    </div>
-                    {% if real_Dep %}
-                    <div class="badge-custom">
-                        <i class="fas fa-building me-2"></i>
-                        {{real_Dep.departement.nom_ar}}
-                    </div>
-                    <div class="badge-custom">
-                        <i class="fas fa-university me-2"></i>
-                        {{real_Dep.departement.faculte.nom_ar}}
-                    </div>
+            <div class="dep-hero-actions">
+                {% if not in_departement %}
+                    {% if user != my_Ens.user and my_Dep %}
                     {% endif %}
-                    <div class="badge-custom">
-                        <i class="fas fa-microscope me-2"></i>
-                        {{my_Ens.specialite_ar}}
-                    </div>
-                </div>
+                    {% if user == my_Ens.user or user.is_superuser or has_admin_postes %}
+                    <a href="{% url 'ense:profileUpdate_Ens_id' my_Ens.id %}" class="btn-hero-primary">
+                        <i class="fas fa-edit"></i><span>تعديل الملف</span>
+                    </a>
+                    {% endif %}
+                    {% if user == my_Ens.user %}
+                    <a href="{% url 'ense:change_password_Ens_simple' %}" class="btn-hero-secondary">
+                        <i class="fas fa-key"></i><span>كلمة المرور</span>
+                    </a>
+                    {% endif %}
+                {% endif %}
             </div>
         </div>
     </div>
 
-    <!-- Messages -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle me-2"></i>
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
+    <!-- ─── Indicateurs Google Scholar ─── -->
+    <div class="dsh-kpis">
+        <div class="dsh-kpi">
+            <div class="dsh-kpi-head"><span>المنشورات</span><i class="fas fa-file-alt"></i></div>
+            <div class="dsh-kpi-value">{{ my_Ens.scholar_publications_count|default:0 }}</div>
+        </div>
+        <div class="dsh-kpi">
+            <div class="dsh-kpi-head"><span>الاستشهادات</span><i class="fas fa-quote-right"></i></div>
+            <div class="dsh-kpi-value">{{ my_Ens.scholar_citations_count|default:0 }}</div>
+        </div>
+        <div class="dsh-kpi">
+            <div class="dsh-kpi-head"><span>معامل h-index</span><i class="fas fa-chart-line"></i></div>
+            <div class="dsh-kpi-value">{{ my_Ens.scholar_h_index|default:0 }}</div>
+        </div>
+        <div class="dsh-kpi">
+            <div class="dsh-kpi-head"><span>معامل i10-index</span><i class="fas fa-medal"></i></div>
+            <div class="dsh-kpi-value">{{ my_Ens.scholar_i10_index|default:0 }}</div>
+            {% if my_Ens.scholar_last_update %}<div class="dsh-kpi-sub">تحديث {{ my_Ens.scholar_last_update|date:"d-m-Y" }}</div>{% endif %}
+        </div>
+    </div>
 
-    <!-- Profile Body -->
-    <div class="profile-body">
-
-        <!-- المعلومات الأكاديمية والوظيفية -->
-        <div class="section-card">
-            <div class="section-header">
-                <div class="section-icon">
-                    <i class="fas fa-graduation-cap"></i>
-                </div>
-                <h2 class="section-title">المعلومات الأكاديمية والوظيفية</h2>
-            </div>
-
-            <div class="info-grid">
-                <div class="info-item">
-                    <div class="info-label"><i class="fas fa-calendar-check"></i>تاريخ الالتحاق بالجامعة</div>
-                    <div class="info-value">{{my_Ens.date_Recrut|date:"d-m-Y"|default:"غير محدد"}}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label"><i class="fas fa-id-card"></i>رقم التسجيل</div>
-                    <div class="info-value">{{my_Ens.matricule|default:"غير محدد"}}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label"><i class="fas fa-certificate"></i>الدبلوم</div>
-                    <div class="info-value">{{my_Ens.diplome|default:"غير محدد"}}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label"><i class="fas fa-award"></i>الرتبة</div>
-                    <div class="info-value">{{my_Ens.grade|default:"غير محدد"}}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label"><i class="fas fa-flask"></i>التخصص بالعربية</div>
-                    <div class="info-value">{{my_Ens.specialite_ar|default:"غير محدد"}}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label"><i class="fas fa-flask"></i>Spécialité</div>
-                    <div class="info-value">{{my_Ens.specialite_fr|default:"Non défini"}}</div>
-                </div>
-            </div>
-
-            {% if ALL_Dep %}
-            <div class="departments-box">
-                <div class="departments-title">
-                    <i class="fas fa-building"></i>
-                    أقسام أخرى يدرس فيها الأستاذ
-                </div>
-                {% for cite_Dep in ALL_Dep %}
-                <div class="department-item">
-                    <i class="fas fa-map-marker-alt text-danger me-2"></i>
-                    قسم: <strong class="text-danger">{{cite_Dep.departement.nom_ar}}</strong>
-                    <span class="mx-2">|</span>
-                    كلية: <strong>{{cite_Dep.departement.faculte.nom_ar}}</strong>
-                </div>
-                {% endfor %}
-            </div>
+    <!-- ─── Actualiser les indicateurs Scholar (propriétaire, direction du département, administrateur) ─── -->
+    {% if user == my_Ens.user or user.is_superuser or in_departement %}
+    <div class="pf-scholar-bar">
+        <span>
+            <i class="fab fa-google-scholar me-1"></i>
+            {% if my_Ens.googlescholar %}
+                {% if my_Ens.scholar_last_update %}آخر تحديث لمؤشرات Google Scholar: {{ my_Ens.scholar_last_update|date:"d-m-Y H:i" }}{% else %}لم يتم تحديث مؤشرات Google Scholar بعد{% endif %}
+            {% else %}
+                لا يوجد رابط Google Scholar مسجل
             {% endif %}
-        </div>
-
-        <!-- المعلومات الشخصية -->
-        <div class="section-card">
-            <div class="section-header">
-                <div class="section-icon"><i class="fas fa-user"></i></div>
-                <h2 class="section-title">المعلومات الشخصية</h2>
-            </div>
-
-            <div class="info-grid">
-                <div class="info-item">
-                    <div class="info-label"><i class="fas fa-birthday-cake"></i>تاريخ الميلاد</div>
-                    <div class="info-value">{{my_Ens.date_nais|date:"d-m-Y"|default:"غير محدد"}}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label"><i class="fas fa-heart"></i>الحالة العائلية</div>
-                    <div class="info-value">{{my_Ens.get_sitfam_display|default:"غير محدد"}}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label"><i class="fas fa-graduation-cap"></i>سنة البكالوريا</div>
-                    <div class="info-value">{{my_Ens.bac_annee|default:"غير محدد"}}</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- معلومات الاتصال -->
-        <div class="section-card">
-            <div class="section-header">
-                <div class="section-icon"><i class="fas fa-address-book"></i></div>
-                <h2 class="section-title">معلومات الاتصال</h2>
-            </div>
-
-            <div class="info-grid">
-                <div class="info-item">
-                    <div class="info-label"><i class="fas fa-mobile-alt"></i>رقم الجوال 1</div>
-                    <div class="info-value">
-                        {% if my_Ens.telmobile1 %}<a href="tel:{{my_Ens.telmobile1}}">{{my_Ens.telmobile1}}</a>{% else %}غير محدد{% endif %}
-                    </div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label"><i class="fas fa-mobile-alt"></i>رقم الجوال 2</div>
-                    <div class="info-value">
-                        {% if my_Ens.telmobile2 %}<a href="tel:{{my_Ens.telmobile2}}">{{my_Ens.telmobile2}}</a>{% else %}غير محدد{% endif %}
-                    </div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label"><i class="fas fa-phone"></i>رقم الهاتف الثابت</div>
-                    <div class="info-value">{{my_Ens.telfix|default:"غير محدد"}}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label"><i class="fas fa-fax"></i>رقم الفاكس</div>
-                    <div class="info-value">{{my_Ens.fax|default:"غير محدد"}}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label"><i class="fas fa-envelope"></i>الايميل الشخصي</div>
-                    <div class="info-value">
-                        {% if my_Ens.email_perso %}<a href="mailto:{{my_Ens.email_perso}}">{{my_Ens.email_perso}}</a>{% else %}غير محدد{% endif %}
-                    </div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label"><i class="fas fa-envelope-open-text"></i>الايميل المهني</div>
-                    <div class="info-value">
-                        {% if my_Ens.email_prof %}<a href="mailto:{{my_Ens.email_prof}}">{{my_Ens.email_prof}}</a>{% else %}غير محدد{% endif %}
-                    </div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label"><i class="fas fa-map-marked-alt"></i>العنوان</div>
-                    <div class="info-value">{{my_Ens.adresse|default:"غير محدد"}}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label"><i class="fas fa-map"></i>الولاية</div>
-                    <div class="info-value">{{my_Ens.wilaya|default:"غير محدد"}}</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- حالة التسجيل في المنصات -->
-        <div class="section-card">
-            <div class="section-header">
-                <div class="section-icon"><i class="fas fa-laptop-code"></i></div>
-                <h2 class="section-title">حالة التسجيل في المنصات</h2>
-            </div>
-
-            <div class="status-grid">
-                <div class="status-item {% if my_Ens.inscritProgres %}status-yes{% else %}status-no{% endif %}">
-                    <i class="fas {% if my_Ens.inscritProgres %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i>
-                    <span>منصة Progres: {% if my_Ens.inscritProgres %}مسجل{% else %}غير مسجل{% endif %}</span>
-                </div>
-                <div class="status-item {% if my_Ens.inscritMoodle %}status-yes{% else %}status-no{% endif %}">
-                    <i class="fas {% if my_Ens.inscritMoodle %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i>
-                    <span>منصة Moodle: {% if my_Ens.inscritMoodle %}مسجل{% else %}غير مسجل{% endif %}</span>
-                </div>
-                <div class="status-item {% if my_Ens.inscritSNDL %}status-yes{% else %}status-no{% endif %}">
-                    <i class="fas {% if my_Ens.inscritSNDL %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i>
-                    <span>منصة SNDL: {% if my_Ens.inscritSNDL %}مسجل{% else %}غير مسجل{% endif %}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- الشبكات الاجتماعية والأكاديمية -->
-        <div class="section-card">
-            <div class="section-header">
-                <div class="section-icon"><i class="fas fa-share-nodes"></i></div>
-                <h2 class="section-title">الشبكات الاجتماعية والأكاديمية</h2>
-            </div>
-
-            <div class="social-grid">
-                {% if my_Ens.googlescholar %}
-                <div class="social-item">
-                    <div class="social-icon social-google"><i class="fab fa-google"></i></div>
-                    <div class="social-content">
-                        <div class="social-label">Google Scholar</div>
-                        <div class="social-link">
-                            <a href="{{my_Ens.googlescholar}}" target="_blank">
-                                {{my_Ens.googlescholar|truncatechars:40}} <i class="fas fa-external-link-alt ms-1"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if my_Ens.researchgate %}
-                <div class="social-item">
-                    <div class="social-icon social-research"><i class="fab fa-researchgate"></i></div>
-                    <div class="social-content">
-                        <div class="social-label">ResearchGate</div>
-                        <div class="social-link">
-                            <a href="{{my_Ens.researchgate}}" target="_blank">{{my_Ens.researchgate|truncatechars:40}}</a>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if my_Ens.orcid_id %}
-                <div class="social-item">
-                    <div class="social-icon social-orcid"><i class="fab fa-orcid"></i></div>
-                    <div class="social-content">
-                        <div class="social-label">ORCID iD</div>
-                        <div class="social-link">
-                            <a href="{{my_Ens.orcid_id}}" target="_blank">{{my_Ens.orcid_id|truncatechars:40}}</a>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if my_Ens.linkedIn %}
-                <div class="social-item">
-                    <div class="social-icon social-linkedin"><i class="fab fa-linkedin-in"></i></div>
-                    <div class="social-content">
-                        <div class="social-label">LinkedIn</div>
-                        <div class="social-link">
-                            <a href="{{my_Ens.linkedIn}}" target="_blank">{{my_Ens.linkedIn|truncatechars:40}}</a>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if my_Ens.facebook %}
-                <div class="social-item">
-                    <div class="social-icon social-facebook"><i class="fab fa-facebook-f"></i></div>
-                    <div class="social-content">
-                        <div class="social-label">Facebook</div>
-                        <div class="social-link">
-                            <a href="{{my_Ens.facebook}}" target="_blank">{{my_Ens.facebook|truncatechars:40}}</a>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if my_Ens.x_twitter %}
-                <div class="social-item">
-                    <div class="social-icon social-twitter"><i class="fab fa-twitter"></i></div>
-                    <div class="social-content">
-                        <div class="social-label">X (Twitter)</div>
-                        <div class="social-link">
-                            <a href="{{my_Ens.x_twitter}}" target="_blank">{{my_Ens.x_twitter|truncatechars:40}}</a>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if my_Ens.tiktok %}
-                <div class="social-item">
-                    <div class="social-icon social-tiktok"><i class="fab fa-tiktok"></i></div>
-                    <div class="social-content">
-                        <div class="social-label">TikTok</div>
-                        <div class="social-link">
-                            <a href="{{my_Ens.tiktok}}" target="_blank">{{my_Ens.tiktok|truncatechars:40}}</a>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if my_Ens.telegram %}
-                <div class="social-item">
-                    <div class="social-icon social-telegram"><i class="fab fa-telegram-plane"></i></div>
-                    <div class="social-content">
-                        <div class="social-label">Telegram</div>
-                        <div class="social-link">
-                            <a href="{{my_Ens.telegram}}" target="_blank">{{my_Ens.telegram|truncatechars:40}}</a>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- إحصائيات Google Scholar -->
-        <div class="section-card">
-            <div class="section-header">
-                <div class="section-icon"><i class="fas fa-chart-line"></i></div>
-                <h2 class="section-title">إحصائيات Google Scholar</h2>
-            </div>
-
-            <div class="scholar-visual">
-                <div class="stats-row">
-                    <div class="stat-box">
-                        <i class="fas fa-file-alt fa-3x text-primary mb-3"></i>
-                        <h3>{{my_Ens.scholar_publications_count|default:"0"}}</h3>
-                        <small>منشورات</small>
-                    </div>
-                    <div class="stat-box">
-                        <i class="fas fa-quote-right fa-3x text-success mb-3"></i>
-                        <h3>{{my_Ens.scholar_citations_count|default:"0"}}</h3>
-                        <small>استشهادات</small>
-                    </div>
-                    <div class="stat-box">
-                        <i class="fas fa-h-square fa-3x text-info mb-3"></i>
-                        <h3>{{my_Ens.scholar_h_index|default:"0"}}</h3>
-                        <small>H-Index</small>
-                    </div>
-                    <div class="stat-box">
-                        <i class="fas fa-chart-bar fa-3x text-warning mb-3"></i>
-                        <h3>{{my_Ens.scholar_i10_index|default:"0"}}</h3>
-                        <small>i10-Index</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- حالة الإجازات -->
-        <div class="section-card">
-            <div class="section-header">
-                <div class="section-icon"><i class="fas fa-calendar-times"></i></div>
-                <h2 class="section-title">حالة الإجازات</h2>
-            </div>
-
-            <div class="status-grid">
-                <div class="status-item {% if my_Ens.vacAcademique %}status-yes{% else %}status-no{% endif %}">
-                    <i class="fas {% if my_Ens.vacAcademique %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i>
-                    <span>عطلة أكاديمية: {% if my_Ens.vacAcademique %}نعم{% else %}لا{% endif %}</span>
-                </div>
-                <div class="status-item {% if my_Ens.maladie %}status-yes{% else %}status-no{% endif %}">
-                    <i class="fas {% if my_Ens.maladie %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i>
-                    <span>عطلة مرضية: {% if my_Ens.maladie %}نعم{% else %}لا{% endif %}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- ملاحظات -->
-        {% if my_Ens.observation %}
-        <div class="section-card">
-            <div class="section-header">
-                <div class="section-icon"><i class="fas fa-comment-dots"></i></div>
-                <h2 class="section-title">ملاحظات</h2>
-            </div>
-
-            <div class="info-item">
-                <div class="info-value" style="white-space: pre-wrap; line-height: 1.8;">{{my_Ens.observation}}</div>
-            </div>
-        </div>
+        </span>
+        {% if my_Ens.googlescholar %}
+        <form method="post" action="{% if in_departement %}{% url 'depa:update_scholar_enseignant' my_Ens.id %}{% else %}{% url 'ense:update_scholar_ens' my_Ens.id %}{% endif %}" class="m-0" id="scholarRefreshForm">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-primary px-3">
+                <i class="fas fa-sync-alt me-1"></i>تحديث الأرقام
+            </button>
+        </form>
+        {% elif user == my_Ens.user %}
+        <a href="{% url 'ense:profileUpdate_Ens_id' my_Ens.id %}" class="btn btn-sm btn-outline-secondary px-3">إضافة الرابط</a>
         {% endif %}
     </div>
+    {% endif %}
+
+    <div class="pf-grid">
+
+        <div>
+            <!-- ─── Parcours académique ─── -->
+            <div class="dsh-panel">
+                <h2 class="dsh-panel-title"><i class="fas fa-user-graduate"></i>المسار الأكاديمي والمهني</h2>
+                <dl class="pf-list">
+                    <div class="pf-row"><dt>الرتبة</dt><dd>{% if my_Ens.grade %}{{ my_Ens.grade }}{% else %}<span class="pf-empty">—</span>{% endif %}</dd></div>
+                    <div class="pf-row"><dt>الشهادة</dt><dd>{% if my_Ens.diplome %}{{ my_Ens.diplome }}{% else %}<span class="pf-empty">—</span>{% endif %}</dd></div>
+                    <div class="pf-row"><dt>التخصص</dt><dd>{% if my_Ens.specialite_ar %}{{ my_Ens.specialite_ar }}{% else %}<span class="pf-empty">—</span>{% endif %}</dd></div>
+                    <div class="pf-row"><dt>Spécialité</dt><dd class="ltr">{% if my_Ens.specialite_fr %}{{ my_Ens.specialite_fr }}{% else %}<span class="pf-empty">—</span>{% endif %}</dd></div>
+                    <div class="pf-row"><dt>تاريخ التوظيف</dt><dd>{% if my_Ens.date_Recrut %}{{ my_Ens.date_Recrut|date:"d-m-Y" }}{% else %}<span class="pf-empty">—</span>{% endif %}</dd></div>
+                    <div class="pf-row"><dt>رقم التسجيل</dt><dd class="ltr">{% if my_Ens.matricule %}{{ my_Ens.matricule }}{% else %}<span class="pf-empty">—</span>{% endif %}</dd></div>
+                    <div class="pf-row"><dt>سنة البكالوريا</dt><dd>{% if my_Ens.bac_annee %}{{ my_Ens.bac_annee }}{% else %}<span class="pf-empty">—</span>{% endif %}</dd></div>
+                </dl>
+            </div>
+
+            <!-- ─── Départements ─── -->
+            <div class="dsh-panel">
+                <h2 class="dsh-panel-title"><i class="fas fa-building"></i>الأقسام</h2>
+                {% if real_Dep %}
+                <div class="pf-dep">
+                    <span><strong>{{ real_Dep.departement.nom_ar }}</strong><small class="d-block">القسم الأصلي</small></span>
+                    <span class="dsh-chip">{{ real_Dep.get_statut_display|default:real_Dep.statut }}</span>
+                </div>
+                {% endif %}
+                {% for aff in ALL_Dep %}
+                <div class="pf-dep">
+                    <span><strong>{{ aff.departement.nom_ar }}</strong><small class="d-block">{{ aff.departement.faculte.nom_complet_ar }}</small></span>
+                    <span class="dsh-chip">{{ aff.get_statut_display|default:aff.statut }}</span>
+                </div>
+                {% endfor %}
+                {% if not real_Dep and not ALL_Dep %}
+                <p class="dsh-empty mb-0">لا يوجد تعيين في أي قسم.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div>
+            <!-- ─── Informations personnelles ─── -->
+            <div class="dsh-panel">
+                <h2 class="dsh-panel-title"><i class="fas fa-id-card"></i>المعلومات الشخصية</h2>
+                <dl class="pf-list">
+                    <div class="pf-row"><dt>تاريخ الميلاد</dt><dd>{% if my_Ens.date_nais %}{{ my_Ens.date_nais|date:"d-m-Y" }}{% else %}<span class="pf-empty">—</span>{% endif %}</dd></div>
+                    <div class="pf-row"><dt>الجنس</dt><dd>{% if my_Ens.sex %}{{ my_Ens.get_sex_display }}{% else %}<span class="pf-empty">—</span>{% endif %}</dd></div>
+                    <div class="pf-row"><dt>الحالة العائلية</dt><dd>{% if my_Ens.sitfam %}{{ my_Ens.get_sitfam_display }}{% else %}<span class="pf-empty">—</span>{% endif %}</dd></div>
+                    <div class="pf-row"><dt>العنوان</dt><dd>{% if my_Ens.adresse %}{{ my_Ens.adresse }}{% else %}<span class="pf-empty">—</span>{% endif %}</dd></div>
+                </dl>
+            </div>
+
+            <!-- ─── Contact ─── -->
+            <div class="dsh-panel">
+                <h2 class="dsh-panel-title"><i class="fas fa-address-book"></i>الاتصال</h2>
+                <dl class="pf-list">
+                    <div class="pf-row"><dt>البريد المهني</dt><dd class="ltr">{% if my_Ens.email_prof %}<a href="mailto:{{ my_Ens.email_prof }}">{{ my_Ens.email_prof }}</a>{% else %}<span class="pf-empty">—</span>{% endif %}</dd></div>
+                    <div class="pf-row"><dt>البريد الشخصي</dt><dd class="ltr">{% if my_Ens.email_perso %}<a href="mailto:{{ my_Ens.email_perso }}">{{ my_Ens.email_perso }}</a>{% else %}<span class="pf-empty">—</span>{% endif %}</dd></div>
+                    <div class="pf-row"><dt>الهاتف</dt><dd class="ltr">{% if my_Ens.telmobile1 %}{{ my_Ens.telmobile1 }}{% if my_Ens.telmobile2 %} / {{ my_Ens.telmobile2 }}{% endif %}{% else %}<span class="pf-empty">—</span>{% endif %}</dd></div>
+                </dl>
+            </div>
+
+        </div>
+
+        <div>
+            <!-- ─── Plateformes ─── -->
+            <div class="dsh-panel">
+                <h2 class="dsh-panel-title"><i class="fas fa-layer-group"></i>المنصات</h2>
+                <dl class="pf-list">
+                    <div class="pf-row"><dt>PROGRES</dt><dd>{% if my_Ens.inscritProgres %}<span class="pf-status on"><i class="fas fa-check-circle"></i>مسجل</span>{% else %}<span class="pf-status off"><i class="fas fa-minus-circle"></i>غير مسجل</span>{% endif %}</dd></div>
+                    <div class="pf-row"><dt>MOODLE</dt><dd>{% if my_Ens.inscritMoodle %}<span class="pf-status on"><i class="fas fa-check-circle"></i>مسجل</span>{% else %}<span class="pf-status off"><i class="fas fa-minus-circle"></i>غير مسجل</span>{% endif %}</dd></div>
+                    <div class="pf-row"><dt>SNDL</dt><dd>{% if my_Ens.inscritSNDL %}<span class="pf-status on"><i class="fas fa-check-circle"></i>مسجل</span>{% else %}<span class="pf-status off"><i class="fas fa-minus-circle"></i>غير مسجل</span>{% endif %}</dd></div>
+                </dl>
+            </div>
+
+            <!-- ─── Profils académiques ─── -->
+            <div class="dsh-panel">
+                <h2 class="dsh-panel-title"><i class="fas fa-globe"></i>الملفات الأكاديمية</h2>
+                {% if my_Ens.googlescholar or my_Ens.researchgate or my_Ens.orcid_id or my_Ens.linkedIn %}
+                <div class="d-flex flex-wrap gap-2">
+                    {% if my_Ens.googlescholar %}<a class="dsh-chip" href="{{ my_Ens.googlescholar }}" target="_blank" rel="noopener"><i class="fas fa-graduation-cap"></i>Google Scholar</a>{% endif %}
+                    {% if my_Ens.researchgate %}<a class="dsh-chip" href="{{ my_Ens.researchgate }}" target="_blank" rel="noopener"><i class="fab fa-researchgate"></i>ResearchGate</a>{% endif %}
+                    {% if my_Ens.orcid_id %}<a class="dsh-chip" href="https://orcid.org/{{ my_Ens.orcid_id }}" target="_blank" rel="noopener"><i class="fab fa-orcid"></i>ORCID</a>{% endif %}
+                    {% if my_Ens.linkedIn %}<a class="dsh-chip" href="{{ my_Ens.linkedIn }}" target="_blank" rel="noopener"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+                </div>
+                {% else %}
+                <p class="dsh-empty mb-0">لا توجد روابط مسجلة.</p>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
 </div>
+{% endwith %}
+<script>
+    (function () {
+        const form = document.getElementById('scholarRefreshForm');
+        if (!form) return;
+        form.addEventListener('submit', function () {
+            const btn = form.querySelector('button');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>جاري التحديث...';
+        });
+    })();
+</script>
 {% endblock %}

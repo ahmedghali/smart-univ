@@ -2,9 +2,7 @@
 {% load static %}
 
 {# ═══════════════════════════════════════════════════════════════════════════════ #}
-{# BASE TEMPLATE POUR L'ESPACE DÉPARTEMENT                                         #}
-{# Hérite de base_dashboard.html et définit les éléments communs                   #}
-{# Variables de contexte attendues: my_Dep, my_Fac, active_menu                    #}
+{# BASE TEMPLATE POUR L'ESPACE DÉPARTEMENT — DESIGN ERP MODERNE STYLE SAP FIORI    #}
 {# ═══════════════════════════════════════════════════════════════════════════════ #}
 
 {% block title %}{{ title }}{% if my_Dep %} - {{ my_Dep.nom_ar }}{% endif %}{% endblock %}
@@ -12,520 +10,539 @@
 {% block page_title %}{{ title }}{% endblock %}
 
 {# ═══════════════════════════════════════════════════════════════════════════════ #}
-{# CONTEXT INFO - Affiche les informations du département/faculté                  #}
+{# SIDEBAR BRAND : LOGO & TITRE SMART-UNIV DÉPARTEMENT                             #}
 {# ═══════════════════════════════════════════════════════════════════════════════ #}
-{% block context_info %}
-{% if my_Fac %}
-<div class="context-info">
-    <i class="fas fa-university"></i>
-    <span>الكلية: <strong>{{ my_Fac.nom_ar }}</strong></span>
-    {% if my_Fac.nom_fr %}
-        <span class="ms-2 opacity-75">- {{ my_Fac.nom_fr }}</span>
-    {% endif %}
-</div>
-{% elif my_Dep %}
-<div class="context-info">
-    <i class="fas fa-building"></i>
-    <span>القسم: <strong>{{ my_Dep.nom_ar }}</strong></span>
-    {% if my_Dep.nom_fr %}
-        <span class="ms-2 opacity-75">- {{ my_Dep.nom_fr }}</span>
-    {% endif %}
-</div>
-{% endif %}
+{% block sidebar_brand %}
+<a href="{% url 'depa:dashboard_Dep' %}" class="sidebar-brand" id="sidebarBrandDep" title="لوحة التحكم الرئيسية">
+    <div class="sidebar-brand-icon">
+        <img src="{% static 'images/smart-univ-logo.svg' %}" alt="Smart-Univ" width="38" height="38" style="width: 38px; height: 38px; max-width: 38px; max-height: 38px; object-fit: contain;">
+    </div>
+    <div class="sidebar-brand-text">
+        <h4>Smart-Univ</h4>
+    </div>
+</a>
 {% endblock %}
 
 {# ═══════════════════════════════════════════════════════════════════════════════ #}
-{# SIDEBAR MENU - Menu latéral commun pour l'espace département                    #}
-{# Utilise la variable 'active_menu' pour marquer l'élément actif                  #}
-{# Valeurs possibles: 'dashboard', 'enseignants', 'etudiants', 'matieres',         #}
-{#                    'specialites', 'emploi', 'profile'                           #}
+{# SIDEBAR MENU : NAVIGATION HIÉRARCHIQUE EN ARBORESCENCE (TREE MENU SAP STYLE)     #}
 {# ═══════════════════════════════════════════════════════════════════════════════ #}
 {% block sidebar_menu %}
+<div class="sap-tree-menu">
+    <div class="sap-tree-section-title">التنظيم العام</div>
 
-<!-- لوحة التحكم -->
-<a class="nav-link {% if active_menu == 'dashboard' %}active{% endif %}" href="{% url 'depa:dashboard_Dep' %}">
-    <i class="fas fa-tachometer-alt"></i>
-    لوحة التحكم
-</a>
-
-<!-- الأساتذة - Sous-menu -->
-<div class="sub-menu {% if active_menu == 'enseignants' or active_menu == 'heures' or active_menu == 'new_enseignant' %}active{% endif %}">
-    <a class="nav-link">
-        <i class="fas fa-chalkboard-teacher"></i>
-        الأساتذة
+    <!-- 1. لوحة التحكم (الرئيسية) -->
+    <a class="sap-tree-item {% if active_menu == 'dashboard' %}active{% endif %}" href="{% url 'depa:dashboard_Dep' %}" id="sidebarDashboardLinkDep">
+        <i class="fas fa-tachometer-alt tree-icon"></i>
+        <span>لوحة التحكم الرئيسية</span>
     </a>
-    <div class="sub-menu-items">
-        <a class="nav-link {% if active_menu == 'enseignants' %}active{% endif %}" href="{% url 'depa:list_enseignants_dep' 1 %}">
-            <i class="fas fa-list"></i>
-            قائمة الأساتذة
-        </a>
-        <a class="nav-link {% if active_menu == 'heures' %}active{% endif %}" href="{% url 'depa:heures_enseignants_dep' 1 %}">
-            <i class="fas fa-clock"></i>
-            ساعات العمل
-        </a>
-        <a class="nav-link {% if active_menu == 'new_enseignant' %}active{% endif %}" href="{% url 'depa:new_Enseignant' %}">
-            <i class="fas fa-user-plus"></i>
-            إضافة أستاذ
-        </a>
+
+    <div class="sap-tree-section-title">الهيكل الأكاديمي</div>
+
+    <!-- 2. هيئة التدريس (Dossier / Branche avec sous-noeuds) -->
+    <div class="sap-tree-branch {% if active_menu == 'enseignants' or active_menu == 'heures' or active_menu == 'new_enseignant' %}open active{% endif %}">
+        <div class="sap-tree-branch-header">
+            <div class="branch-title">
+                <i class="fas fa-chalkboard-teacher tree-icon"></i>
+                <span>هيئة التدريس</span>
+            </div>
+            <i class="fas fa-chevron-left branch-chevron"></i>
+        </div>
+        <div class="sap-tree-children">
+            <a class="sap-tree-leaf {% if active_menu == 'enseignants' %}active{% endif %}" href="{% url 'depa:list_enseignants_dep' 1 %}">
+                <i class="fas fa-users"></i>
+                <span>قائمة الأساتذة</span>
+            </a>
+            <a class="sap-tree-leaf {% if active_menu == 'heures' %}active{% endif %}" href="{% url 'depa:heures_enseignants_dep' 1 %}">
+                <i class="fas fa-business-time"></i>
+                <span>ساعات العمل والأنصبة</span>
+            </a>
+            <a class="sap-tree-leaf {% if active_menu == 'new_enseignant' %}active{% endif %}" href="{% url 'depa:new_Enseignant' %}">
+                <i class="fas fa-user-plus"></i>
+                <span>إضافة أستاذ جديد</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 3. شؤون الطلبة (Dossier / Branche) -->
+    <div class="sap-tree-branch {% if active_menu == 'etudiants' or active_menu == 'import_etudiants' %}open active{% endif %}">
+        <div class="sap-tree-branch-header">
+            <div class="branch-title">
+                <i class="fas fa-user-graduate tree-icon"></i>
+                <span>شؤون الطلبة</span>
+            </div>
+            <i class="fas fa-chevron-left branch-chevron"></i>
+        </div>
+        <div class="sap-tree-children">
+            <a class="sap-tree-leaf {% if active_menu == 'etudiants' %}active{% endif %}" href="{% url 'depa:list_etudiants' %}">
+                <i class="fas fa-id-card-clip"></i>
+                <span>قوائم الطلبة والأفواج</span>
+            </a>
+            <a class="sap-tree-leaf {% if active_menu == 'import_etudiants' %}active{% endif %}" href="{% url 'depa:import_etudiants' %}">
+                <i class="fas fa-file-excel"></i>
+                <span>استيراد الطلبة (Excel)</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 4. الهياكل والمقررات (Dossier / Branche) -->
+    <div class="sap-tree-branch {% if active_menu == 'matieres' or active_menu == 'specialites' or active_menu == 'amphis' or active_menu == 'salles' or active_menu == 'labos' %}open active{% endif %}">
+        <div class="sap-tree-branch-header">
+            <div class="branch-title">
+                <i class="fas fa-university tree-icon"></i>
+                <span>الهياكل والمقررات</span>
+            </div>
+            <i class="fas fa-chevron-left branch-chevron"></i>
+        </div>
+        <div class="sap-tree-children">
+            <a class="sap-tree-leaf {% if active_menu == 'specialites' %}active{% endif %}" href="{% url 'depa:list_Specialite_Dep' %}">
+                <i class="fas fa-graduation-cap"></i>
+                <span>التخصصات والشعب</span>
+            </a>
+            <a class="sap-tree-leaf {% if active_menu == 'matieres' %}active{% endif %}" href="{% url 'depa:list_Mat_Niv' %}">
+                <i class="fas fa-book-open"></i>
+                <span>المواد والمقررات الدراسية</span>
+            </a>
+            <a class="sap-tree-leaf {% if active_menu == 'amphis' %}active{% endif %}" href="{% url 'depa:list_Amphi_Dep' %}">
+                <i class="fas fa-chalkboard"></i>
+                <span>المدرجات</span>
+            </a>
+            <a class="sap-tree-leaf {% if active_menu == 'salles' %}active{% endif %}" href="{% url 'depa:list_Salle_Dep' %}">
+                <i class="fas fa-door-open"></i>
+                <span>القاعات الدراسية</span>
+            </a>
+            <a class="sap-tree-leaf {% if active_menu == 'labos' %}active{% endif %}" href="{% url 'depa:list_Labo_Dep' %}">
+                <i class="fas fa-flask"></i>
+                <span>مخابر الأعمال التطبيقية</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 5. التسيير والزمن (Dossier / Branche) -->
+    <div class="sap-tree-branch {% if active_menu == 'emploi' %}open active{% endif %}">
+        <div class="sap-tree-branch-header">
+            <div class="branch-title">
+                <i class="fas fa-calendar-alt tree-icon"></i>
+                <span>إستعمال الزمن</span>
+            </div>
+            <i class="fas fa-chevron-left branch-chevron"></i>
+        </div>
+        <div class="sap-tree-children">
+            <a class="sap-tree-leaf {% if active_menu == 'emploi' %}active{% endif %}" href="{% url 'depa:import_emploi' %}">
+                <i class="fas fa-calendar-plus"></i>
+                <span>استيراد الحصص والجداول</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="sap-tree-section-title">النظام والصلاحيات</div>
+
+    <!-- 6. الإدارة والصلاحيات (Dossier / Branche) -->
+    <div class="sap-tree-branch {% if active_menu == 'admin' %}open active{% endif %}">
+        <div class="sap-tree-branch-header">
+            <div class="branch-title">
+                <i class="fas fa-shield-halved tree-icon"></i>
+                <span>الإدارة المتقدمة</span>
+            </div>
+            <i class="fas fa-chevron-left branch-chevron"></i>
+        </div>
+        <div class="sap-tree-children">
+            <a class="sap-tree-leaf" href="/departement/admin/">
+                <i class="fas fa-cogs"></i>
+                <span>بوابة المشرف الإداري</span>
+            </a>
+        </div>
     </div>
 </div>
-
-<!-- الطلبة - Sous-menu -->
-<div class="sub-menu {% if active_menu == 'etudiants' or active_menu == 'import_etudiants' %}active{% endif %}">
-    <a class="nav-link">
-        <i class="fas fa-user-graduate"></i>
-        الطلبة
-    </a>
-    <div class="sub-menu-items">
-        <a class="nav-link {% if active_menu == 'etudiants' %}active{% endif %}" href="{% url 'depa:list_etudiants' %}">
-            <i class="fas fa-list"></i>
-            قوائم الطلبة
-        </a>
-        <a class="nav-link {% if active_menu == 'import_etudiants' %}active{% endif %}" href="{% url 'depa:import_etudiants' %}">
-            <i class="fas fa-file-import"></i>
-            استيراد الطلبة
-        </a>
-    </div>
-</div>
-
-<!-- البنية التحتية - Sous-menu -->
-<div class="sub-menu {% if active_menu == 'matieres' or active_menu == 'specialites' %}active{% endif %}">
-    <a class="nav-link">
-        <i class="fas fa-building"></i>
-        البنية التحتية
-    </a>
-    <div class="sub-menu-items">
-        <a class="nav-link {% if active_menu == 'matieres' %}active{% endif %}" href="{% url 'depa:list_Mat_Niv' %}">
-            <i class="fas fa-book"></i>
-            المواد
-        </a>
-        <a class="nav-link {% if active_menu == 'specialites' %}active{% endif %}" href="{% url 'depa:list_Specialite_Dep' %}">
-            <i class="fas fa-graduation-cap"></i>
-            التخصصات
-        </a>
-    </div>
-</div>
-
-<!-- إستعمال الزمن - Sous-menu -->
-<div class="sub-menu {% if active_menu == 'emploi' %}active{% endif %}">
-    <a class="nav-link">
-        <i class="fas fa-calendar-alt"></i>
-        إستعمال الزمن
-    </a>
-    <div class="sub-menu-items">
-        <a class="nav-link {% if active_menu == 'emploi' %}active{% endif %}" href="{% url 'depa:import_emploi' %}">
-            <i class="fas fa-file-import"></i>
-            استيراد الحصص
-        </a>
-    </div>
-</div>
-
-<!-- الإدارة - Section Admin -->
-<div class="sub-menu {% if active_menu == 'admin' %}active{% endif %}">
-    <a class="nav-link">
-        <i class="fas fa-cogs"></i>
-        الإدارة
-    </a>
-    <div class="sub-menu-items">
-        <a class="nav-link" href="/departement/admin/">
-            <i class="fas fa-user-plus"></i>
-            إضافة أستاذ / طالب
-        </a>
-    </div>
-</div>
-
-<!-- الملف الشخصي -->
-<a class="nav-link {% if active_menu == 'profile' %}active{% endif %}" href="{% url 'depa:profile_Dep' %}">
-    <i class="fas fa-id-card"></i>
-    الملف الشخصي
-</a>
-
-{% block sidebar_menu_extra %}{% endblock %}
 {% endblock %}
 
 {# ═══════════════════════════════════════════════════════════════════════════════ #}
-{# CSS COMMUN - Styles partagés par tous les templates département                 #}
+{# FOOTER DU SIDEBAR : BASCULEMENT DE POSTE PETIT ET EN BAS (POINT 5)               #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{% block sidebar_footer %}
+<div class="compact-role-box">
+    <div class="compact-role-header">
+        <span><i class="fas fa-id-badge me-1"></i> المنصب النشط</span>
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-1 py-0" style="font-size:0.65rem;">نشط</span>
+    </div>
+    <div class="compact-role-name">
+        <i class="fas fa-user-tie"></i>
+        <span>{{ current_role_label|default:"رئيس القسم" }}</span>
+    </div>
+    {% if my_Dep %}
+    <div class="text-white-50 mt-1 d-flex align-items-center gap-1" style="font-size: 0.72rem;">
+        <i class="fas fa-building text-warning"></i>
+        <span class="text-truncate">قسم {{ my_Dep.nom_ar }}</span>
+    </div>
+    {% endif %}
+    <div class="compact-role-actions">
+        {% if roles_count > 1 or request.session.roles_count > 1 %}
+        <a href="{% url 'auth:select_role' %}" class="btn-switch-compact" title="تبديل المنصب في الجامعة">
+            <i class="fas fa-exchange-alt"></i>
+            <span>تبديل المنصب</span>
+        </a>
+        {% endif %}
+        <a href="{% url 'depa:profile_Dep' %}" class="btn-switch-compact text-white-50" title="الملف التعريفي للقسم">
+            <i class="fas fa-id-card"></i>
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# CSS COMMUN DU DÉPARTEMENT — HARMONIE ET DESIGN MODERNE ERP                        #}
 {# ═══════════════════════════════════════════════════════════════════════════════ #}
 {% block extra_css %}
 {{ block.super }}
 <style>
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* LAYOUT GÉNÉRAL                                                                   */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-.grey_zone {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    padding: 15px;
-    margin: 8px;
-    direction: rtl;
-    text-align: right;
-}
-
-.main-header {
-    margin-bottom: 20px;
-    direction: rtl;
-    text-align: right;
-}
-
-.page-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    padding-bottom: 8px;
-    text-align: right;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* CARTES                                                                           */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-.card {
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-}
-
-.card-header {
-    border-radius: 8px 8px 0 0 !important;
-    padding: 12px 15px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    direction: rtl;
-    text-align: right;
-}
-
-.card-body {
-    padding: 15px;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* STATISTIQUES                                                                     */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-.stat-card {
-    border-radius: 6px;
-    padding: 15px;
-    text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.stat-card h3, .stat-card h4 {
-    margin-bottom: 5px;
-    font-weight: 600;
-}
-
-.stat-card small {
-    font-size: 0.85rem;
-}
-
-.stat-icon {
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-}
-
-.stat-number {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #343a40 !important;
-}
-
-.stat-label {
-    color: #6c757d !important;
-    font-size: 0.9rem;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* TABLEAUX - RTL (Right-to-Left pour l'arabe)                                     */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-.table-responsive {
-    border-radius: 6px;
-    overflow-x: auto;
-    direction: rtl;
-}
-
-.table {
-    margin-bottom: 0;
-    font-size: 0.85rem;
-    direction: rtl;
-    text-align: right;
-}
-
-.table thead th {
-    border: none;
-    font-weight: 600;
-    font-size: 0.8rem;
-    padding: 10px 8px;
-    background-color: #343a40;
-    color: white;
-    white-space: nowrap;
-    text-align: right;
-}
-
-.table thead th.text-center {
-    text-align: center !important;
-}
-
-.table tbody tr {
-    border-bottom: 1px solid #f1f3f4;
-}
-
-.table tbody tr:hover {
-    background-color: rgba(0,123,255,0.05);
-}
-
-.table tbody td {
-    padding: 8px;
-    vertical-align: middle;
-    border-top: none;
-    text-align: right;
-}
-
-.table tbody td.text-center {
-    text-align: center !important;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* BADGES                                                                           */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-.badge {
-    font-size: 0.75em;
-    font-weight: 500;
-    padding: 4px 8px;
-    border-radius: 4px;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* BOUTONS                                                                          */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-.btn {
-    border-radius: 6px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.btn-sm {
-    font-size: 0.75rem;
-    padding: 0.3rem 0.6rem;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* PROGRESS BARS                                                                    */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-.progress {
-    border-radius: 8px;
-    background-color: #dee2e6;
-    height: 12px !important;
-}
-
-.progress-bar {
-    border-radius: 8px;
-    transition: width 0.6s ease;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* COULEURS SUBTILES                                                                */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-.bg-primary-subtle { background-color: rgba(108, 117, 125, 0.15) !important; }
-.bg-success-subtle { background-color: rgba(25, 135, 84, 0.1) !important; }
-.bg-warning-subtle { background-color: rgba(255, 193, 7, 0.1) !important; }
-.bg-info-subtle { background-color: rgba(13, 202, 240, 0.1) !important; }
-.bg-danger-subtle { background-color: #f8d7da !important; }
-.bg-secondary-subtle { background-color: #e9ecef !important; }
-.bg-dark-subtle { background-color: #f8f9fa !important; border: 1px solid #dee2e6; }
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* ALERTS                                                                           */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-.alert-info {
-    border-left: 4px solid #0dcaf0;
-}
-
-.alert-warning {
-    border-left: 4px solid #ffc107;
-}
-
-.alert-danger {
-    border-left: 4px solid #dc3545;
-}
-
-.alert-success {
-    border-left: 4px solid #198754;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* FORMULAIRES                                                                      */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-.form-section {
-    background-color: white;
-    border-radius: 10px;
-    padding: 25px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.05);
-}
-
-.form-section h4 {
-    border-bottom: 2px solid var(--primary-color);
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-}
-
-.filter-form .form-select {
-    min-width: 250px;
-}
-
-.myLabelList {
-    min-width: 100px;
-    font-weight: 600;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* LOADING SPINNER                                                                  */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-.loading-spinner {
-    display: none;
-    text-align: center;
-    padding: 20px;
-}
-
-.loading-spinner.show {
-    display: block;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* ANIMATIONS                                                                       */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideUp {
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    /* Zone grise modernisée en carte propre */
+    .grey_zone {
+        background-color: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(13, 27, 42, 0.05);
+        border: 1px solid rgba(13, 27, 42, 0.07);
+        padding: 24px;
+        margin-bottom: 24px;
+        direction: rtl;
+        text-align: right;
     }
-}
 
-.fade-in {
-    animation: fadeIn 0.3s ease-in;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* RESPONSIVE                                                                       */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-@media (max-width: 992px) {
-    .main-header {
+    /* ══════════════════════════════════════════════════════════════
+       DESIGN SYSTEM UNIFIÉ : PAGES DU DÉPARTEMENT (ERP / FIORI)
+       ══════════════════════════════════════════════════════════════ */
+    .dep-page-container {
+        display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
     }
 
-    .semester-selector {
+    /* ─── BANNIÈRE HERO UNIFIÉE ─── */
+    .dep-page-hero {
+        background: linear-gradient(135deg, #344d59 0%, #000000 100%);
+        border-radius: 16px;
+        padding: 1.6rem 2rem;
+        color: #ffffff;
+        box-shadow: 0 10px 30px rgba(27, 38, 44, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+
+    .dep-page-hero::before {
+        content: '';
+        position: absolute;
+        top: -60px;
+        left: -60px;
+        width: 240px;
+        height: 240px;
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.12) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .dep-hero-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .dep-hero-titles h1 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 0 0 0.35rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #ffffff;
+    }
+
+    .dep-hero-subtitle {
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 0.92rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        margin: 0;
+    }
+
+    .dep-hero-badge {
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: #ffffff;
+        padding: 3px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .dep-hero-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    /* ─── BOUTONS HERO UNIFIÉS ─── */
+    .btn-hero-primary {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #ffffff !important;
+        border: none;
+        padding: 0.6rem 1.35rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        transition: all 0.2s ease;
+    }
+
+    .btn-hero-primary:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        color: #ffffff !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+    }
+
+    .btn-hero-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 0.6rem 1.25rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-hero-secondary:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff !important;
+        transform: translateY(-2px);
+    }
+
+    .btn-hero-gold {
+        background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+        color: #0d1b2a !important;
+        border: none;
+        padding: 0.6rem 1.35rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        box-shadow: 0 4px 14px rgba(255, 215, 0, 0.35);
+        transition: all 0.2s ease;
+    }
+
+    .btn-hero-gold:hover {
+        background: linear-gradient(135deg, #ffaa00 0%, #ff8c00 100%);
+        color: #0d1b2a !important;
+        transform: translateY(-2px);
+    }
+
+    /* ─── CARTES ET TABLEAUX UNIFIÉS ─── */
+    .dep-table-card {
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid rgba(13, 27, 42, 0.08);
+        box-shadow: 0 4px 20px rgba(13, 27, 42, 0.05);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .dep-table-header {
+        padding: 1.25rem 1.5rem;
+        background: #ffffff;
+        border-bottom: 1px solid rgba(13, 27, 42, 0.06);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .dep-table-header h2, .dep-table-header h5 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #1b262c;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .dep-search-box {
+        position: relative;
+        min-width: 280px;
+        max-width: 400px;
+    }
+
+    .dep-search-box input {
+        border-radius: 10px;
+        padding-right: 38px;
+        border: 1.5px solid #e2e8f0;
+        font-size: 0.88rem;
+    }
+
+    .dep-search-box input:focus {
+        border-color: #344D59;
+        box-shadow: 0 0 0 3px rgba(52, 77, 89, 0.12);
+    }
+
+    .dep-search-box .search-icon {
+        position: absolute;
+        top: 50%;
+        right: 14px;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        pointer-events: none;
+        font-size: 0.85rem;
+    }
+
+    /* Tableaux SAP Fiori */
+    .table-responsive {
+        border-radius: 0 0 14px 14px;
+        overflow-x: auto;
+    }
+
+    .dep-table, .table {
+        margin-bottom: 0;
+        font-size: 0.88rem;
+        direction: rtl;
+        text-align: right;
+        border-collapse: separate;
+        border-spacing: 0;
         width: 100%;
     }
 
-    .semester-selector .btn {
-        flex: 1;
+    .dep-table thead th, .table thead th {
+        background: linear-gradient(135deg, #344d59 0%, #000000 100%) !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        font-size: 0.84rem;
+        padding: 13px 16px;
+        border: none;
+        white-space: nowrap;
+        letter-spacing: 0.2px;
+    }
+
+    .dep-table tbody td, .table tbody td {
+        padding: 13px 16px;
+        vertical-align: middle;
+        border-bottom: 1px solid #edf2f7;
+        color: #2d3748;
+    }
+
+    .dep-table tbody tr:hover, .table tbody tr:hover {
+        background-color: rgba(52, 77, 89, 0.04) !important;
+    }
+
+    /* Badges unifiés */
+    .badge-code {
+        background: #f1f5f9;
+        color: #334155;
+        font-family: 'Consolas', 'Courier New', monospace;
+        font-weight: 600;
+        padding: 4px 8px;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+        font-size: 0.82rem;
+    }
+
+    .badge-semester {
+        background: rgba(52, 77, 89, 0.1);
+        color: #344D59;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
         font-size: 0.8rem;
     }
 
-    .table {
-        font-size: 0.75rem;
+    /* Formulaires et Cartes */
+    .dep-form-card {
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid rgba(13, 27, 42, 0.08);
+        box-shadow: 0 4px 20px rgba(13, 27, 42, 0.05);
+        padding: 2rem;
+        margin-bottom: 2rem;
     }
 
-    .stat-card h3 {
-        font-size: 1.5rem;
+    .dep-upload-zone {
+        border: 2px dashed #cbd5e1;
+        border-radius: 14px;
+        background: #f8fafc;
+        padding: 2.5rem 1.5rem;
+        text-align: center;
+        transition: all 0.25s ease;
+        cursor: pointer;
     }
 
-    .stat-card h4 {
-        font-size: 1.2rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .grey_zone {
-        padding: 10px;
-        margin: 5px;
+    .dep-upload-zone:hover {
+        border-color: #344D59;
+        background: #f1f5f9;
     }
 
-    .filter-form .form-select {
-        min-width: 100%;
+    .dep-upload-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: rgba(52, 77, 89, 0.1);
+        color: #344D59;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        margin: 0 auto 1.2rem auto;
     }
 
-    .myLabelList {
-        min-width: 80px;
+    /* Pagination */
+    .pagination .page-link {
+        color: #344D59;
+        border: 1px solid #e2e8f0;
+        margin: 0 3px;
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 6px 14px;
     }
 
-    .table {
-        font-size: 0.7rem;
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #344d59 0%, #000000 100%);
+        border-color: #1b262c;
+        color: white;
     }
-
-    .badge {
-        font-size: 0.65em;
-        padding: 2px 4px;
-    }
-
-    .page-title {
-        font-size: 0.95rem;
-    }
-
-    .stat-number {
-        font-size: 1.5rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .card-body {
-        padding: 1rem;
-    }
-
-    .table th,
-    .table td {
-        padding: 0.5rem 0.25rem;
-    }
-
-    .btn-group {
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .btn-group .btn {
-        border-radius: 6px !important;
-        margin-bottom: 0.25rem;
-    }
-}
 </style>
-{% block extra_css_dep %}{% endblock %}
+{% block extra_css_dep %}{% block extra_css_ens %}{% endblock %}{% endblock %}
 {% endblock %}
 
 {# ═══════════════════════════════════════════════════════════════════════════════ #}
-{# CONTENT BLOCK - À définir par les templates enfants                             #}
+{# CONTENU PRINCIPAL SANS BANDEAU REDONDANT (POINT D'ACTION UNIFIÉ)                 #}
 {# ═══════════════════════════════════════════════════════════════════════════════ #}
 {% block content %}
-{% block content_dep %}{% endblock %}
+    {% block dep_action_bar %}{% endblock %}
+
+    {% block content_dep %}{% block content_ens %}{% endblock %}{% endblock %}
 {% endblock %}
 
-{# ═══════════════════════════════════════════════════════════════════════════════ #}
-{# JAVASCRIPT BLOCK - Pour les scripts des templates enfants                       #}
-{# ═══════════════════════════════════════════════════════════════════════════════ #}
 {% block extra_js %}
 {{ block.super }}
-{% block extra_js_dep %}{% endblock %}
+{% block extra_js_dep %}{% block extra_js_ens %}{% endblock %}{% endblock %}
 {% endblock %}

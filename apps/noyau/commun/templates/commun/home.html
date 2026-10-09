@@ -1,27 +1,99 @@
 {% extends 'base_public.html' %}
+{% load static %}
 
-{% block title %}الرئيسية - نظام الجامعة الذكية{% endblock %}
+{% block title %}الرئيسية - Smart-Univ{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .hero-band .row { padding-bottom: 72px !important; }
+
+    .lp-section { padding: 36px 0 0; }
+    .lp-section:last-child { padding-bottom: 36px; }
+
+    .lp-head { text-align: center; margin-bottom: 20px; }
+    .lp-head h2 { margin: 0 0 8px; font-size: 1.6rem; font-weight: 700; color: #11191e; }
+    .lp-head p { margin: 0; color: #66737a; }
+    .lp-head::after {
+        content: ""; display: block; width: 48px; height: 3px; margin: 14px auto 0;
+        border-radius: 3px; background: #ffd700;
+    }
+
+    /* Chiffres réels de l'établissement */
+    .lp-figures {
+        display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px;
+        margin-top: -48px; position: relative; z-index: 2;
+    }
+    .lp-figure {
+        padding: 14px 12px; background: #fff; border-radius: 14px; text-align: center;
+        box-shadow: 0 10px 30px rgba(17, 25, 30, 0.1);
+    }
+    .lp-figure i { color: #c9a400; font-size: 1.2rem; }
+    .lp-figure strong { display: block; margin-top: 6px; font-size: 1.9rem; color: #11191e; line-height: 1.1; }
+    .lp-figure span { color: #66737a; font-size: 0.85rem; }
+
+    /* Un espace par profil */
+    .lp-spaces { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+    .lp-space {
+        padding: 16px; background: #fff; border-radius: 14px; border: 1px solid #edf0eb;
+        transition: border-color .15s ease, transform .15s ease;
+    }
+    .lp-space:hover { border-color: #ffd700; transform: translateY(-2px); }
+    .lp-icon {
+        width: 46px; height: 46px; display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 12px; background: #11191e; color: #ffd700; font-size: 1.1rem; margin-bottom: 14px;
+    }
+    .lp-space h3 { margin: 0 0 8px; font-size: 1.05rem; font-weight: 700; color: #11191e; }
+    .lp-space ul { margin: 0; padding: 0 18px 0 0; color: #4a565c; font-size: 0.88rem; line-height: 1.9; }
+
+    /* Fonctionnalités */
+    .lp-features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .lp-feature { display: flex; gap: 12px; padding: 14px; background: #fff; border-radius: 12px; }
+    .lp-feature .lp-icon { margin: 0; flex-shrink: 0; width: 42px; height: 42px; font-size: 1rem; }
+    .lp-feature h3 { margin: 0 0 4px; font-size: 0.98rem; font-weight: 700; color: #11191e; }
+    .lp-feature p { margin: 0; color: #66737a; font-size: 0.86rem; }
+
+    /* Appel à l'action */
+    .lp-cta {
+        display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+        padding: 22px 28px; border-radius: 16px; color: #fff;
+        background: linear-gradient(135deg, #344d59 0%, #000000 100%);
+    }
+    .lp-cta h2 { margin: 0 0 4px; font-size: 1.35rem; font-weight: 700; }
+    .lp-cta p { margin: 0; color: rgba(255, 255, 255, 0.75); }
+
+    @media (max-width: 992px) {
+        .lp-figures { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .lp-spaces { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .lp-features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 576px) {
+        .lp-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .lp-spaces, .lp-features { grid-template-columns: 1fr; }
+        .lp-cta { padding: 24px; }
+    }
+</style>
+{% endblock %}
 
 {% block hero_section %}
-<!-- Hero Band - Modern Style -->
 <div class="hero-band">
     <div class="hero-overlay"></div>
     <div class="container position-relative">
         <div class="row py-5">
             <div class="col-12 text-center">
                 <div class="hero-logo mb-4">
-                    <i class="fas fa-university"></i>
+                    <img src="{% static 'images/smart-univ-logo.svg' %}" alt="Smart-Univ">
                 </div>
-                <h1 class="display-4 mb-3 fw-bold text-white">
-                    نظام الجامعة الذكية
-                </h1>
-                <p class="lead mb-4 hero-subtitle">نظام متكامل لإدارة الجامعات والمؤسسات التعليمية بكفاءة عالية</p>
+                <div class="hero-brand mb-2">Smart-Univ</div>
+                <h1 class="display-5 mb-3 fw-bold text-white">نظام الجامعة الذكية</h1>
+                <p class="lead mb-4 hero-subtitle">منصة واحدة لتسيير الأقسام، التدريس، استعمال الزمن والغيابات</p>
                 <div class="d-flex justify-content-center gap-3 flex-wrap">
                     <a href="{% url 'auth:login' %}" class="btn btn-hero-login btn-lg px-4 py-2">
                         <i class="fas fa-sign-in-alt me-2"></i>تسجيل الدخول
                     </a>
                     <a href="#features" class="btn btn-hero-info btn-lg px-4 py-2">
-                        <i class="fas fa-info-circle me-2"></i>المزيد من المعلومات
+                        <i class="fas fa-arrow-down me-2"></i>اكتشف المنصة
                     </a>
                 </div>
             </div>
@@ -31,150 +103,109 @@
 {% endblock %}
 
 {% block content %}
-<div class="container pt-4">
+<div class="container">
 
-<!-- Statistics Cards -->
-<div class="row mb-5">
-    <div class="col-md-3 mb-3">
-        <div class="card text-center">
-            <div class="card-body">
-                <i class="fas fa-university fa-3x text-primary mb-3"></i>
-                <h3 class="card-title">الجامعات</h3>
-                <p class="text-muted">إدارة شاملة</p>
-            </div>
-        </div>
+    <!-- ─── Chiffres réels de l'établissement ─── -->
+    <div class="lp-figures">
+        <div class="lp-figure"><i class="fas fa-university"></i><strong>{{ chiffres.facultes }}</strong><span>كلية</span></div>
+        <div class="lp-figure"><i class="fas fa-building"></i><strong>{{ chiffres.departements }}</strong><span>قسم</span></div>
+        <div class="lp-figure"><i class="fas fa-sitemap"></i><strong>{{ chiffres.specialites }}</strong><span>تخصص</span></div>
+        <div class="lp-figure"><i class="fas fa-chalkboard-teacher"></i><strong>{{ chiffres.enseignants }}</strong><span>أستاذ</span></div>
+        <div class="lp-figure"><i class="fas fa-user-graduate"></i><strong>{{ chiffres.etudiants }}</strong><span>طالب</span></div>
     </div>
-    <div class="col-md-3 mb-3">
-        <div class="card text-center">
-            <div class="card-body">
-                <i class="fas fa-building fa-3x text-success mb-3"></i>
-                <h3 class="card-title">الكليات</h3>
-                <p class="text-muted">تنظيم دقيق</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card text-center">
-            <div class="card-body">
-                <i class="fas fa-chalkboard-teacher fa-3x text-warning mb-3"></i>
-                <h3 class="card-title">الأساتذة</h3>
-                <p class="text-muted">إدارة متقدمة</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card text-center">
-            <div class="card-body">
-                <i class="fas fa-user-graduate fa-3x text-info mb-3"></i>
-                <h3 class="card-title">الطلاب</h3>
-                <p class="text-muted">متابعة مستمرة</p>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Features Section -->
-<div class="row mb-5" id="features">
-    <div class="col-12 mb-4">
-        <h2 class="text-center">
-            <i class="fas fa-star text-warning"></i>
-            مميزات النظام
-        </h2>
-        <hr class="w-25 mx-auto">
-    </div>
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <i class="fas fa-mobile-alt text-primary"></i>
-                    متوافق مع جميع الأجهزة
-                </h5>
-                <p class="card-text">
-                    يعمل بكفاءة على الحواسيب والأجهزة اللوحية والهواتف الذكية
-                </p>
+    <!-- ─── Un espace par profil ─── -->
+    <section class="lp-section" id="features">
+        <div class="lp-head">
+            <h2>فضاء خاص لكل مستخدم</h2>
+            <p>كل مستخدم يدخل مباشرة إلى الفضاء المناسب لمنصبه</p>
+        </div>
+        <div class="lp-spaces">
+            <div class="lp-space">
+                <span class="lp-icon"><i class="fas fa-user-graduate"></i></span>
+                <h3>الطالب</h3>
+                <ul>
+                    <li>استعمال الزمن الأسبوعي</li>
+                    <li>متابعة الغيابات</li>
+                    <li>المقاييس والملف الشخصي</li>
+                </ul>
+            </div>
+            <div class="lp-space">
+                <span class="lp-icon"><i class="fas fa-chalkboard-teacher"></i></span>
+                <h3>الأستاذ</h3>
+                <ul>
+                    <li>الحصص وتسجيل الحضور</li>
+                    <li>الأفواج والمجموعات الفرعية</li>
+                    <li>البطاقة البيداغوجية</li>
+                </ul>
+            </div>
+            <div class="lp-space">
+                <span class="lp-icon"><i class="fas fa-user-tie"></i></span>
+                <h3>رئيس القسم</h3>
+                <ul>
+                    <li>تسيير هيئة التدريس والأنصبة</li>
+                    <li>قوائم الطلبة والأفواج</li>
+                    <li>المواد والتخصصات واستعمال الزمن</li>
+                </ul>
+            </div>
+            <div class="lp-space">
+                <span class="lp-icon"><i class="fas fa-user-shield"></i></span>
+                <h3>العمادة</h3>
+                <ul>
+                    <li>متابعة أقسام الكلية</li>
+                    <li>مؤشرات الأساتذة والطلبة</li>
+                    <li>بطاقة الكلية</li>
+                </ul>
             </div>
         </div>
-    </div>
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <i class="fas fa-shield-alt text-success"></i>
-                    أمان عالي
-                </h5>
-                <p class="card-text">
-                    حماية متقدمة للبيانات مع نظام صلاحيات متكامل
-                </p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <i class="fas fa-chart-line text-info"></i>
-                    تقارير تفصيلية
-                </h5>
-                <p class="card-text">
-                    إحصائيات وتقارير شاملة لمتابعة الأداء
-                </p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <i class="fas fa-language text-warning"></i>
-                    دعم متعدد اللغات
-                </h5>
-                <p class="card-text">
-                    يدعم اللغة العربية والفرنسية والإنجليزية
-                </p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <i class="fas fa-users text-primary"></i>
-                    إدارة المستخدمين
-                </h5>
-                <p class="card-text">
-                    نظام متقدم لإدارة المستخدمين والصلاحيات
-                </p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <i class="fas fa-clock text-success"></i>
-                    سهولة الاستخدام
-                </h5>
-                <p class="card-text">
-                    واجهة بسيطة وسهلة الاستخدام لجميع المستخدمين
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
+    </section>
 
-<!-- Call to Action -->
-<div class="row">
-    <div class="col-12">
-        <div class="card bg-light">
-            <div class="card-body text-center py-5">
-                <h3 class="mb-3">هل أنت مستعد للبدء؟</h3>
-                <p class="lead mb-4">انضم إلينا اليوم واستفد من جميع المميزات</p>
-                <a href="{% url 'auth:login' %}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-rocket"></i> ابدأ الآن
-                </a>
+    <!-- ─── Fonctionnalités ─── -->
+    <section class="lp-section">
+        <div class="lp-head">
+            <h2>مميزات النظام</h2>
+            <p>أدوات عملية لتسيير السنة الجامعية</p>
+        </div>
+        <div class="lp-features">
+            <div class="lp-feature">
+                <span class="lp-icon"><i class="fas fa-calendar-alt"></i></span>
+                <div><h3>استعمال الزمن</h3><p>جداول الأقسام والقاعات والمدرجات والأساتذة</p></div>
+            </div>
+            <div class="lp-feature">
+                <span class="lp-icon"><i class="fas fa-user-check"></i></span>
+                <div><h3>الحضور والغيابات</h3><p>تسجيل الحضور في كل حصة وحساب نسب المواظبة</p></div>
+            </div>
+            <div class="lp-feature">
+                <span class="lp-icon"><i class="fas fa-file-alt"></i></span>
+                <div><h3>البطاقات البيداغوجية</h3><p>متابعة تقدم المقاييس لكل سداسي</p></div>
+            </div>
+            <div class="lp-feature">
+                <span class="lp-icon"><i class="fas fa-chart-pie"></i></span>
+                <div><h3>مؤشرات ولوحات تحكم</h3><p>أرقام محينة لكل قسم وكلية</p></div>
+            </div>
+            <div class="lp-feature">
+                <span class="lp-icon"><i class="fas fa-shield-alt"></i></span>
+                <div><h3>صلاحيات حسب المنصب</h3><p>كل مستخدم يرى فقط ما يخص منصبه</p></div>
+            </div>
+            <div class="lp-feature">
+                <span class="lp-icon"><i class="fas fa-mobile-alt"></i></span>
+                <div><h3>على جميع الأجهزة</h3><p>الحاسوب، اللوحة والهاتف</p></div>
             </div>
         </div>
-    </div>
-</div>
+    </section>
+
+    <!-- ─── Appel à l'action ─── -->
+    <section class="lp-section">
+        <div class="lp-cta">
+            <div>
+                <h2>ادخل إلى فضائك</h2>
+                <p>استعمل اسم المستخدم وكلمة المرور المقدمين من الإدارة</p>
+            </div>
+            <a href="{% url 'auth:login' %}" class="btn btn-hero-login btn-lg px-4">
+                <i class="fas fa-sign-in-alt me-2"></i>تسجيل الدخول
+            </a>
+        </div>
+    </section>
+
 </div>
 {% endblock %}

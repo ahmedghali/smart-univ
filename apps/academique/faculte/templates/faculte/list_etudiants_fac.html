@@ -1,0 +1,204 @@
+{% extends 'faculte/base_Fac.html' %}
+{% load static %}
+
+{% block title %}قوائم الطلبة - {{ my_Fac.nom_complet_ar }}{% endblock %}
+
+{% block content_fac %}
+<div class="dep-page-container">
+
+    <!-- ─── HERO HEADER ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-user-graduate" style="color: #ffd700;"></i>
+                    <span>قوائم طلبة الكلية</span>
+                </h1>
+                <p class="dep-hero-subtitle">
+                    <span>{{ my_Fac.nom_complet_ar }}</span>
+                    <span>•</span>
+                    <span>سجل الطلبة المسجلين والموزعين على الأقسام والتخصصات والأفواج</span>
+                    <span class="dep-hero-badge">
+                        <i class="fas fa-users"></i>
+                        {{ total_etudiants }} طالب بالكلية
+                    </span>
+                </p>
+            </div>
+            <div class="dep-hero-actions">
+                <a href="{% url 'facu:import_etudiants_fac' %}" class="btn btn-sm btn-outline-light text-white rounded-pill px-3 py-2 fw-bold text-decoration-none d-flex align-items-center gap-2">
+                    <i class="fas fa-file-excel text-success"></i>
+                    <span>استيراد الطلبة</span>
+                </a>
+                <a href="/faculte/admin/etudiant/etudiant/add/" class="btn-hero-primary">
+                    <i class="fas fa-user-plus"></i>
+                    <span>إضافة طالب جديد</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── CARTE TABLEAU ERP ─── -->
+    <div class="dep-table-card">
+        <!-- Barre d'outils, filtres et recherche -->
+        <div class="dep-table-header flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <h5>
+                    <i class="fas fa-id-card-clip text-primary"></i>
+                    <span>سجل طلبة الكلية</span>
+                </h5>
+                <span class="badge bg-light text-dark border ms-2">
+                    صفحة {{ page_obj.number|default:"1" }} من {{ page_obj.paginator.num_pages|default:"1" }}
+                </span>
+            </div>
+
+            <!-- Filtres combinés : Département + Recherche textuelle -->
+            <form method="get" class="d-flex align-items-center gap-2 flex-wrap">
+                <select name="dep" class="form-select form-select-sm" style="min-width: 190px;" onchange="this.form.submit()">
+                    <option value="">جميع الأقسام ({{ departements|length }})</option>
+                    {% for dep in departements %}
+                    <option value="{{ dep.id }}" {% if selected_dep == dep.id %}selected{% endif %}>
+                        قسم {{ dep.nom_ar }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <div class="dep-search-box d-flex gap-2">
+                    <div class="position-relative flex-grow-1">
+                        <input type="search" name="q" value="{{ search }}" class="form-control form-control-sm pe-4" placeholder="بحث: الاسم، اللقب، الرقم التسلسلي...">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                    {% if search or selected_dep %}
+                    <a href="{% url 'facu:list_etudiants_fac' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center" title="إلغاء التصفية">
+                        <i class="fas fa-times"></i>
+                    </a>
+                    {% endif %}
+                    <button class="btn btn-sm btn-primary px-3" type="submit">بحث</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tableau des étudiants -->
+        <div class="table-responsive">
+            <table class="dep-table align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>الرقم التسلسلي</th>
+                        <th>اللقب والاسم (عربي)</th>
+                        <th>Nom & Prénom (FR)</th>
+                        <th>القسم</th>
+                        <th>المستوى</th>
+                        <th>التخصص</th>
+                        <th>الفوج / القسم</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for etu in etudiants %}
+                    <tr>
+                        <td class="text-muted fw-bold">{{ forloop.counter }}</td>
+                        <td>
+                            <span class="badge-code">{{ etu.matricule|default:"-" }}</span>
+                        </td>
+                        <td class="fw-bold" style="color: #1b262c;">
+                            <a href="/faculte/admin/etudiant/etudiant/{{ etu.id }}/change/" class="text-decoration-none text-dark hover-primary">
+                                {{ etu.nom_ar }} {{ etu.prenom_ar }}
+                            </a>
+                        </td>
+                        <td class="text-muted">
+                            {{ etu.nom_fr|default:"" }} {{ etu.prenom_fr|default:"" }}
+                        </td>
+                        <td>
+                            {% if etu.niv_spe_dep_sg.niv_spe_dep.departement %}
+                            <span class="badge bg-light text-dark border">
+                                <i class="fas fa-building text-primary me-1"></i>
+                                {{ etu.niv_spe_dep_sg.niv_spe_dep.departement.nom_ar }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted small">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle">
+                                {{ etu.niv_spe_dep_sg.niv_spe_dep.niveau|default:"-" }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-dark small">
+                                {{ etu.niv_spe_dep_sg.niv_spe_dep.specialite|default:"-" }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">
+                                {{ etu.niv_spe_dep_sg|default:"-" }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <div class="py-3">
+                                <i class="fas fa-user-slash text-muted mb-3" style="font-size: 3rem; opacity: 0.4;"></i>
+                                <h6 class="fw-bold text-dark mb-1">لا يوجد طلبة مسجلين حالياً</h6>
+                                <p class="text-muted small mb-3">
+                                    {% if search or selected_dep %}
+                                    لم يتم العثور على أي طالب يطابق معايير البحث المحددة.
+                                    {% else %}
+                                    لم يتم تسجيل أو استيراد أي طلبة بعد لأقسام هذه الكلية.
+                                    {% endif %}
+                                </p>
+                                {% if search or selected_dep %}
+                                <a href="{% url 'facu:list_etudiants_fac' %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-redo me-1"></i> إلغاء التصفية وإعادة العرض
+                                </a>
+                                {% else %}
+                                <a href="{% url 'facu:import_etudiants_fac' %}" class="btn btn-sm btn-success">
+                                    <i class="fas fa-file-excel me-1"></i> استيراد الطلبة عبر Excel
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="p-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2 bg-light">
+            <span class="small text-muted">
+                عرض <strong>{{ page_obj.start_index }}</strong> إلى <strong>{{ page_obj.end_index }}</strong> من أصل <strong>{{ page_obj.paginator.count }}</strong> طالب
+            </span>
+            <nav aria-label="Pagination">
+                <ul class="pagination pagination-sm mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&q={{ search }}{% endif %}{% if selected_dep %}&dep={{ selected_dep }}{% endif %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}{% if search %}&q={{ search }}{% endif %}{% if selected_dep %}&dep={{ selected_dep }}{% endif %}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&q={{ search }}{% endif %}{% if selected_dep %}&dep={{ selected_dep }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

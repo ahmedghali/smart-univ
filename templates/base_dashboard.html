@@ -2,224 +2,750 @@
 {% load static %}
 
 {# ═══════════════════════════════════════════════════════════════════════════
-   BASE_DASHBOARD.HTML - Template pour les pages dashboard avec sidebar
-   Utilisé par: dashboard_Ens, dashboard_Dep, dashboard_Fac, dashboard_Uni, etc.
+   BASE_DASHBOARD.HTML - Layout moderne style SAP Fiori / ERP
+   Utilisé par: dashboard_Dep, dashboard_Ens, dashboard_Fac, dashboard_Uni, etc.
    ═══════════════════════════════════════════════════════════════════════════ #}
 
 {% block extra_css %}
 <style>
     /* ═══════════════════════════════════════════════════════════════════════
-       LAYOUT PRINCIPAL
+       LAYOUT PRINCIPAL & PALETTE DE COULEURS
        ═══════════════════════════════════════════════════════════════════════ */
+    :root {
+        --primary-color: #344D59;
+        --primary-dark: #37463D;
+        --secondary-color: #5B696B;
+        --accent-color: #C5C5A9;
+        --dark-color: #000000;
+        --neutral-color: #535953;
+        --light-color: #F8FBF1;
+        --sidebar-width: 275px;
+        --header-height: 64px;
+    }
+
+    body {
+        background-color: #f4f6f8;
+        font-family: 'Cairo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
     .dashboard-wrapper {
         display: flex;
         min-height: 100vh;
+        position: relative;
     }
 
     /* ═══════════════════════════════════════════════════════════════════════
-       SIDEBAR
+       SIDEBAR MODERNE (TREE VIEW SAP STYLE)
        ═══════════════════════════════════════════════════════════════════════ */
     .sidebar {
-        width: 260px;
-        background: linear-gradient(180deg, var(--dark-color) 0%, var(--primary-color) 100%);
+        width: var(--sidebar-width);
+        background: linear-gradient(135deg, #344d59 0%, #000000 100%);
         color: white;
         position: fixed;
         top: 0;
         right: 0;
         height: 100vh;
-        overflow-y: auto;
-        z-index: 1000;
-        transition: transform 0.3s ease;
+        z-index: 1020;
+        display: flex;
+        flex-direction: column;
+        box-shadow: -3px 0 16px rgba(0,0,0,0.2);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
+    /* Header du Sidebar */
     .sidebar-header {
-        padding: 20px;
-        text-align: center;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-        background: rgba(0,0,0,0.1);
+        height: var(--header-height);
+        min-height: var(--header-height);
+        max-height: var(--header-height);
+        padding: 0 18px;
+        background: rgba(0, 0, 0, 0.25);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
     }
 
-    .sidebar-header .user-avatar {
-        width: 70px;
-        height: 70px;
-        border-radius: 50%;
-        background: white;
-        margin: 0 auto 10px;
+    .sidebar-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        color: white;
+    }
+
+    .sidebar-brand-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2rem;
-        color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
     }
 
-    .sidebar-header .user-name {
-        font-weight: 600;
-        font-size: 1.1rem;
-        margin-bottom: 5px;
-    }
-
-    .sidebar-header .user-role {
-        font-size: 0.85rem;
-        opacity: 0.8;
-    }
-
-    /* Navigation latérale */
-    .sidebar-nav {
-        padding: 15px 0;
-    }
-
-    .sidebar-nav .nav-section {
-        padding: 10px 15px 5px;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        opacity: 0.6;
-    }
-
-    .sidebar-nav .nav-link {
-        color: rgba(255,255,255,0.9);
-        padding: 12px 20px;
-        display: flex;
-        align-items: center;
-        transition: all 0.3s ease;
-        border-right: 3px solid transparent;
-    }
-
-    .sidebar-nav .nav-link:hover {
-        background: rgba(255,255,255,0.1);
-        color: white;
-        border-right-color: white;
-    }
-
-    .sidebar-nav .nav-link.active {
-        background: rgba(255,255,255,0.15);
-        border-right-color: var(--accent-color);
-    }
-
-    .sidebar-nav .nav-link i {
-        width: 25px;
-        margin-left: 10px;
-        font-size: 1.1rem;
-    }
-
-    /* Sous-menus */
-    .sidebar-nav .sub-menu > a {
-        cursor: pointer;
-    }
-
-    .sidebar-nav .sub-menu > a::after {
-        content: '\f107';
-        font-family: 'Font Awesome 6 Free';
-        font-weight: 900;
-        margin-right: auto;
-        transition: transform 0.3s ease;
-    }
-
-    .sidebar-nav .sub-menu.active > a::after {
-        transform: rotate(180deg);
-    }
-
-    .sidebar-nav .sub-menu-items {
-        display: none;
-        background: rgba(0,0,0,0.1);
-    }
-
-    .sidebar-nav .sub-menu.active .sub-menu-items {
+    .sidebar-brand-icon img {
+        width: 100%;
+        height: 100%;
         display: block;
     }
 
-    .sidebar-nav .sub-menu-items .nav-link {
-        padding-right: 50px;
-        font-size: 0.9rem;
+    .sidebar-brand-text h4 {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+        line-height: 1.2;
+    }
+
+    .sidebar-brand-subtitle {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.65);
+        margin-top: 2px;
+    }
+
+    /* Navigation du Sidebar (Zone Scrollable) */
+    .sidebar-nav {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px 10px;
+    }
+
+    .sidebar-nav::-webkit-scrollbar {
+        width: 5px;
+    }
+    .sidebar-nav::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.15);
+        border-radius: 4px;
+    }
+
+    /* Tree Menu Hierarchique SAP Fiori */
+    .sap-tree-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .sap-tree-section-title {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: rgba(255, 255, 255, 0.45);
+        padding: 10px 14px 4px;
+        font-weight: 600;
+    }
+
+    /* Noeud racine / lien simple */
+    .sap-tree-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 14px;
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 0.92rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .sap-tree-item:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffffff;
+        transform: translateX(-2px);
+    }
+
+    .sap-tree-item.active {
+        background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, rgba(52, 77, 89, 0.4) 100%);
+        color: #ffffff;
+        font-weight: 700;
+        border-right: 3px solid #ffd700;
+    }
+
+    .sap-tree-item i.tree-icon {
+        width: 24px;
+        font-size: 1rem;
+        margin-left: 10px;
+        color: #ffd700;
+        text-align: center;
+    }
+
+    /* Dossier / Branche avec sous-noeuds */
+    .sap-tree-branch {
+        border-radius: 8px;
+        margin-bottom: 2px;
+        transition: background-color 0.2s ease;
+    }
+
+    .sap-tree-branch-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        color: rgba(255, 255, 255, 0.9);
+        cursor: pointer;
+        border-radius: 8px;
+        font-size: 0.92rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+
+    .sap-tree-branch-header:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffffff;
+    }
+
+    .sap-tree-branch.active > .sap-tree-branch-header {
+        color: #ffd700;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sap-tree-branch-header .branch-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .sap-tree-branch-header .branch-chevron {
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.5);
+        transition: transform 0.25s ease;
+    }
+
+    .sap-tree-branch.open > .sap-tree-branch-header .branch-chevron {
+        transform: rotate(-90deg);
+        color: #ffd700;
+    }
+
+    /* Enfants / Feuilles du Tree avec ligne guide verticale */
+    .sap-tree-children {
+        display: none;
+        padding-right: 24px;
+        padding-left: 6px;
+        padding-top: 4px;
+        padding-bottom: 6px;
+        position: relative;
+    }
+
+    .sap-tree-branch.open > .sap-tree-children {
+        display: block;
+    }
+
+    .sap-tree-children::before {
+        content: '';
+        position: absolute;
+        top: 6px;
+        bottom: 12px;
+        right: 18px;
+        width: 2px;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 1px;
+    }
+
+    .sap-tree-leaf {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        color: rgba(255, 255, 255, 0.75);
+        text-decoration: none;
+        font-size: 0.86rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        position: relative;
+        margin-bottom: 2px;
+    }
+
+    .sap-tree-leaf::before {
+        content: '';
+        position: absolute;
+        right: -6px;
+        width: 8px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.18);
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .sap-tree-leaf:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffffff;
+        transform: translateX(-2px);
+    }
+
+    .sap-tree-leaf.active {
+        background: rgba(52, 77, 89, 0.7);
+        color: #ffffff;
+        font-weight: 700;
+        border-right: 2px solid #ffd700;
+    }
+
+    .sap-tree-leaf i {
+        font-size: 0.85rem;
+        margin-left: 8px;
+        width: 16px;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .sap-tree-leaf.active i {
+        color: #ffd700;
     }
 
     /* ═══════════════════════════════════════════════════════════════════════
-       MAIN CONTENT
+       FOOTER DU SIDEBAR : BASCULEMENT DE POSTE COMPACT (POINT 5)
+       ═══════════════════════════════════════════════════════════════════════ */
+    .sidebar-footer {
+        flex-shrink: 0;
+        padding: 12px 14px;
+        background: rgba(10, 15, 18, 0.65);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .compact-role-box {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        padding: 8px 10px;
+    }
+
+    .compact-role-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 4px;
+    }
+
+    .compact-role-name {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #ffffff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .compact-role-name i {
+        color: #ffd700;
+        font-size: 0.85rem;
+    }
+
+    .compact-role-actions {
+        margin-top: 6px;
+        display: flex;
+        gap: 6px;
+    }
+
+    .btn-switch-compact {
+        flex: 1;
+        font-size: 0.72rem;
+        padding: 4px 8px;
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffd700;
+        border: 1px solid rgba(255, 215, 0, 0.25);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .btn-switch-compact:hover {
+        background: rgba(255, 215, 0, 0.2);
+        color: #ffffff;
+        border-color: #ffd700;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       MAIN WRAPPER & SHELL TOP NAVBAR (POINTS 4 & 8)
        ═══════════════════════════════════════════════════════════════════════ */
     .main-wrapper {
         flex: 1;
-        margin-right: 260px;
+        margin-right: var(--sidebar-width);
         display: flex;
         flex-direction: column;
+        min-height: 100vh;
+        transition: margin 0.3s ease;
     }
 
-    /* Top Navbar */
     .top-navbar {
-        background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);
-        padding: 10px 20px;
-        box-shadow: 0 2px 4px rgba(0,0,0,.08);
+        height: var(--header-height);
+        min-height: var(--header-height);
+        max-height: var(--header-height);
+        background: linear-gradient(135deg, #344d59 0%, #000000 100%);
+        padding: 0 20px;
+        box-shadow: 0 4px 20px rgba(13, 27, 42, 0.2);
         display: flex;
         justify-content: space-between;
         align-items: center;
         position: sticky;
         top: 0;
-        z-index: 999;
+        z-index: 1010;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        box-sizing: border-box;
     }
 
-    .top-navbar .breadcrumb-area {
+    /* Zone Début Navbar (Bouton Toggle mobile + Faculté + Département) */
+    .shell-start-area {
         display: flex;
         align-items: center;
-    }
-
-    .top-navbar .breadcrumb-area .page-title {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: white;
-        margin: 0;
-    }
-
-    .top-navbar .user-menu {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .top-navbar .user-menu .dropdown-toggle::after {
-        display: none;
+        gap: 10px;
+        flex-shrink: 0;
     }
 
     .sidebar-toggle {
         display: none;
-        background: none;
-        border: none;
-        font-size: 1.5rem;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 8px;
         color: white;
+        width: 38px;
+        height: 38px;
+        font-size: 1.1rem;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
+        box-sizing: border-box;
     }
 
-    /* Context Info (Faculté > Département) */
-    .context-info {
-        background: linear-gradient(135deg, var(--secondary-color) 0%, var(--neutral-color) 100%);
-        color: white;
-        padding: 12px 20px;
+    /* Pilules d'informations institutionnelles (Faculté, Département) */
+    .shell-dept-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 14px;
+        height: 38px;
+        box-sizing: border-box;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #ffffff;
+        font-size: 0.84rem;
+        font-weight: 600;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+
+    .shell-dept-pill:hover {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .shell-fac-pill {
+        max-width: 550px;
+    }
+
+    .shell-fac-pill span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .shell-dep-name-pill {
+        max-width: 300px;
+    }
+
+    .shell-dep-name-pill span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Zone Centrale : Badge Année Universitaire & Date */
+    .shell-center-area {
         display: flex;
         align-items: center;
-    }
-
-    .context-info i {
-        margin-left: 10px;
-        font-size: 1.2rem;
-    }
-
-    /* Main Content Area */
-    .main-content {
+        justify-content: center;
+        gap: 10px;
         flex: 1;
-        padding: 20px;
-        background-color: #e5e7e6;
+        margin: 0 12px;
+        min-width: 0;
     }
 
-    /* Footer Dashboard */
-    .dashboard-footer {
-        background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);
+    .shell-annee-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 14px;
+        height: 38px;
+        box-sizing: border-box;
+        border-radius: 20px;
+        background: rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.95);
+        font-size: 0.82rem;
+        flex-shrink: 0;
+    }
+
+    .shell-annee-pill i {
+        color: #ffd700;
+    }
+
+    .shell-date-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 14px;
+        height: 38px;
+        box-sizing: border-box;
+        border-radius: 20px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.82rem;
+        flex-shrink: 0;
+    }
+
+    /* Zone Fin : Rôle Switcher & Profil Utilisateur */
+    .shell-end-area {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .btn-shell-switch-role {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 12px;
+        height: 38px;
+        box-sizing: border-box;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #ffffff;
+        font-size: 0.82rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-shell-switch-role:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: #ffd700;
+    }
+
+    /* Chip Utilisateur & Menu */
+    .user-chip-button {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: 38px;
+        box-sizing: border-box;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 30px;
+        padding: 0 12px 0 6px;
         color: white;
-        padding: 15px 20px;
-        text-align: center;
-        font-size: 0.9rem;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .user-chip-button:hover {
+        background: rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .user-chip-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #344D59 0%, #5B696B 100%);
+        border: 1.5px solid rgba(255, 255, 255, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.95rem;
+    }
+
+    .user-chip-info {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.15;
+        text-align: right;
+    }
+
+    .user-chip-name {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .user-chip-role {
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.65);
     }
 
     /* ═══════════════════════════════════════════════════════════════════════
-       OVERLAY MOBILE
+       ZONE DE CONTENU PRINCIPALE (MODERNE ERP)
        ═══════════════════════════════════════════════════════════════════════ */
+    .main-content {
+        flex: 1;
+        padding: 24px;
+        background-color: #f4f6f8;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       FOOTER MODERNE ERP (SMART-UNIV DASHBOARD FOOTER)
+       ═══════════════════════════════════════════════════════════════════════ */
+    .dashboard-footer {
+        background: linear-gradient(135deg, #344d59 0%, #000000 100%);
+        color: rgba(255, 255, 255, 0.75);
+        padding: 13px 28px;
+        font-size: 0.82rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 -4px 16px rgba(13, 27, 42, 0.08);
+        margin-top: auto;
+    }
+
+    .footer-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .footer-start-area {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .footer-brand-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-weight: 700;
+        color: #ffffff;
+        font-size: 0.88rem;
+    }
+
+    .footer-brand-badge i {
+        color: #ffd700;
+        filter: drop-shadow(0 2px 4px rgba(255, 215, 0, 0.3));
+    }
+
+    .footer-sep {
+        opacity: 0.35;
+        font-size: 0.75rem;
+    }
+
+    .footer-copyright {
+        color: rgba(255, 255, 255, 0.78);
+        font-size: 0.82rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .footer-center-area {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .footer-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 14px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.78rem;
+        font-weight: 500;
+    }
+
+    .status-pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #10b981;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: status-pulse 2s infinite;
+        display: inline-block;
+    }
+
+    @keyframes status-pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        }
+    }
+
+    .footer-end-area {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .footer-meta-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        background: rgba(0, 0, 0, 0.22);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 0.76rem;
+        transition: all 0.2s ease;
+    }
+
+    .footer-meta-pill:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-footer {
+            padding: 14px 16px;
+        }
+        .footer-inner {
+            flex-direction: column;
+            text-align: center;
+            justify-content: center;
+        }
+        .footer-start-area, .footer-center-area, .footer-end-area {
+            justify-content: center;
+        }
+    }
+
+    /* Alertes & Messages en rouge pour les erreurs (Point 1) */
+    .alert-danger, .alert-error {
+        background-color: #fee2e2 !important;
+        border: 1.5px solid #ef4444 !important;
+        color: #b91c1c !important;
+        font-weight: 600;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.08);
+    }
+
+    /* Supprimer l'ancienne barre context-info brute (désormais intégrée dans la shell navbar) */
+    .context-info {
+        display: none !important;
+    }
+
+    /* Overlay Mobile */
     .sidebar-overlay {
         display: none;
         position: fixed;
@@ -228,49 +754,140 @@
         right: 0;
         bottom: 0;
         background: rgba(0,0,0,0.5);
-        z-index: 999;
+        z-index: 1015;
     }
-
     .sidebar-overlay.show {
         display: block;
     }
 
     /* ═══════════════════════════════════════════════════════════════════════
-       RESPONSIVE
+       RESPONSIVE MULTI-SUPPORT (PC, TABLETTE, SMARTPHONE)
        ═══════════════════════════════════════════════════════════════════════ */
+
+    /* 1. TABLETTES & ÉCRANS MOYENS (768px - 991px) */
     @media (max-width: 991.98px) {
         .sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 280px;
+            max-width: 85vw;
+            z-index: 1020;
             transform: translateX(100%);
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.35);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         .sidebar.show {
             transform: translateX(0);
         }
-
         .main-wrapper {
-            margin-right: 0;
+            margin-right: 0 !important;
+            width: 100% !important;
         }
-
         .sidebar-toggle {
-            display: block;
+            display: inline-flex !important;
         }
-
-        .top-navbar .breadcrumb-area .page-title {
-            font-size: 1rem;
+        .shell-center-area {
+            gap: 6px;
+            margin: 0 8px;
+        }
+        .shell-dept-pill {
+            max-width: 180px;
+            font-size: 0.78rem;
+            padding: 0 10px;
+        }
+        .shell-annee-pill {
+            font-size: 0.78rem;
+            padding: 0 10px;
+        }
+        .main-content {
+            padding: 20px 16px;
         }
     }
 
-    @media (max-width: 575.98px) {
-        .sidebar {
-            width: 100%;
+    /* 2. TABLETTES COMPACTES & SMARTPHONES (< 768px) */
+    @media (max-width: 767.98px) {
+        .top-navbar {
+            padding: 0 12px;
+            height: 58px;
+            min-height: 58px;
         }
-
+        .shell-start-area {
+            gap: 8px;
+        }
+        .shell-center-area {
+            display: none !important;
+        }
+        .shell-breadcrumbs {
+            display: none !important;
+        }
         .main-content {
-            padding: 15px;
+            padding: 14px 10px;
+        }
+        .btn-shell-home {
+            height: 36px;
+            padding: 0 10px;
+            font-size: 0.8rem;
+        }
+        .sidebar-toggle {
+            width: 36px;
+            height: 36px;
+        }
+        .user-chip-button {
+            height: 36px;
+            padding: 0 8px 0 4px;
+        }
+        .dashboard-footer {
+            padding: 12px 14px;
+        }
+        .footer-inner {
+            flex-direction: column;
+            text-align: center;
+            gap: 8px;
+        }
+    }
+
+    /* 3. PETITS SMARTPHONES (< 480px) */
+    @media (max-width: 480px) {
+        .top-navbar {
+            padding: 0 8px;
+        }
+        .btn-shell-home span {
+            display: none;
+        }
+        .btn-shell-home {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            justify-content: center;
+            border-radius: 8px;
+        }
+        .btn-shell-switch-role span {
+            display: none;
+        }
+        .btn-shell-switch-role {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            justify-content: center;
+            border-radius: 8px;
+        }
+        .user-chip-button {
+            padding: 0 4px;
+        }
+        .user-chip-avatar {
+            width: 30px;
+            height: 30px;
+            font-size: 0.82rem;
         }
     }
 </style>
 {{ block.super }}
+{% endblock %}
+
+{% block shell_css %}
+<link rel="stylesheet" href="{% static 'css/app-shell.css' %}">
 {% endblock %}
 
 {% block body %}
@@ -278,167 +895,495 @@
     <!-- Overlay Mobile -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- SIDEBAR -->
+
+    <!-- SIDEBAR SAP FIORI / ERP -->
     <aside class="sidebar" id="sidebar">
-        <!-- User Info -->
+        <!-- En-tête Sidebar avec Logo Smart-Univ -->
         <div class="sidebar-header">
-            <div class="user-avatar">
-                <i class="fas fa-user"></i>
-            </div>
-            <div class="user-name">{{ user.username }}</div>
-            <div class="user-role">
-                {% if request.session.current_role == 'chef_departement' %}
-                    <i class="fas fa-user-tie me-1"></i>رئيس القسم
-                {% elif request.session.current_role == 'chef_dep_adj_p' %}
-                    <i class="fas fa-user-tie me-1"></i>نائب رئيس القسم للبيداغوجيا
-                {% elif request.session.current_role == 'chef_dep_adj_pg' %}
-                    <i class="fas fa-user-tie me-1"></i>نائب رئيس القسم للدراسات العليا
-                {% elif request.session.current_role == 'doyen' %}
-                    <i class="fas fa-user-tie me-1"></i>العميد
-                {% elif request.session.current_role == 'recteur' %}
-                    <i class="fas fa-user-tie me-1"></i>المدير
-                {% elif request.session.current_role == 'enseignant' %}
-                    <i class="fas fa-chalkboard-teacher me-1"></i>أستاذ
-                {% elif request.session.current_role == 'etudiant' %}
-                    <i class="fas fa-user-graduate me-1"></i>طالب
-                {% else %}
-                    <i class="fas fa-user me-1"></i>مستخدم
-                {% endif %}
-            </div>
+            {% block sidebar_brand %}
+            {% if current_role == 'doyen' or current_role == 'vice_doyen_pedagogie' or current_role == 'vice_doyen_postgrad' %}
+            <a href="{% url 'facu:dashboard_Fac' %}" class="sidebar-brand" id="sidebarBrandBase" title="لوحة التحكم الرئيسية">
+            {% elif current_role == 'chef_departement' or current_role == 'chef_dep_adj_p' or current_role == 'chef_dep_adj_pg' %}
+            <a href="{% url 'depa:dashboard_Dep' %}" class="sidebar-brand" id="sidebarBrandBase" title="لوحة التحكم الرئيسية">
+            {% elif current_role == 'enseignant' %}
+            <a href="{% url 'ense:dashboard_Ens_clean' %}" class="sidebar-brand" id="sidebarBrandBase" title="لوحة التحكم الرئيسية">
+            {% elif my_Fac %}
+            <a href="{% url 'facu:dashboard_Fac' %}" class="sidebar-brand" id="sidebarBrandBase" title="لوحة التحكم الرئيسية">
+            {% elif my_Dep or is_admin_poste %}
+            <a href="{% url 'depa:dashboard_Dep' %}" class="sidebar-brand" id="sidebarBrandBase" title="لوحة التحكم الرئيسية">
+            {% elif user.enseignant_profile %}
+            <a href="{% url 'ense:dashboard_Ens_clean' %}" class="sidebar-brand" id="sidebarBrandBase" title="لوحة التحكم الرئيسية">
+            {% else %}
+            <a href="{% url 'auth:dashboard' %}" class="sidebar-brand" id="sidebarBrandBase" title="لوحة التحكم الرئيسية">
+            {% endif %}
+                <div class="sidebar-brand-icon">
+                    <img src="{% static 'images/smart-univ-logo.svg' %}" alt="Smart-Univ" width="38" height="38" style="width: 38px; height: 38px; max-width: 38px; max-height: 38px; object-fit: contain;">
+                </div>
+                <div class="sidebar-brand-text">
+                    <h4>Smart-Univ</h4>
+                </div>
+            </a>
+            {% endblock %}
         </div>
 
-        <!-- Navigation -->
+        <!-- Navigation Tree Menu -->
         <nav class="sidebar-nav">
-            <!-- Lien Dashboard uniquement -->
             {% block sidebar_menu %}
-            <!-- Menu dynamique selon le rôle - à surcharger dans les templates enfants -->
+            <!-- Menu Tree dynamique surchargé dans base_Dep.html -->
             {% endblock %}
         </nav>
+
+        <!-- Footer du Sidebar : Basculement de poste compact (Point 5) -->
+        <div class="sidebar-footer">
+            {% block sidebar_footer %}
+            <div class="compact-role-box">
+                <div class="compact-role-header">
+                    {% if is_admin_poste or current_role == 'chef_departement' or current_role == 'chef_dep_adj_p' or current_role == 'chef_dep_adj_pg' or current_role == 'doyen' or current_role == 'recteur' %}
+                    <span><i class="fas fa-id-badge me-1"></i> المنصب النشط</span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-1 py-0" style="font-size:0.65rem;">نشط</span>
+                    {% elif user.enseignant_profile or current_role == 'enseignant' %}
+                    <span><i class="fas fa-graduation-cap me-1"></i> الصفة الأكاديمية</span>
+                    {% elif my_Etu or current_role == 'etudiant' %}
+                    <span><i class="fas fa-user-graduate me-1"></i> الصفة الأكاديمية</span>
+                    {% else %}
+                    <span><i class="fas fa-id-badge me-1"></i> المنصب النشط</span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-1 py-0" style="font-size:0.65rem;">نشط</span>
+                    {% endif %}
+                </div>
+                <div class="compact-role-name">
+                    {% if is_admin_poste or current_role == 'chef_departement' or current_role == 'chef_dep_adj_p' or current_role == 'chef_dep_adj_pg' or current_role == 'doyen' or current_role == 'recteur' %}
+                    <i class="fas fa-user-tie"></i>
+                    <span>{{ current_role_title|default:current_role_label|default:"رئيس القسم" }}</span>
+                    {% elif user.enseignant_profile or current_role == 'enseignant' %}
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span>{{ user.enseignant_profile.grade|default:current_role_title|default:"أستاذ" }}</span>
+                    {% elif my_Etu or current_role == 'etudiant' %}
+                    <i class="fas fa-user-graduate"></i>
+                    <span>{{ current_role_title|default:my_Etu.titre_etudiant_ar|default:"طالب" }}</span>
+                    {% else %}
+                    <i class="fas fa-user-tie"></i>
+                    <span>{{ current_role_title|default:current_role_label|default:"رئيس القسم" }}</span>
+                    {% endif %}
+                </div>
+                <div class="compact-role-actions">
+                    {% if roles_count > 1 or request.session.roles_count > 1 %}
+                    <a href="{% url 'auth:select_role' %}" class="btn-switch-compact">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>تبديل المنصب</span>
+                    </a>
+                    {% endif %}
+                    {% if is_admin_poste or current_role == 'chef_departement' or current_role == 'chef_dep_adj_p' or current_role == 'chef_dep_adj_pg' or user.is_superuser %}
+                    <a href="{% url 'depa:profile_Dep' %}" class="btn-switch-compact text-white-50" title="الملف التعريفي للقسم">
+                        <i class="fas fa-building"></i>
+                    </a>
+                    {% elif user.enseignant_profile %}
+                    <a href="{% url 'ense:profile_Ens' %}" class="btn-switch-compact text-white-50" title="الملف الشخصي">
+                        <i class="fas fa-user-circle"></i>
+                    </a>
+                    {% else %}
+                    <a href="{% url 'auth:profile' %}" class="btn-switch-compact text-white-50" title="الملف الشخصي">
+                        <i class="fas fa-user-circle"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endblock %}
+        </div>
     </aside>
 
     <!-- MAIN WRAPPER -->
     <div class="main-wrapper">
-        <!-- Top Navbar -->
+        <!-- SHELL TOP NAVBAR (POINTS 4 & 8) -->
         <header class="top-navbar">
-            <div class="breadcrumb-area">
-                <button class="sidebar-toggle" id="sidebarToggle">
+            <!-- Zone Début (Toggle mobile + Faculté + Département : Collé à droite sans vide) -->
+            <div class="shell-start-area">
+                <button class="sidebar-toggle" id="sidebarToggle" title="القائمة الجانبية">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1 class="page-title">
-                    {% block page_title %}لوحة التحكم{% endblock %}
-                </h1>
+
+                <!-- Faculté & Département Pills (Safe Rendering) -->
+                {% if my_Fac %}
+                    <div class="shell-dept-pill shell-fac-pill d-none d-lg-inline-flex" title="{{ my_Fac.nom_complet_ar|default:my_Fac.nom_ar }}">
+                        <i class="fas fa-university text-warning"></i>
+                        <span>{{ my_Fac.nom_complet_ar|default:my_Fac.nom_ar }}</span>
+                    </div>
+                {% elif shell_my_Fac %}
+                    <div class="shell-dept-pill shell-fac-pill d-none d-lg-inline-flex" title="{{ shell_my_Fac.nom_complet_ar|default:shell_my_Fac.nom_ar }}">
+                        <i class="fas fa-university text-warning"></i>
+                        <span>{{ shell_my_Fac.nom_complet_ar|default:shell_my_Fac.nom_ar }}</span>
+                    </div>
+                {% elif my_Dep and my_Dep.faculte %}
+                    <div class="shell-dept-pill shell-fac-pill d-none d-lg-inline-flex" title="{{ my_Dep.faculte.nom_complet_ar|default:my_Dep.faculte.nom_ar }}">
+                        <i class="fas fa-university text-warning"></i>
+                        <span>{{ my_Dep.faculte.nom_complet_ar|default:my_Dep.faculte.nom_ar }}</span>
+                    </div>
+                {% elif shell_my_Dep and shell_my_Dep.faculte %}
+                    <div class="shell-dept-pill shell-fac-pill d-none d-lg-inline-flex" title="{{ shell_my_Dep.faculte.nom_complet_ar|default:shell_my_Dep.faculte.nom_ar }}">
+                        <i class="fas fa-university text-warning"></i>
+                        <span>{{ shell_my_Dep.faculte.nom_complet_ar|default:shell_my_Dep.faculte.nom_ar }}</span>
+                    </div>
+                {% endif %}
+
+                {% if my_Dep %}
+                    <div class="shell-dept-pill shell-dep-name-pill d-none d-md-inline-flex" title="قسم {{ my_Dep.nom_ar }}">
+                        <i class="fas fa-building text-info"></i>
+                        <span>قسم {{ my_Dep.nom_ar }}</span>
+                    </div>
+                {% elif shell_my_Dep %}
+                    <div class="shell-dept-pill shell-dep-name-pill d-none d-md-inline-flex" title="قسم {{ shell_my_Dep.nom_ar }}">
+                        <i class="fas fa-building text-info"></i>
+                        <span>قسم {{ shell_my_Dep.nom_ar }}</span>
+                    </div>
+                {% endif %}
             </div>
-            <div class="user-menu">
+
+            <!-- Zone Centrale (Année universitaire + Date) -->
+            <div class="shell-center-area">
+                <div class="shell-annee-pill">
+                    <i class="fas fa-calendar-alt text-warning"></i>
+                    <span>السنة الجامعية: <strong>{{ annee_courante.nom|default:annee_courante }}</strong></span>
+                </div>
+
+                <div class="shell-date-pill d-none d-xl-inline-flex" title="اليوم">
+                    <i class="far fa-clock text-warning"></i>
+                    <span id="shellHeaderDate"></span>
+                </div>
+            </div>
+
+            <!-- Zone Fin (Bouton switch rôle rapide + Chip utilisateur) -->
+            <div class="shell-end-area">
+
+                <!-- Chip Profil Utilisateur & Dropdown -->
                 <div class="dropdown">
-                    <button class="btn btn-link dropdown-toggle text-white" type="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle fa-lg me-1"></i>
-                        <span class="d-none d-md-inline">{{ user.username }}</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        {# الملف الشخصي ou الملف التعريفي selon le rôle #}
-                        <li><a class="dropdown-item" href="{% url 'auth:profile' %}">
-                            <i class="fas fa-user me-2"></i>
-                            {% if request.session.current_role in 'chef_departement,chef_dep_adj_p,chef_dep_adj_pg,doyen,recteur' %}
-                                الملف التعريفي
+                    <div class="user-chip-button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="user-chip-avatar" style="font-weight: 700; font-size: 0.82rem; {{ user.avatar_style }}">
+                            {% if user.enseignant_profile %}
+                                {{ user.enseignant_profile.initiales }}
+                            {% elif user.avatar_initiales %}
+                                {{ user.avatar_initiales }}
                             {% else %}
-                                الملف الشخصي
+                                <i class="fas fa-user"></i>
                             {% endif %}
-                        </a></li>
-                        {# لوحة التحكم #}
-                        <li><a class="dropdown-item" href="{% url 'auth:dashboard' %}">
-                            <i class="fas fa-tachometer-alt me-2"></i>لوحة التحكم
-                        </a></li>
-                        {# اختر قسمك - seulement pour enseignant avec plusieurs départements #}
-                        {% if request.session.current_role == 'enseignant' and request.session.affectations_count > 1 %}
-                        <li><a class="dropdown-item" href="{% url 'auth:select_departement' %}">
-                            <i class="fas fa-building me-2"></i>اختر قسمك
-                        </a></li>
+                        </div>
+                        <div class="user-chip-info d-none d-sm-flex">
+                            <span class="user-chip-name">{{ user.get_full_name|default:user.username }}</span>
+                            <span class="user-chip-role">{{ current_role_title|default:current_role_label|default:"أستاذ" }}</span>
+                        </div>
+                        <i class="fas fa-chevron-down ms-1" style="font-size: 0.65rem; opacity: 0.7;"></i>
+                    </div>
+
+                    <ul class="dropdown-menu dropdown-menu-start shadow-lg border-0 rounded-3 py-2" style="min-width: 210px;">
+                        <li class="px-3 py-2 border-bottom mb-1">
+                            <div class="fw-bold text-dark">{{ user.get_full_name|default:user.username }}</div>
+                            <small class="text-muted">{{ current_role_title|default:current_role_label|default:"أستاذ" }}</small>
+                        </li>
+                        <!-- Profil Personnel -->
+                        <li>
+                            {% if user.enseignant_profile %}
+                            <a class="dropdown-item py-2" href="{% url 'ense:profile_Ens' %}">
+                                <i class="fas fa-user-circle text-primary me-2"></i>
+                                الملف الشخصي
+                            </a>
+                            {% else %}
+                            <a class="dropdown-item py-2" href="{% url 'auth:profile' %}">
+                                <i class="fas fa-user-circle text-primary me-2"></i>
+                                الملف الشخصي
+                            </a>
+                            {% endif %}
+                        </li>
+
+                        <!-- Tableau de bord -->
+                        <li>
+                            {% if current_role == 'doyen' or current_role == 'vice_doyen_pedagogie' or current_role == 'vice_doyen_postgrad' or my_Fac %}
+                            <a class="dropdown-item py-2" href="{% url 'facu:dashboard_Fac' %}">
+                                <i class="fas fa-tachometer-alt text-success me-2"></i>
+                                لوحة التحكم
+                            </a>
+                            {% elif is_admin_poste or current_role == 'chef_departement' or current_role == 'chef_dep_adj_p' or current_role == 'chef_dep_adj_pg' or my_Dep %}
+                            <a class="dropdown-item py-2" href="{% url 'depa:dashboard_Dep' %}">
+                                <i class="fas fa-tachometer-alt text-success me-2"></i>
+                                لوحة التحكم
+                            </a>
+                            {% elif user.enseignant_profile or current_role == 'enseignant' %}
+                            <a class="dropdown-item py-2" href="{% url 'ense:dashboard_Ens_clean' %}">
+                                <i class="fas fa-tachometer-alt text-success me-2"></i>
+                                لوحة التحكم
+                            </a>
+                            {% else %}
+                            <a class="dropdown-item py-2" href="{% url 'auth:dashboard' %}">
+                                <i class="fas fa-tachometer-alt text-success me-2"></i>
+                                لوحة التحكم
+                            </a>
+                            {% endif %}
+                        </li>
+
+                        <!-- Profil de l'Établissement / Faculté / Département -->
+                        {% if current_role == 'doyen' or current_role == 'vice_doyen_pedagogie' or current_role == 'vice_doyen_postgrad' or my_Fac %}
+                        <li>
+                            <a class="dropdown-item py-2" href="{% url 'facu:profile_Fac' %}">
+                                <i class="fas fa-university text-info me-2"></i>
+                                الملف التعريفي للكلية
+                            </a>
+                        </li>
+                        {% elif is_admin_poste or current_role == 'chef_departement' or current_role == 'chef_dep_adj_p' or current_role == 'chef_dep_adj_pg' or my_Dep or user.is_superuser %}
+                        <li>
+                            <a class="dropdown-item py-2" href="{% url 'depa:profile_Dep' %}">
+                                <i class="fas fa-building text-info me-2"></i>
+                                الملف التعريفي للقسم
+                            </a>
+                        </li>
                         {% endif %}
-                        {# اختر منصبك - seulement si plusieurs postes #}
-                        {% if request.session.roles_count > 1 %}
-                        <li><a class="dropdown-item" href="{% url 'auth:select_role' %}">
-                            <i class="fas fa-exchange-alt me-2"></i>اختر منصبك
-                        </a></li>
+                        {% if roles_count > 1 or request.session.roles_count > 1 %}
+                        <li>
+                            <a class="dropdown-item py-2" href="{% url 'auth:select_role' %}">
+                                <i class="fas fa-exchange-alt text-warning me-2"></i>
+                                تبديل المنصب
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if current_role == 'doyen' or current_role == 'vice_doyen_pedagogie' or current_role == 'vice_doyen_postgrad' %}
+                        <li>
+                            <a class="dropdown-item py-2" href="/faculte/admin/">
+                                <i class="fas fa-cogs text-secondary me-2"></i>
+                                إدارة الكلية
+                            </a>
+                        </li>
+                        {% elif is_admin_poste or current_role == 'chef_departement' or current_role == 'chef_dep_adj_p' or current_role == 'chef_dep_adj_pg' %}
+                        <li>
+                            <a class="dropdown-item py-2" href="/departement/admin/">
+                                <i class="fas fa-cogs text-secondary me-2"></i>
+                                إدارة القسم
+                            </a>
+                        </li>
+                        {% elif user.is_staff or user.is_superuser %}
+                        <li>
+                            <a class="dropdown-item py-2" href="/departement/admin/">
+                                <i class="fas fa-cogs text-secondary me-2"></i>
+                                الإدارة المركزية
+                            </a>
+                        </li>
                         {% endif %}
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="{% url 'auth:logout' %}">
-                            <i class="fas fa-sign-out-alt me-2"></i>تسجيل الخروج
-                        </a></li>
+                        <li>
+                            <a class="dropdown-item py-2 text-danger" href="{% url 'auth:logout' %}">
+                                <i class="fas fa-sign-out-alt me-2"></i>
+                                تسجيل الخروج
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
         </header>
 
-        <!-- Context Info -->
+        <!-- Contexte info secondaire éventuel -->
         {% block context_info %}{% endblock %}
 
-        <!-- Messages -->
+        <!-- Messages Système -->
         {% if messages %}
-        <div class="px-3 pt-3">
+        <div class="px-4 pt-3">
             {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'danger' or message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
                 {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             {% endfor %}
         </div>
         {% endif %}
 
-        <!-- Main Content -->
+        <!-- Contenu Principal -->
         <main class="main-content">
             {% block content %}{% endblock %}
         </main>
 
-        <!-- Footer -->
+        <!-- Footer Moderne ERP -->
         <footer class="dashboard-footer">
-            <i class="fas fa-copyright me-1"></i>
-            <span id="dashboardYear"></span> نظام الجامعة الذكية. جميع الحقوق محفوظة.
+            <div class="footer-inner">
+                <!-- Zone Marque & Droits -->
+                <div class="footer-start-area">
+                    <div class="footer-brand-badge">
+                        <img src="{% static 'images/smart-univ-logo.svg' %}" alt="" style="width:22px;height:22px;border-radius:6px;">
+                        <span>Smart-Univ</span>
+                    </div>
+                    <span class="footer-sep d-none d-sm-inline">•</span>
+                    <div class="footer-copyright">
+                        <i class="far fa-copyright"></i>
+                        <span id="dashboardYear"></span>
+                        <span>نظام الجامعة الذكية. جميع الحقوق محفوظة.</span>
+                    </div>
+                </div>
+
+                <!-- Zone Centrale : Statut de la Plateforme -->
+                <div class="footer-center-area d-none d-md-flex">
+                    <div class="footer-status-pill">
+                        <span class="status-pulse-dot"></span>
+                        <span>المنصة متصلة ومحدثة</span>
+                    </div>
+                </div>
+
+                <!-- Zone Fin : Métadonnées & Sécurité -->
+                <div class="footer-end-area">
+                    {% if annee_courante %}
+                    <div class="footer-meta-pill d-none d-lg-inline-flex" title="السنة الجامعية">
+                        <i class="fas fa-calendar-alt text-warning"></i>
+                        <span>{{ annee_courante.nom|default:annee_courante }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="footer-meta-pill" title="حماية وتشفير البيانات">
+                        <i class="fas fa-shield-alt text-success"></i>
+                        <span>اتصال مؤمّن</span>
+                    </div>
+                    <div class="footer-meta-pill d-none d-sm-inline-flex" title="إصدار النظام">
+                        <i class="fas fa-code-branch text-info"></i>
+                        <span>v2.5</span>
+                    </div>
+                </div>
+            </div>
         </footer>
     </div>
 </div>
 
 <script>
-    // Sidebar toggle
     document.addEventListener('DOMContentLoaded', function() {
+        // Toggle mobile du sidebar
         const sidebarToggle = document.getElementById('sidebarToggle');
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebarOverlay');
 
-        if (sidebarToggle) {
+        if (sidebarToggle && sidebar && overlay) {
             sidebarToggle.addEventListener('click', function() {
                 sidebar.classList.toggle('show');
                 overlay.classList.toggle('show');
             });
-        }
 
-        if (overlay) {
             overlay.addEventListener('click', function() {
                 sidebar.classList.remove('show');
                 overlay.classList.remove('show');
             });
         }
 
-        // Sub-menu toggle
-        document.querySelectorAll('.sub-menu > a').forEach(function(menuItem) {
-            menuItem.addEventListener('click', function(e) {
-                e.preventDefault();
-                const parent = this.closest('.sub-menu');
+        // Lien actif du menu : si la vue n'a pas indiqué active_menu, on le déduit de l'adresse
+        // (même comportement pour tous les espaces et tous les postes)
+        (function () {
+            const menu = document.querySelector('.sidebar .sap-tree-menu');
+            if (!menu || menu.querySelector('.sap-tree-item.active, .sap-tree-leaf.active')) return;
+            const path = window.location.pathname;
+            let best = null, bestLen = 0;
+            menu.querySelectorAll('a.sap-tree-item[href], a.sap-tree-leaf[href]').forEach(a => {
+                const href = new URL(a.href, window.location.origin).pathname;
+                if (href === '/' || href.length <= bestLen) return;
+                if (path === href || path.startsWith(href)) { best = a; bestLen = href.length; }
+            });
+            if (best) {
+                best.classList.add('active');
+                const branch = best.closest('.sap-tree-branch');
+                if (branch) branch.classList.add('active');
+            }
+        })();
 
-                // Fermer les autres sous-menus
-                document.querySelectorAll('.sub-menu.active').forEach(function(menu) {
-                    if (menu !== parent) {
-                        menu.classList.remove('active');
+        // Rubriques du menu : gestion de l'état ouvert / fermé (arborescence SAP Fiori)
+        const menuKey = function (branch) {
+            const title = branch.querySelector('.branch-title');
+            return 'smartuniv.menu.' + (title ? title.textContent.trim() : '');
+        };
+
+        const collapseAllBranches = function () {
+            document.querySelectorAll('.sap-tree-branch').forEach(function (branch) {
+                branch.classList.remove('open');
+                try {
+                    localStorage.setItem(menuKey(branch), 'closed');
+                } catch (e) {}
+            });
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith('smartuniv.menu.')) {
+                        localStorage.setItem(k, 'closed');
                     }
-                });
+                }
+            } catch (e) {}
+        };
 
-                // Toggle le sous-menu actuel
-                parent.classList.toggle('active');
+        const pathNorm = window.location.pathname.replace(/\/+$/, '');
+        const isDashboardPage = pathNorm === '/departement/dashboard' || 
+                                pathNorm === '/faculte/dashboard' || 
+                                pathNorm === '/enseignant/dashboard' || 
+                                /^\/enseignant\/\d+\/dashboard$/.test(pathNorm) ||
+                                pathNorm === '/dashboard';
+
+        if (isDashboardPage) {
+            // Sur la page لوحة التحكم الرئيسية (قسم، كلية، أستاذ) : tout le menu latéral doit être collapsé par défaut
+            collapseAllBranches();
+        } else {
+            // Sur les autres pages : restaurer l'état mémorisé
+            document.querySelectorAll('.sap-tree-branch').forEach(function (branch) {
+                try {
+                    const saved = localStorage.getItem(menuKey(branch));
+                    if (saved === 'open') branch.classList.add('open');
+                    else if (saved === 'closed') branch.classList.remove('open');
+                    else if (branch.classList.contains('open')) localStorage.setItem(menuKey(branch), 'open');
+                } catch (e) {}
+            });
+        }
+
+        // Clic sur l'en-tête d'une branche pour ouvrir/fermer (accordéon)
+        document.querySelectorAll('.sap-tree-branch-header').forEach(function (header) {
+            header.addEventListener('click', function () {
+                const branch = this.closest('.sap-tree-branch');
+                if (!branch) return;
+                branch.classList.toggle('open');
+                try {
+                    localStorage.setItem(menuKey(branch), branch.classList.contains('open') ? 'open' : 'closed');
+                } catch (e) {}
             });
         });
 
-        // Year
-        document.getElementById('dashboardYear').textContent = new Date().getFullYear();
+        // Clic sur "Smart-Univ" ou "لوحة التحكم الرئيسية" :
+        // Rediriger vers le tableau de bord avec tout le menu latéral collapsé
+        document.querySelectorAll('a.sidebar-brand, a.sap-tree-item').forEach(function (link) {
+            const href = link.getAttribute('href') || '';
+            const text = (link.textContent || '').trim();
+            const isBrand = link.classList.contains('sidebar-brand');
+            const isDashboardLink = href.includes('/departement/dashboard') || 
+                                    href.includes('/faculte/dashboard') || 
+                                    href.includes('/enseignant/dashboard') ||
+                                    /\/enseignant\/\d+\/dashboard/.test(href) ||
+                                    href.endsWith('/dashboard/') ||
+                                    href.endsWith('/dashboard') ||
+                                    text.includes('لوحة التحكم الرئيسية');
+
+            if (isBrand || isDashboardLink) {
+                link.addEventListener('click', function (e) {
+                    collapseAllBranches();
+                    if (isDashboardPage) {
+                        // Déjà sur le tableau de bord : fermer immédiatement toutes les branches et remonter en haut
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        if (window.location.search || window.location.hash) {
+                            e.preventDefault();
+                            window.location.href = href || (pathNorm + '/');
+                        }
+                    }
+                });
+            }
+        });
+
+        // Année courante dans le footer
+        const yearEl = document.getElementById('dashboardYear');
+        if (yearEl) {
+            yearEl.textContent = new Date().getFullYear();
+        }
+
+        // Date dynamique dans la barre supérieure
+        const dateEl = document.getElementById('shellHeaderDate');
+        if (dateEl) {
+            try {
+                const now = new Date();
+                const options = { weekday: 'short', day: 'numeric', month: 'short' };
+                dateEl.textContent = now.toLocaleDateString('ar-DZ', options);
+            } catch(e) {
+                dateEl.textContent = new Date().toLocaleDateString();
+            }
+        }
     });
 </script>
 {% endblock %}

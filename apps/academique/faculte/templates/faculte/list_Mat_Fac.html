@@ -1,0 +1,166 @@
+{% extends 'faculte/base_Fac.html' %}
+{% load static %}
+
+{% block title %}المقررات والمواد - {{ my_Fac.nom_complet_ar }}{% endblock %}
+
+{% block content_fac %}
+<div class="dep-page-container">
+
+    <!-- ─── HERO HEADER UNIFIÉ ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-book-open" style="color: #ffd700;"></i>
+                    <span>المقررات والمواد الدراسية بالكلية</span>
+                </h1>
+                <p class="dep-hero-subtitle">
+                    <span>{{ my_Fac.nom_complet_ar }}</span>
+                    <span>•</span>
+                    <span>الهياكل والمقررات: الوحدات والمقررات البيداغوجية الموزعة حسب الأقسام والمستويات</span>
+                    <span class="dep-hero-badge">
+                        <i class="fas fa-layer-group"></i>
+                        {{ total_matieres }} مادة دراسية
+                    </span>
+                </p>
+            </div>
+            <div class="dep-hero-actions">
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── CARTE TABLEAU ERP ─── -->
+    <div class="dep-table-card">
+        <div class="dep-table-header flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <h5>
+                    <i class="fas fa-graduation-cap text-primary"></i>
+                    <span>دليل الوحدات والمقررات البيداغوجية بالكلية</span>
+                </h5>
+                <span class="badge bg-light text-dark border ms-2">
+                    {{ total_matieres }} مقرر
+                </span>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-2">
+                    <i class="fas fa-sort-numeric-down me-1"></i> مصنفة حسب الرقم / الرمز
+                </span>
+            </div>
+
+            <!-- Filtre Département & Recherche -->
+            <form method="GET" class="d-flex align-items-center gap-2 flex-wrap">
+                <select name="dep" class="form-select form-select-sm" style="min-width: 220px;" onchange="this.form.submit()">
+                    <option value="">جميع أقسام الكلية</option>
+                    {% for dep in departements %}
+                    <option value="{{ dep.id }}" {% if selected_dep == dep.id %}selected{% endif %}>{{ dep.nom_ar }}</option>
+                    {% endfor %}
+                </select>
+
+                <div class="search-input-wrapper" style="min-width: 240px;">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="q" value="{{ query }}" placeholder="بحث باسم المادة، الرمز..." autocomplete="off">
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm px-3">بحث</button>
+                {% if query or selected_dep %}
+                <a href="{% url 'facu:list_Mat_Fac' %}" class="btn btn-outline-secondary btn-sm">إلغاء التصفية</a>
+                {% endif %}
+            </form>
+        </div>
+
+        <div class="table-responsive">
+            <table class="dep-table align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;" class="text-center">#</th>
+                        <th class="text-center" style="width: 110px;"><i class="fas fa-hashtag text-primary me-1"></i> الرقم / الرمز</th>
+                        <th>اسم المادة (عربي)</th>
+                        <th>Intitulé Matière (FR)</th>
+                        <th>القسم</th>
+                        <th>المستوى</th>
+                        <th>التخصص</th>
+                        <th class="text-center">السداسي</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mat in matieres %}
+                    <tr>
+                        <td class="text-muted fw-bold text-center">
+                            {% if is_paginated %}
+                                {{ forloop.counter|add:page_obj.start_index|add:"-1" }}
+                            {% else %}
+                                {{ forloop.counter }}
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold px-2 py-1">{{ mat.code|default:mat.id }}</span>
+                        </td>
+                        <td class="fw-bold" style="color: #1b262c;">
+                            <i class="fas fa-book text-primary me-2"></i>
+                            {{ mat.nom_ar }}
+                        </td>
+                        <td class="text-muted">
+                            {{ mat.nom_fr|default:"-" }}
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-primary border border-primary-subtle px-2 py-1">
+                                <i class="fas fa-building me-1"></i>
+                                {{ mat.niv_spe_dep.departement.nom_ar|default:mat.niv_spe_dep.specialite.departement.nom_ar|default:"-" }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary-subtle text-dark border px-2 py-1">
+                                {{ mat.niv_spe_dep.niveau.code|default:mat.niv_spe_dep.niveau.nom_ar|default:"-" }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-info-subtle text-dark border border-info-subtle px-2 py-1">
+                                {{ mat.niv_spe_dep.specialite.nom_ar|default:"-" }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            {% if mat.semestre %}
+                                <span class="badge bg-primary text-white px-2 py-1">
+                                    {{ mat.semestre.code|default:mat.semestre.nom_ar }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted small">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <i class="fas fa-book-open text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+                            <h6 class="fw-bold text-dark mb-1">لا توجد مواد مسجلة</h6>
+                            <p class="text-muted small mb-0">لم يتم العثور على مقررات مطابقة للبحث أو للقسم المختار.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+        <div class="p-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="text-muted small">
+                عرض الصفحات: {{ page_obj.number }} من {{ paginator.num_pages }} (إجمالي {{ total_matieres }} مقرر)
+            </span>
+            <ul class="pagination pagination-sm mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_dep %}&dep={{ selected_dep }}{% endif %}{% if query %}&q={{ query }}{% endif %}">السابق</a>
+                </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">{{ page_obj.number }}</span>
+                </li>
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_dep %}&dep={{ selected_dep }}{% endif %}{% if query %}&q={{ query }}{% endif %}">التالي</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

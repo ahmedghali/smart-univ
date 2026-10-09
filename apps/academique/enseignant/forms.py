@@ -1,9 +1,11 @@
 # apps/academique/enseignant/forms.py
 
 from django import forms
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 from .models import Enseignant
+
+User = get_user_model()
 
 
 class UserUpdateForm(forms.ModelForm):
@@ -70,8 +72,8 @@ class EnseignantForm(forms.ModelForm):
             "maladie",
         ]
         widgets = {
-            "date_nais": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
-            "date_Recrut": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "date_nais": forms.DateInput(attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"),
+            "date_Recrut": forms.DateInput(attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"),
             "civilite": forms.Select(attrs={"class": "form-select"}),
             "sex": forms.Select(attrs={"class": "form-select"}),
             "sitfam": forms.Select(attrs={"class": "form-select"}),
@@ -87,7 +89,7 @@ class EnseignantForm(forms.ModelForm):
             "telfix": forms.TextInput(attrs={"class": "form-control"}),
             "fax": forms.TextInput(attrs={"class": "form-control"}),
             "email_perso": forms.EmailInput(attrs={"class": "form-control", "placeholder": "exemple@email.com"}),
-            "email_prof": forms.EmailInput(attrs={"class": "form-control", "placeholder": "prenom.nom@univ.dz"}),
+            "email_prof": forms.EmailInput(attrs={"class": "form-control", "placeholder": "prenom.nom@univ-ouargla.dz"}),
             "adresse": forms.TextInput(attrs={"class": "form-control"}),
             "wilaya": forms.Select(attrs={"class": "form-select"}),
             "diplome": forms.Select(attrs={"class": "form-select"}),
@@ -112,10 +114,17 @@ class EnseignantForm(forms.ModelForm):
             "vacAcademique": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "maladie": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
+        labels = {
+            "specialite_ar": "التخصص",
+            "specialite_fr": "Spécialité",
+        }
 
 
 class ProfileUpdateEnsForm(forms.ModelForm):
     """Formulaire pour mettre à jour le profil d'un enseignant (informations modifiables)."""
+
+    # Les indicateurs Google Scholar ne sont pas saisis : ils sont lus automatiquement
+    # depuis le lien Google Scholar (voir services.fetch_and_update_scholar).
 
     class Meta:
         model = Enseignant
@@ -162,15 +171,10 @@ class ProfileUpdateEnsForm(forms.ModelForm):
             "x_twitter",
             "tiktok",
             "telegram",
-            # Statistiques Google Scholar
-            "scholar_publications_count",
-            "scholar_citations_count",
-            "scholar_h_index",
-            "scholar_i10_index",
         ]
         widgets = {
-            "date_nais": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
-            "date_Recrut": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "date_nais": forms.DateInput(attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"),
+            "date_Recrut": forms.DateInput(attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"),
             "civilite": forms.Select(attrs={"class": "form-select"}),
             "sex": forms.Select(attrs={"class": "form-select"}),
             "sitfam": forms.Select(attrs={"class": "form-select"}),
@@ -190,7 +194,7 @@ class ProfileUpdateEnsForm(forms.ModelForm):
             "telfix": forms.TextInput(attrs={"class": "form-control"}),
             "fax": forms.TextInput(attrs={"class": "form-control"}),
             "email_perso": forms.EmailInput(attrs={"class": "form-control", "placeholder": "exemple@email.com"}),
-            "email_prof": forms.EmailInput(attrs={"class": "form-control", "placeholder": "prenom.nom@univ.dz"}),
+            "email_prof": forms.EmailInput(attrs={"class": "form-control", "placeholder": "prenom.nom@univ-ouargla.dz"}),
             "adresse": forms.TextInput(attrs={"class": "form-control"}),
             "wilaya": forms.Select(attrs={"class": "form-select"}),
             "googlescholar": forms.URLInput(
@@ -210,10 +214,10 @@ class ProfileUpdateEnsForm(forms.ModelForm):
             "inscritSNDL": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "vacAcademique": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "maladie": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "scholar_publications_count": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
-            "scholar_citations_count": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
-            "scholar_h_index": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
-            "scholar_i10_index": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+        }
+        labels = {
+            "specialite_ar": "التخصص",
+            "specialite_fr": "Spécialité",
         }
 
 
@@ -235,7 +239,7 @@ class AdminEnseignantForm(forms.ModelForm):
             "matricule": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex: ENS2024001"}),
             "codeIns": forms.TextInput(attrs={"class": "form-control"}),
             "bac_annee": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex: 2010"}),
-            "date_Recrut": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "date_Recrut": forms.DateInput(attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"),
             "grade": forms.Select(attrs={"class": "form-select"}),
             "vacAcademique": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "maladie": forms.CheckboxInput(attrs={"class": "form-check-input"}),

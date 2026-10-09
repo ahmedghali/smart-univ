@@ -503,7 +503,7 @@
               </h6>
               <div class="info-content">
                 <div class="institution-path">
-                  <span class="path-item faculty">{{my_Fac.nom_ar}}</span>
+                  <span class="path-item faculty">{{ my_Fac.nom_complet_ar }}</span>
                   <i class="fas fa-chevron-left text-muted mx-2"></i>
                   <span class="path-item department">{{my_Dep.nom_ar}}</span>
                   {% if my_Etu.niv_spe_dep_sg %}
@@ -738,9 +738,6 @@
 <!-- Boutons de navigation -->
 <div class="row mt-4">
     <div class="col-md-6">
-        <a href="{% url 'etud:dashboard_Etu' %}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-2"></i>العودة للوحة التحكم
-        </a>
     </div>
     <div class="col-md-6 text-end">
         <a href="{% url 'etud:profileUpdate_Etud' %}" class="btn btn-success">

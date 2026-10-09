@@ -117,7 +117,7 @@ class Ens_Dep(BaseModel):
     )
 
     nbrClas_SS_in_Dep_S1 = models.PositiveSmallIntegerField(
-        default=0, verbose_name="عدد حصص الأعمال الشخصية داخل القسم - س1 / Nb travail personnel dans dép. S1"
+        default=0, verbose_name="عدد حصص الخرجة العلمية داخل القسم - س1 / Nb sorties scientifiques dans dép. S1"
     )
 
     # Séances hors département
@@ -138,7 +138,7 @@ class Ens_Dep(BaseModel):
     )
 
     nbrClas_SS_out_Dep_S1 = models.PositiveSmallIntegerField(
-        default=0, verbose_name="عدد حصص الأعمال الشخصية خارج القسم - س1 / Nb travail personnel hors dép. S1"
+        default=0, verbose_name="عدد حصص الخرجة العلمية خارج القسم - س1 / Nb sorties scientifiques hors dép. S1"
     )
 
     # Jours et volumes horaires
@@ -197,7 +197,7 @@ class Ens_Dep(BaseModel):
     )
 
     nbrClas_SS_in_Dep_S2 = models.PositiveSmallIntegerField(
-        default=0, verbose_name="عدد حصص الأعمال الشخصية داخل القسم - س2 / Nb travail personnel dans dép. S2"
+        default=0, verbose_name="عدد حصص الخرجة العلمية داخل القسم - س2 / Nb sorties scientifiques dans dép. S2"
     )
 
     # Séances hors département
@@ -218,7 +218,7 @@ class Ens_Dep(BaseModel):
     )
 
     nbrClas_SS_out_Dep_S2 = models.PositiveSmallIntegerField(
-        default=0, verbose_name="عدد حصص الأعمال الشخصية خارج القسم - س2 / Nb travail personnel hors dép. S2"
+        default=0, verbose_name="عدد حصص الخرجة العلمية خارج القسم - س2 / Nb sorties scientifiques hors dép. S2"
     )
 
     # Jours et volumes horaires
@@ -264,6 +264,42 @@ class Ens_Dep(BaseModel):
             models.Index(fields=["departement", "annee_univ"]),
             models.Index(fields=["statut"]),
         ]
+
+    @property
+    def initiales(self):
+        """Retourne les initiales de l'enseignant."""
+        return self.enseignant.initiales if self.enseignant else ""
+
+    @property
+    def avatar_palette(self):
+        return self.enseignant.avatar_palette if self.enseignant else None
+
+    @property
+    def avatar_bg(self):
+        return self.enseignant.avatar_bg if self.enseignant else "#2563eb"
+
+    @property
+    def avatar_color(self):
+        return self.enseignant.avatar_color if self.enseignant else "#ffffff"
+
+    @property
+    def avatar_border(self):
+        return self.enseignant.avatar_border if self.enseignant else "#1d4ed8"
+
+    @property
+    def avatar_gradient(self):
+        return self.enseignant.avatar_gradient if self.enseignant else "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)"
+
+    @property
+    def avatar_style(self):
+        return self.enseignant.avatar_style if self.enseignant else "background: #2563eb; color: #ffffff;"
+
+    @property
+    def departement_origine(self):
+        """Si statut est Permanent & Vacataire, retourne le département d'origine."""
+        if self.statut == self.StatutEnseignant.PERMANENT_VACATAIRE and self.enseignant:
+            return self.enseignant.get_departement_origine(self.annee_univ)
+        return None
 
     def __str__(self):
         """Représentation textuelle de l'affectation."""
@@ -523,6 +559,8 @@ class Classe(BaseModel):
         CLASSE04 = "13:10-14:40", "الحصة الرابعة 13:10-14:40"
         CLASSE05 = "14:50-16:20", "الحصة الخامسة 14:50-16:20"
         CLASSE06 = "16:30-18:00", "الحصة السادسة 16:30-18:00"
+        CLASSE07 = "18:00-19:30", "الحصة السابعة 18:00-19:30"
+        CLASSE08 = "19:40-21:10", "الحصة الثامنة 19:40-21:10"
 
     class Dayblock(models.TextChoices):
         """Jours de la semaine / أيام الأسبوع"""
@@ -540,7 +578,7 @@ class Classe(BaseModel):
         COURS = "Cours", "محاضرة / Cours"
         TD = "TD", "أعمال موجهة / TD"
         TP = "TP", "أعمال تطبيقية / TP"
-        SS = "Sortie", "خرجة علمية / Sortie Scientifique"
+        SS = "Sortie Scientifique", "خرجة علمية / Sortie Scientifique"
 
     # ══════════════════════════════════════════════════════════
     # RELATIONS PRINCIPALES
@@ -574,7 +612,7 @@ class Classe(BaseModel):
 
     temps = models.CharField(max_length=20, choices=Timeblock.choices, verbose_name="وقت الحصة / Créneau horaire")
 
-    type = models.CharField(max_length=20, choices=Typeblock.choices, verbose_name="نوع الحصة / Type de séance")
+    type = models.CharField(max_length=30, choices=Typeblock.choices, verbose_name="نوع الحصة / Type de séance")
 
     presentiel = models.BooleanField(
         default=True, verbose_name="حضوري / Présentiel", help_text="Décocher pour enseignement à distance"
@@ -704,6 +742,11 @@ class Classe(BaseModel):
     def est_tp(self):
         """Vérifie si c'est un TP."""
         return self.type == self.Typeblock.TP
+
+    @property
+    def est_ss(self):
+        """Vérifie si c'est une sortie scientifique."""
+        return self.type in [self.Typeblock.SS, "Sortie", "Sortie Scientifique"]
 
     @classmethod
     def get_classes_by_enseignant(cls, ens_dep, semestre=None):
@@ -900,6 +943,8 @@ class Seance(BaseModel):
         SEANCE04 = "13:10-14:40", "الحصة الرابعة 13:10-14:40"
         SEANCE05 = "14:50-16:20", "الحصة الخامسة 14:50-16:20"
         SEANCE06 = "16:30-18:00", "الحصة السادسة 16:30-18:00"
+        SEANCE07 = "18:00-19:30", "الحصة السابعة 18:00-19:30"
+        SEANCE08 = "19:40-21:10", "الحصة الثامنة 19:40-21:10"
 
     class TypeAudience(models.TextChoices):
         """Types d'audience pour la séance / أنواع الجمهور"""

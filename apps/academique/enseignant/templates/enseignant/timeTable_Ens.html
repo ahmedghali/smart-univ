@@ -188,7 +188,7 @@ h5 a:hover {
     <div class="col-md-6">
       <h3 class="mb-0">
         <i class="fas fa-chalkboard-teacher"></i>
-        إستعمال الزمن - الأستاذ: {{my_Ens.nom_ar}}
+        إستعمال الزمن - {{ my_Ens.titre_enseignant_ar|default:"الأستاذ" }}: {{my_Ens.nom_ar}}
       </h3>
     </div>
     <div class="col-md-6 text-end">
@@ -212,10 +212,10 @@ h5 a:hover {
     </div>
 {% else %}
 
-<div class="grey_zone m-1 p-2">
+<div class="dep-page-container">
   <h4 class="border-bottom border-danger text-dark font-weight-bold mb-3">
     <i class="fas fa-calendar-alt"></i>
-    توزيع حصص الأستاذ - السداسي {{semestre_selected}}
+    توزيع حصص {{ my_Ens.titre_enseignant_ar|default:"الأستاذ" }} - السداسي {{semestre_selected}}
     <small class="text-muted">(إجمالي: {{all_classes}} حصة)</small>
   </h4>
 
@@ -223,9 +223,8 @@ h5 a:hover {
   <h5>
     <a href="{% url 'ense:fichPeda_Ens_Semestre' my_Dep.id %}?semestre={{semestre_selected}}" class="text-primary fw-bold" style="text-decoration: none;" target="_blank">البطاقة البيداغوجية - السداسي {{semestre_selected}}</a> |
     <a href="{% url 'ense:fichePedagogique' my_Dep.id %}" class="text-success fw-bold" style="text-decoration: none;" target="_blank">البطاقة البيداغوجية الشاملة</a> |
-    <a href="{% url 'ense:list_etudiants_ens' my_Dep.id %}" class="text-info fw-bold" style="text-decoration: none;">قائمة الطلبة</a> |
-    <a href="{% url 'ense:list_matieres_ens' my_Dep.id %}" class="text-warning fw-bold" style="text-decoration: none;">قائمة المواد</a> |
-    <a href="{% url 'ense:list_specialites_ens' my_Dep.id %}" class="text-secondary fw-bold" style="text-decoration: none;">قائمة التخصصات</a>
+|
+|
   </h5>
 
   <!-- Statistiques -->
@@ -262,7 +261,7 @@ h5 a:hover {
         <div class="col-md-2">
           <div class="stat-card text-center p-3 bg-secondary-subtle rounded">
             <h4 class="text-secondary mb-0">{{nbr_SS}}</h4>
-            <small class="text-muted">خرجات ميدانية (SS)</small>
+            <small class="text-muted">خرجات علمية (SS)</small>
           </div>
         </div>
         <div class="col-md-2">
@@ -356,7 +355,7 @@ h5 a:hover {
                 {% if x.seance_created %}<span class="badge bg-success">{{x.get_jour_display}}</span>
                 {% else %}<span class="badge bg-secondary">{{x.get_jour_display}}</span>{% endif %}
               </td>
-              <td><span class="type-badge-detailed {% if x.type == 'Cours' %}cours{% elif x.type == 'TD' %}td{% elif x.type == 'TP' %}tp{% else %}ss{% endif %}">{{x.type}}</span></td>
+              <td><span class="type-badge-detailed {% if x.type == 'Cours' %}cours{% elif x.type == 'TD' %}td{% elif x.type == 'TP' %}tp{% else %}ss{% endif %}">{{x.get_type_display|default:x.type}}</span></td>
               <td><small class="text-muted">{{x.temps|slice:"0:15"}}</small></td>
               <td>
                 <strong>

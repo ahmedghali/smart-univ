@@ -14,18 +14,7 @@
 {# ═══════════════════════════════════════════════════════════════════════════════ #}
 {# CONTEXT INFO - Affiche les informations du niveau/département/faculté           #}
 {# ═══════════════════════════════════════════════════════════════════════════════ #}
-{% block context_info %}
-{% if my_Dep %}
-<div class="context-info">
-    <i class="fas fa-university"></i>
-    <span>الكلية: <strong>{{ my_Fac.nom_ar }}</strong></span>
-    <span class="ms-2">- القسم: <strong>{{ my_Dep.nom_ar }}</strong></span>
-    {% if my_Etu.niv_spe_dep_sg %}
-        <span class="ms-2 opacity-75">- {{ my_Etu.niv_spe_dep_sg.niv_spe_dep.niveau.nom_ar }}</span>
-    {% endif %}
-</div>
-{% endif %}
-{% endblock %}
+{% block context_info %}{% endblock %}
 
 {# ═══════════════════════════════════════════════════════════════════════════════ #}
 {# SIDEBAR MENU - Menu latéral commun pour l'espace étudiant                       #}

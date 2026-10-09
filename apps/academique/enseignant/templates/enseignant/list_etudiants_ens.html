@@ -7,15 +7,26 @@
 {# ═══════════════════════════════════════════════════════════════════════════════ #}
 
 {% block content_ens %}
-<div class="grey_zone m-1 p-2">
-    <!-- EN-TÊTE -->
-    <h4 class="border-bottom border-danger text-dark mb-3">
-        <i class="fas fa-user-graduate"></i>
-        قائمة الطلبة - {{my_Dep.nom_ar}}
-    </h4>
+<div class="dep-page-container">
 
-    <!-- FORMULAIRE DE FILTRAGE -->
-    <div class="p-2 mb-2">
+    <!-- ─── Bandeau de titre (modèle commun) ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-user-graduate" style="color: #ffd700;"></i>
+                    <span>طلبة قسم {{ my_Dep.nom_ar }}</span>
+                </h1>
+                <p class="dep-hero-subtitle"><span>اختر الإصلاح ثم المستوى ثم الفوج لعرض القائمة</span></p>
+            </div>
+            <div class="dep-hero-actions">
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Filtres ─── -->
+    <div class="dsh-panel mb-4">
+        <h2 class="dsh-panel-title"><i class="fas fa-filter"></i>تصفية الطلبة</h2>
         <form id="etudiants_form" method="POST" class="filter-form">
             {% csrf_token %}
 
@@ -40,17 +51,11 @@
                 </select>
             </div>
 
-            <!-- Boutons d'action -->
-            <div class="mt-3 d-flex gap-2 flex-wrap">
-                <button type="button" id="btn_afficher" class="btn btn-success" disabled>
-                    <i class="fas fa-list"></i> عرض الطلبة
+            <!-- Bouton d'action -->
+            <div class="mt-3">
+                <button type="button" id="btn_afficher" class="btn btn-primary px-4" disabled>
+                    <i class="fas fa-list me-1"></i> عرض الطلبة
                 </button>
-                <a href="{% url 'ense:timeTable_Ens' my_Dep.id %}" class="btn btn-secondary">
-                    <i class="fas fa-calendar"></i> العودة لإستعمال الزمن
-                </a>
-                <a href="{% url 'ense:list_matieres_ens' my_Dep.id %}" class="btn btn-outline-info">
-                    <i class="fas fa-book"></i> قائمة المواد
-                </a>
             </div>
         </form>
     </div>
@@ -68,24 +73,18 @@
 
     <!-- Statistiques -->
     <div id="stats_section" class="mt-3" style="display: none;">
-        <div class="row g-2 mb-3">
-            <div class="col-md-4">
-                <div class="card bg-primary text-white text-center p-2">
-                    <h4 id="total_count" class="mb-0">0</h4>
-                    <small>إجمالي الطلبة</small>
-                </div>
+        <div class="dsh-kpis" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+            <div class="dsh-kpi">
+                <div class="dsh-kpi-head"><span>إجمالي الطلبة</span><i class="fas fa-users"></i></div>
+                <div class="dsh-kpi-value" id="total_count">0</div>
             </div>
-            <div class="col-md-4">
-                <div class="card bg-success text-white text-center p-2">
-                    <h4 id="inscrit_count" class="mb-0">0</h4>
-                    <small>المسجلين</small>
-                </div>
+            <div class="dsh-kpi">
+                <div class="dsh-kpi-head"><span>المسجلون</span><i class="fas fa-user-check"></i></div>
+                <div class="dsh-kpi-value" id="inscrit_count">0</div>
             </div>
-            <div class="col-md-4">
-                <div class="card bg-warning text-dark text-center p-2">
-                    <h4 id="non_inscrit_count" class="mb-0">0</h4>
-                    <small>غير المسجلين</small>
-                </div>
+            <div class="dsh-kpi">
+                <div class="dsh-kpi-head"><span>غير المسجلين</span><i class="fas fa-user-times"></i></div>
+                <div class="dsh-kpi-value" id="non_inscrit_count">0</div>
             </div>
         </div>
     </div>

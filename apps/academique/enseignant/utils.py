@@ -155,7 +155,7 @@ def create_user_for_enseignant(enseignant):
         user = CustomUser.objects.create_user(
             username=login,
             password=password,
-            email=enseignant.email_prof or enseignant.email_perso or f"{login}@univ.dz",
+            email=enseignant.email_prof or enseignant.email_perso or f"{login}@univ-ouargla.dz",
             first_name=enseignant.prenom_fr or enseignant.prenom_ar or "",
             last_name=enseignant.nom_fr or enseignant.nom_ar or "",
             telephone=enseignant.telmobile1 or "",

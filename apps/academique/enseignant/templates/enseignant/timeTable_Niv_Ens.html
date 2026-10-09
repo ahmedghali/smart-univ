@@ -150,7 +150,7 @@
   });
 </script>
 
-<div class="grey_zone m-1 p-2">
+<div class="dep-page-container">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-start mb-3">
         <div>
@@ -178,9 +178,6 @@
             </small>
             {% endif %}
         </div>
-        <a href="{% url 'ense:list_NivSpeDep_Ens' my_Dep.id %}" class="btn btn-outline-secondary btn-sm">
-            <i class="fas fa-arrow-left me-1"></i> العودة
-        </a>
     </div>
 
     {% if all_classes == 0 %}
@@ -228,7 +225,7 @@
                 <div class="col-md-3">
                     <div class="stat-card text-center p-3 bg-secondary-subtle rounded">
                         <h4 class="text-secondary mb-0">{{nbr_SS}}</h4>
-                        <small class="text-muted">خرجات ميدانية (SS)</small>
+                        <small class="text-muted">خرجات علمية (SS)</small>
                     </div>
                 </div>
             </div>
@@ -310,15 +307,9 @@
     <!-- Boutons de navigation -->
     <div class="row mt-4">
         <div class="col-md-6">
-            <a href="{% url 'ense:list_NivSpeDep_Ens' my_Dep.id %}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left me-2"></i>العودة لقائمة المستويات
-            </a>
         </div>
         <div class="col-md-6 text-end">
             {% if niv_spe_dep %}
-            <a href="{% url 'ense:list_etudiants_ens' my_Dep.id %}?niveau={{niv_spe_dep.niveau.id}}" class="btn btn-success">
-                <i class="fas fa-users me-2"></i>قائمة طلبة هذا المستوى
-            </a>
             {% endif %}
         </div>
     </div>

@@ -15,7 +15,9 @@ class Universite(BaseModel):
     # INFORMATIONS DE BASE
     # ══════════════════════════════════════════════════════════════
 
-    code = models.CharField(max_length=20, unique=True, verbose_name="الرمز / Code", help_text="Ex: USTHB, UNIV-ALG1")
+    code = models.CharField(
+        blank=True, null=True, max_length=20, unique=True, verbose_name="الرمز / Code", help_text="Ex: USTHB, UNIV-ALG1"
+    )
     nom_ar = models.CharField(max_length=200, verbose_name="الجامعة", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Université", blank=True, default="")
     sigle = models.CharField(
@@ -63,8 +65,8 @@ class Universite(BaseModel):
     telegram = models.URLField(max_length=200, verbose_name="Telegram", blank=True, default="")
 
     class Meta:
-        verbose_name = "جامعة"
-        verbose_name_plural = "الجامعات"
+        verbose_name = "جامعة / Université"
+        verbose_name_plural = "الجامعات / Universités"
         ordering = ["code"]
         indexes = [
             models.Index(fields=["code"]),
@@ -113,7 +115,7 @@ class Domaine(BaseModel):
     Un domaine regroupe plusieurs filières.
     """
 
-    code = models.CharField(max_length=20, verbose_name="الرمز / Code", help_text="Ex: ST, SNV")
+    code = models.CharField(blank=True, null=True, max_length=20, verbose_name="الرمز / Code", help_text="Ex: ST, SNV")
     nom_ar = models.CharField(max_length=200, verbose_name="الميدان", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Domaine", blank=True, default="")
     universite = models.ForeignKey(
@@ -121,8 +123,8 @@ class Domaine(BaseModel):
     )
 
     class Meta:
-        verbose_name = "ميدان"
-        verbose_name_plural = "الميادين"
+        verbose_name = "ميدان / Domaine"
+        verbose_name_plural = "الميادين / Domaines"
         ordering = ["universite", "code"]
         unique_together = ["code", "universite"]
         indexes = [

@@ -327,17 +327,17 @@
   });
 </script>
 
-<div class="grey_zone m-1 p-2">
+<div class="dep-page-container">
     <!-- Header Dashboard -->
     <div class="dashboard-header mb-4">
         <div class="row align-items-center">
             <div class="col-md-8">
                 <h2 class="mb-0">
                     <i class="fas fa-user-graduate me-2"></i>
-                    لوحة التحكم - الطالب
+                    لوحة التحكم - {{ my_Etu.titre_etudiant_ar|default:"الطالب" }}
                 </h2>
                 <p class="text-white-50 mb-0">
-                    مرحباً {{my_Etu.nom_ar}} {{my_Etu.prenom_ar}}
+                    أهلاً بك، {{ my_Etu.titre_etudiant_ar|default:"الطالب" }} {{my_Etu.nom_ar}} {{my_Etu.prenom_ar}}
                     {% if my_Etu.niv_spe_dep_sg %}
                         - {{my_Etu.niv_spe_dep_sg.niv_spe_dep}}
                     {% endif %}
@@ -486,10 +486,6 @@
                             <i class="fas fa-calendar-day text-primary me-2"></i>
                             برنامجي اليوم
                         </h5>
-                        <a href="{% url 'etud:timeTable_Etu' %}?semestre={{semestre_selected}}" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-calendar me-1"></i>
-                            الجدول الكامل
-                        </a>
                     </div>
                 </div>
                 <div class="card-body">
@@ -545,9 +541,6 @@
                             <i class="fas fa-book text-primary me-2"></i>
                             موادي - السداسي {{semestre_selected|default:"1"}}
                         </h5>
-                        <a href="{% url 'etud:timeTable_Etu' %}?semestre={{semestre_selected}}" class="btn btn-outline-primary btn-sm">
-                            عرض التفاصيل
-                        </a>
                     </div>
                 </div>
                 <div class="card-body p-0">
@@ -610,16 +603,6 @@
                 </div>
                 <div class="card-body">
                     <div class="quick-links">
-                        <a href="{% url 'etud:timeTable_Etu' %}" class="quick-link-item">
-                            <div class="quick-link-icon bg-primary">
-                                <i class="fas fa-calendar-alt text-white"></i>
-                            </div>
-                            <div class="quick-link-content">
-                                <h6>جدولي الزمني</h6>
-                                <p>عرض الجدول الكامل</p>
-                            </div>
-                            <i class="fas fa-chevron-left text-muted"></i>
-                        </a>
 
                         <a href="{% url 'etud:profile_Etu' %}" class="quick-link-item">
                             <div class="quick-link-icon bg-info">
@@ -632,16 +615,6 @@
                             <i class="fas fa-chevron-left text-muted"></i>
                         </a>
 
-                        <a href="{% url 'etud:timeTable_Etu' %}?semestre={{semestre_selected}}" class="quick-link-item">
-                            <div class="quick-link-icon bg-success">
-                                <i class="fas fa-chart-line text-white"></i>
-                            </div>
-                            <div class="quick-link-content">
-                                <h6>نتائجي</h6>
-                                <p>عرض النتائج حسب المادة</p>
-                            </div>
-                            <i class="fas fa-chevron-left text-muted"></i>
-                        </a>
 
                         <div class="quick-link-item disabled" style="opacity: 0.6; cursor: not-allowed;">
                             <div class="quick-link-icon bg-warning">

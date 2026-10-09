@@ -333,7 +333,7 @@
 {% endblock %}
 
 {% block content_ens %}
-<div class="grey_zone m-1 p-2">
+<div class="dep-page-container">
     <div class="container-fluid" style="background-color: #f8f9fa;">
         <div class="row justify-content-center">
             <div class="col-12">
@@ -348,9 +348,6 @@
                                 <small class="text-light">الجدول الزمني للمخبر - السداسي {{semestre_numero}}</small>
                             </div>
                             <div>
-                                <a href="{% url 'ense:list_Labo_Ens' my_Dep.id %}" class="btn btn-outline-light btn-sm">
-                                    <i class="fas fa-arrow-right me-1"></i> قائمة المخابر
-                                </a>
                             </div>
                         </div>
                     </div>
@@ -531,10 +528,6 @@
 
                         <!-- Actions -->
                         <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                            <a href="{% url 'ense:list_Labo_Ens' my_Dep.id %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-right me-2"></i>
-                                العودة إلى قائمة المخابر
-                            </a>
 
                             {% if all_classes > 0 %}
                             <div class="d-flex gap-2">

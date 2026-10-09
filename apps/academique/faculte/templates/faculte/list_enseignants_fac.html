@@ -1,0 +1,259 @@
+{% extends 'faculte/base_Fac.html' %}
+{% load static %}
+
+{% block title %}أساتذة الكلية - {{ my_Fac.nom_complet_ar }}{% endblock %}
+
+{% block content_fac %}
+<div class="dep-page-container">
+
+    <!-- ─── HERO HEADER ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-chalkboard-teacher" style="color: #ffd700;"></i>
+                    <span>هيئة التدريس بالكلية</span>
+                </h1>
+                <p class="dep-hero-subtitle">
+                    <span>{{ my_Fac.nom_complet_ar }}</span>
+                    <span>•</span>
+                    <span>إشراف ومتابعة الطاقم البيداغوجي لجميع الأقسام • السداسي {{ semestre_num }}</span>
+                    <span class="dep-hero-badge">
+                        <i class="fas fa-users"></i>
+                        {{ total_enseignants }} أستاذ نشط
+                    </span>
+                </p>
+            </div>
+            <div class="dep-hero-actions d-flex gap-2">
+                <!-- Switcher Semestre -->
+                <div class="btn-group" role="group">
+                    <a href="{% url 'facu:list_enseignants_fac' 1 %}{% if selected_dep %}?dep={{ selected_dep }}{% endif %}" class="btn {% if semestre_num == 1 %}btn-warning text-dark fw-bold{% else %}btn-outline-light{% endif %}">
+                        <i class="fas fa-calendar-alt me-1"></i> السداسي 1
+                    </a>
+                    <a href="{% url 'facu:list_enseignants_fac' 2 %}{% if selected_dep %}?dep={{ selected_dep }}{% endif %}" class="btn {% if semestre_num == 2 %}btn-warning text-dark fw-bold{% else %}btn-outline-light{% endif %}">
+                        <i class="fas fa-calendar-alt me-1"></i> السداسي 2
+                    </a>
+                </div>
+                <a href="/faculte/admin/enseignant/enseignant/" class="btn-hero-primary">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>إدارة الأساتذة (Admin)</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── STATISTIQUES RAPIDES ─── -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="dep-table-card p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block mb-1">إجمالي الأساتذة النشطين</span>
+                    <h3 class="fw-bold mb-0 text-dark">{{ total_enseignants }}</h3>
+                </div>
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59, 130, 246, 0.12); display: flex; align-items: center; justify-content: center; color: #2563eb; font-size: 1.3rem;">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dep-table-card p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block mb-1">أساتذة دائمون (مرسم)</span>
+                    <h3 class="fw-bold mb-0 text-success">{{ permanents_count }}</h3>
+                </div>
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(16, 185, 129, 0.12); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 1.3rem;">
+                    <i class="fas fa-user-check"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dep-table-card p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block mb-1">أساتذة مؤقتون / متعاقدون</span>
+                    <h3 class="fw-bold mb-0 text-warning">{{ vacataires_count }}</h3>
+                </div>
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(245, 158, 11, 0.12); display: flex; align-items: center; justify-content: center; color: #d97706; font-size: 1.3rem;">
+                    <i class="fas fa-user-clock"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dep-table-card p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block mb-1">أساتذة مشاركون / باحثون</span>
+                    <h3 class="fw-bold mb-0 text-info">{{ associes_count }}</h3>
+                </div>
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(14, 165, 233, 0.12); display: flex; align-items: center; justify-content: center; color: #0284c7; font-size: 1.3rem;">
+                    <i class="fas fa-handshake"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── BARRE DE FILTRES ET RECHERCHE ─── -->
+    <div class="dep-table-card p-3 mb-4">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" name="q" class="form-control border-start-0" placeholder="بحث بالاسم أو اللقب أو الرقم..." value="{{ search }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="dep" class="form-select" onchange="this.form.submit()">
+                    <option value="">-- جميع الأقسام --</option>
+                    {% for d in departements %}
+                    <option value="{{ d.id }}" {% if selected_dep == d.id %}selected{% endif %}>{{ d.nom_ar }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="statut" class="form-select" onchange="this.form.submit()">
+                    <option value="">-- جميع الصفات --</option>
+                    <option value="Permanent" {% if statut_filter == 'Permanent' %}selected{% endif %}>دائم (مرسم)</option>
+                    <option value="Vacataire" {% if statut_filter == 'Vacataire' %}selected{% endif %}>مؤقت (ساعاتي)</option>
+                    <option value="Permanent & Vacataire" {% if statut_filter == 'Permanent & Vacataire' %}selected{% endif %}>مرسم ومؤقت بقسم آخر</option>
+                    <option value="Associe" {% if statut_filter == 'Associe' %}selected{% endif %}>مشارك</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i> تصفية</button>
+                {% if search or selected_dep or statut_filter %}
+                <a href="{% url 'facu:list_enseignants_fac' semestre_num %}" class="btn btn-outline-secondary" title="إلغاء التصفية"><i class="fas fa-times"></i></a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- ─── TABLEAU DES ENSEIGNANTS ─── -->
+    <div class="dep-table-card">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="fas fa-list text-primary me-2"></i>
+                قائمة الأساتذة (السداسي {{ semestre_num }})
+            </h5>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+                {{ page_obj.paginator.count|default:0 }} نتيجة
+            </span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 50px;" class="text-center">#</th>
+                        <th>الأستاذ</th>
+                        <th>القسم التابع له</th>
+                        <th>الرتبة الأكاديمية</th>
+                        <th>الصفة بالقسم</th>
+                        <th>البريد الإلكتروني</th>
+                        <th>الهاتف</th>
+                        <th>آخر دخول</th>
+                        <th class="text-center" style="width: 100px;">ملف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for aff in page_obj %}
+                    {% with ens=aff.enseignant %}
+                    <tr>
+                        <td class="text-center text-muted fw-bold">{{ forloop.counter0|add:page_obj.start_index }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="dsh-avatar" style="width: 38px; height: 38px; font-size: 0.85rem; {{ ens.user.avatar_style|default:'' }}">
+                                    {{ ens.initiales|default:"—" }}
+                                </span>
+                                <div>
+                                    <strong class="d-block text-dark">{{ ens.nom_ar }} {{ ens.prenom_ar }}</strong>
+                                    {% if ens.nom_fr %}<small class="text-muted" dir="ltr">{{ ens.nom_fr }} {{ ens.prenom_fr }}</small>{% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border px-2 py-1">
+                                <i class="fas fa-building me-1 text-primary"></i>
+                                {{ aff.departement.nom_ar }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="fw-semibold text-secondary">
+                                {% if ens.grade %}{{ ens.grade.nom_ar|default:ens.grade.code|default:"أستاذ" }}{% else %}—{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            {% if aff.statut == 'Permanent' %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">مرسم</span>
+                            {% elif aff.statut == 'Vacataire' %}
+                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1">مؤقت</span>
+                            {% elif aff.statut == 'Permanent & Vacataire' %}
+                            <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">مرسم & مؤقت</span>
+                            {% else %}
+                            <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">{{ aff.get_statut_display|default:aff.statut }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small class="text-muted font-monospace">{{ ens.email_prof|default:ens.user.email|default:"—" }}</small>
+                        </td>
+                        <td>
+                            <small class="text-muted font-monospace" dir="ltr">{{ ens.telmobile1|default:"—" }}</small>
+                        </td>
+                        <td>
+                            {% if ens.user and ens.user.last_login %}
+                            <small class="text-muted">{{ ens.user.last_login|date:"Y-m-d H:i" }}</small>
+                            {% else %}
+                            <small class="text-muted">—</small>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="/enseignant/profile/{{ ens.id }}/" class="btn btn-sm btn-outline-primary" title="عرض الملف الشخصي">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endwith %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-muted">
+                            <i class="fas fa-chalkboard-teacher fa-3x mb-3 text-secondary opacity-50 d-block"></i>
+                            لا توجد بيانات أساتذة مطابقة لمعايير البحث.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="p-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="text-muted small">
+                الصفحة {{ page_obj.number }} من {{ page_obj.paginator.num_pages }}
+            </span>
+            <ul class="pagination pagination-sm mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if selected_dep %}&dep={{ selected_dep }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if search %}&q={{ search }}{% endif %}">&laquo; الأولى</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_dep %}&dep={{ selected_dep }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if search %}&q={{ search }}{% endif %}">السابق</a>
+                </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">{{ page_obj.number }}</span>
+                </li>
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_dep %}&dep={{ selected_dep }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if search %}&q={{ search }}{% endif %}">التالي</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if selected_dep %}&dep={{ selected_dep }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if search %}&q={{ search }}{% endif %}">الأخيرة &raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

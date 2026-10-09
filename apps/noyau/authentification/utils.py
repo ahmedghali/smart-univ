@@ -40,10 +40,14 @@ def get_user_roles(user):
     roles = []
 
     # Profils de base
-    if hasattr(user, "etudiant_profile"):
-        roles.append((ROLE_ETUDIANT, ROLE_LABELS[ROLE_ETUDIANT]))
-    if hasattr(user, "enseignant_profile"):
-        roles.append((ROLE_ENSEIGNANT, ROLE_LABELS[ROLE_ENSEIGNANT]))
+    if hasattr(user, "etudiant_profile") and user.etudiant_profile:
+        etu = user.etudiant_profile
+        is_fem = getattr(etu, "is_feminin", False)
+        roles.append((ROLE_ETUDIANT, "لوحة تحكم الطالبة" if is_fem else ROLE_LABELS[ROLE_ETUDIANT]))
+    if hasattr(user, "enseignant_profile") and user.enseignant_profile:
+        ens = user.enseignant_profile
+        is_fem = getattr(ens, "is_feminin", False)
+        roles.append((ROLE_ENSEIGNANT, "لوحة تحكم الأستاذة" if is_fem else ROLE_LABELS[ROLE_ENSEIGNANT]))
 
     # Rôles administratifs : postes actuellement affectés (AffectationPoste)
     codes_postes = set(AffectationPoste.actives(user).values_list("poste__code", flat=True))

@@ -1,0 +1,200 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# BASE TEMPLATE POUR L'ESPACE FACULTÉ — DESIGN ERP MODERNE STYLE SAP FIORI       #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+
+{% block title %}{{ title }}{% if my_Fac %} - {{ my_Fac.nom_complet_ar }}{% endif %}{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# SIDEBAR BRAND : LOGO & TITRE SMART-UNIV FACULTÉ                                 #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{% block sidebar_brand %}
+<a href="{% url 'facu:dashboard_Fac' %}" class="sidebar-brand" id="sidebarBrandFac" title="لوحة التحكم الرئيسية">
+    <div class="sidebar-brand-icon">
+        <img src="{% static 'images/smart-univ-logo.svg' %}" alt="Smart-Univ" width="38" height="38" style="width: 38px; height: 38px; max-width: 38px; max-height: 38px; object-fit: contain;">
+    </div>
+    <div class="sidebar-brand-text">
+        <h4>Smart-Univ</h4>
+    </div>
+</a>
+{% endblock %}
+
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{# SIDEBAR MENU : NAVIGATION HIÉRARCHIQUE EN ARBORESCENCE (TREE MENU SAP STYLE)     #}
+{# ═══════════════════════════════════════════════════════════════════════════════ #}
+{% block sidebar_menu %}
+<div class="sap-tree-menu">
+    <div class="sap-tree-section-title">التنظيم العام</div>
+
+    <!-- 1. لوحة التحكم (الرئيسية) -->
+    <a class="sap-tree-item {% if active_menu == 'dashboard' %}active{% endif %}" href="{% url 'facu:dashboard_Fac' %}" id="sidebarDashboardLinkFac">
+        <i class="fas fa-tachometer-alt tree-icon"></i>
+        <span>لوحة التحكم الرئيسية</span>
+    </a>
+
+    <!-- 2. أقسام الكلية -->
+    <a class="sap-tree-item {% if active_menu == 'departements' %}active{% endif %}" href="{% url 'facu:list_departements_fac' %}">
+        <i class="fas fa-building tree-icon"></i>
+        <span>أقسام الكلية</span>
+    </a>
+
+    <div class="sap-tree-section-title">الهيكل الأكاديمي</div>
+
+    <!-- 3. هيئة التدريس بالكلية (Dossier / Branche) -->
+    <div class="sap-tree-branch {% if active_menu == 'enseignants' or active_menu == 'heures' %}open active{% endif %}">
+        <div class="sap-tree-branch-header">
+            <div class="branch-title">
+                <i class="fas fa-chalkboard-teacher tree-icon"></i>
+                <span>هيئة التدريس</span>
+            </div>
+            <i class="fas fa-chevron-left branch-chevron"></i>
+        </div>
+        <div class="sap-tree-children">
+            <a class="sap-tree-leaf {% if active_menu == 'enseignants' %}active{% endif %}" href="{% url 'facu:list_enseignants_fac' 1 %}">
+                <i class="fas fa-users"></i>
+                <span>قائمة أساتذة الكلية</span>
+            </a>
+            <a class="sap-tree-leaf {% if active_menu == 'heures' %}active{% endif %}" href="{% url 'facu:heures_enseignants_fac' 1 %}">
+                <i class="fas fa-business-time"></i>
+                <span>ساعات العمل والأنصبة</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 4. شؤون الطلبة بالكلية (Dossier / Branche) -->
+    <div class="sap-tree-branch {% if active_menu == 'etudiants' or active_menu == 'import_etudiants' %}open active{% endif %}">
+        <div class="sap-tree-branch-header">
+            <div class="branch-title">
+                <i class="fas fa-user-graduate tree-icon"></i>
+                <span>شؤون الطلبة</span>
+            </div>
+            <i class="fas fa-chevron-left branch-chevron"></i>
+        </div>
+        <div class="sap-tree-children">
+            <a class="sap-tree-leaf {% if active_menu == 'etudiants' %}active{% endif %}" href="{% url 'facu:list_etudiants_fac' %}">
+                <i class="fas fa-id-card-clip"></i>
+                <span>قوائم طلبة الكلية</span>
+            </a>
+            <a class="sap-tree-leaf {% if active_menu == 'import_etudiants' %}active{% endif %}" href="{% url 'facu:import_etudiants_fac' %}">
+                <i class="fas fa-file-excel"></i>
+                <span>استيراد الطلبة (Excel)</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 5. الهياكل والمقررات بالكلية (Dossier / Branche) -->
+    <div class="sap-tree-branch {% if active_menu == 'specialites' or active_menu == 'matieres' or active_menu == 'infrastructures' or active_menu == 'amphis' or active_menu == 'salles' or active_menu == 'labos' %}open active{% endif %}">
+        <div class="sap-tree-branch-header">
+            <div class="branch-title">
+                <i class="fas fa-university tree-icon"></i>
+                <span>الهياكل والمقررات</span>
+            </div>
+            <i class="fas fa-chevron-left branch-chevron"></i>
+        </div>
+        <div class="sap-tree-children">
+            <a class="sap-tree-leaf {% if active_menu == 'specialites' %}active{% endif %}" href="{% url 'facu:list_Specialite_Fac' %}">
+                <i class="fas fa-graduation-cap"></i>
+                <span>تخصصات وشعب الكلية</span>
+            </a>
+            <a class="sap-tree-leaf {% if active_menu == 'matieres' %}active{% endif %}" href="{% url 'facu:list_Mat_Fac' %}">
+                <i class="fas fa-book-open"></i>
+                <span>المقررات والمواد الدراسية</span>
+            </a>
+            <a class="sap-tree-leaf {% if active_menu == 'infrastructures' %}active{% endif %}" href="{% url 'facu:infrastructures_Fac' %}">
+                <i class="fas fa-building-columns"></i>
+                <span>نظرة شاملة على الهياكل</span>
+            </a>
+            <a class="sap-tree-leaf {% if active_menu == 'amphis' %}active{% endif %}" href="{% url 'facu:list_Amphi_Fac' %}">
+                <i class="fas fa-chalkboard"></i>
+                <span>المدرجات</span>
+            </a>
+            <a class="sap-tree-leaf {% if active_menu == 'salles' %}active{% endif %}" href="{% url 'facu:list_Salle_Fac' %}">
+                <i class="fas fa-door-open"></i>
+                <span>القاعات الدراسية</span>
+            </a>
+            <a class="sap-tree-leaf {% if active_menu == 'labos' %}active{% endif %}" href="{% url 'facu:list_Labo_Fac' %}">
+                <i class="fas fa-flask"></i>
+                <span>مخابر الأعمال التطبيقية</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="sap-tree-section-title">النظام والصلاحيات</div>
+
+    <!-- 6. الملف الشخصي والحساب (Dossier / Branche) -->
+    <div class="sap-tree-branch {% if active_menu == 'profile' or active_menu == 'change_password' %}open active{% endif %}">
+        <div class="sap-tree-branch-header">
+            <div class="branch-title">
+                <i class="fas fa-user-shield tree-icon"></i>
+                <span>الملف الشخصي والحساب</span>
+            </div>
+            <i class="fas fa-chevron-left branch-chevron"></i>
+        </div>
+        <div class="sap-tree-children">
+            <a class="sap-tree-leaf {% if active_menu == 'profile' %}active{% endif %}" href="{% url 'facu:profile_Fac' %}">
+                <i class="fas fa-id-card"></i>
+                <span>الملف التعريفي للكلية</span>
+            </a>
+            <a class="sap-tree-leaf {% if active_menu == 'change_password' %}active{% endif %}" href="{% url 'facu:change_password_Fac' %}">
+                <i class="fas fa-key"></i>
+                <span>تغيير كلمة المرور</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 7. الإدارة المتقدمة للكلية (Dossier / Branche) -->
+    <div class="sap-tree-branch {% if active_menu == 'admin' %}open active{% endif %}">
+        <div class="sap-tree-branch-header">
+            <div class="branch-title">
+                <i class="fas fa-shield-halved tree-icon"></i>
+                <span>الإدارة المتقدمة</span>
+            </div>
+            <i class="fas fa-chevron-left branch-chevron"></i>
+        </div>
+        <div class="sap-tree-children">
+            <a class="sap-tree-leaf" href="/faculte/admin/">
+                <i class="fas fa-cogs"></i>
+                <span>بوابة المشرف الإداري للكلية</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block sidebar_footer %}
+<div class="compact-role-box">
+    <div class="compact-role-header">
+        <span><i class="fas fa-id-badge me-1"></i> المنصب النشط</span>
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-1 py-0" style="font-size:0.65rem;">نشط</span>
+    </div>
+    <div class="compact-role-name">
+        <i class="fas fa-user-shield"></i>
+        <span>{{ current_role_label|default:"عميد الكلية" }}</span>
+    </div>
+    {% if my_Fac %}
+    <div class="text-white-50 mt-1 d-flex align-items-center gap-1" style="font-size: 0.76rem;">
+        <i class="fas fa-university text-warning"></i>
+        <span class="text-truncate">{{ my_Fac.nom_complet_ar }}</span>
+    </div>
+    {% endif %}
+    <div class="compact-role-actions">
+        {% if roles_count > 1 or request.session.roles_count > 1 %}
+        <a href="{% url 'auth:select_role' %}" class="btn-switch-compact" title="تبديل المنصب في الجامعة">
+            <i class="fas fa-exchange-alt"></i>
+            <span>تبديل المنصب</span>
+        </a>
+        {% endif %}
+        <a href="{% url 'facu:profile_Fac' %}" class="btn-switch-compact text-white-50" title="الملف التعريفي للكلية">
+            <i class="fas fa-id-card"></i>
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+{% block content_fac %}{% endblock %}
+{% endblock %}

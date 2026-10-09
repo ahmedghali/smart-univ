@@ -1,0 +1,344 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% translate 'Import' %} {{ opts.verbose_name_plural|capfirst }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/changelists.css' %}">
+<style>
+/* Supprimer highlighting des cellules */
+#result_list td, #result_list td span, #result_list td ins, #result_list td del {
+    background: transparent !important;
+    text-decoration: none !important;
+    color: var(--body-fg, #333) !important;
+}
+
+/* Style pour les listes déroulantes reliées */
+.linked-selects-container {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.linked-selects-container h3 {
+    margin: 0 0 15px 0;
+    color: #417690;
+    font-size: 14px;
+    border-bottom: 2px solid #417690;
+    padding-bottom: 10px;
+}
+
+.select-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.select-group {
+    flex: 1;
+    min-width: 250px;
+}
+
+.select-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.select-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    background: white;
+}
+
+.select-group select:focus {
+    border-color: #417690;
+    outline: none;
+    box-shadow: 0 0 5px rgba(65, 118, 144, 0.3);
+}
+
+.select-group select:disabled {
+    background: #e9ecef;
+    cursor: not-allowed;
+}
+
+.select-group .help {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+
+.loading-indicator {
+    display: none;
+    color: #417690;
+    font-style: italic;
+    margin-top: 5px;
+}
+
+.loading-indicator.show {
+    display: block;
+}
+</style>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+{% if confirm_form %}{{ confirm_form.media }}{% elif form %}{{ form.media }}{% endif %}
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="/departement/admin/">{% translate 'Home' %}</a>
+    &rsaquo; <a href="/departement/admin/{{ opts.app_label }}/">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; <a href="/departement/admin/{{ opts.app_label }}/{{ opts.model_name }}/">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; {% translate 'Import' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>{% translate 'Import' %} {{ opts.verbose_name_plural|capfirst }}</h1>
+
+<div id="content-main">
+{% if confirm_form %}
+    {# Étape 2: Confirmation après preview #}
+    <form action="/departement/admin/{{ opts.app_label }}/{{ opts.model_name }}/process_import/" method="POST">
+        {% csrf_token %}
+        {{ confirm_form.as_p }}
+        <p>{% translate "Below is a preview of data to be imported. If you are satisfied with the results, click 'Confirm import'" %}</p>
+        <div class="submit-row">
+            <input type="submit" class="default" name="confirm" value="{% translate 'Confirm import' %}">
+        </div>
+    </form>
+
+{% elif form %}
+    {# Étape 1: Upload du fichier #}
+    <form action="" method="post" enctype="multipart/form-data" id="import-form">
+        {% csrf_token %}
+
+        {# Vérifier si c'est le formulaire étudiant avec les listes reliées #}
+        {% if form.niv_spe_dep %}
+        <div class="linked-selects-container">
+            <h3>1. اختيار المستوى والفوج / Sélection du niveau et groupe</h3>
+            <div class="select-row">
+                <div class="select-group">
+                    {{ form.niv_spe_dep.errors }}
+                    <label for="id_niv_spe_dep">{{ form.niv_spe_dep.label }}</label>
+                    {{ form.niv_spe_dep }}
+                    {% if form.niv_spe_dep.help_text %}<p class="help">{{ form.niv_spe_dep.help_text|safe }}</p>{% endif %}
+                </div>
+                <div class="select-group">
+                    {{ form.niv_spe_dep_sg.errors }}
+                    <label for="id_niv_spe_dep_sg">{{ form.niv_spe_dep_sg.label }}</label>
+                    {{ form.niv_spe_dep_sg }}
+                    <p class="loading-indicator" id="loading-sg">جاري التحميل... / Chargement...</p>
+                    {% if form.niv_spe_dep_sg.help_text %}<p class="help">{{ form.niv_spe_dep_sg.help_text|safe }}</p>{% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <fieldset class="module aligned">
+            <h3>2. اختيار الملف / Sélection du fichier</h3>
+            {% for field in form.visible_fields %}
+                {# Exclure les champs niv_spe_dep et niv_spe_dep_sg déjà affichés #}
+                {% if field.name != 'niv_spe_dep' and field.name != 'niv_spe_dep_sg' %}
+                <div class="form-row">
+                    {{ field.errors }}
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.help_text %}<p class="help">{{ field.help_text|safe }}</p>{% endif %}
+                </div>
+                {% endif %}
+            {% endfor %}
+            {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+        </fieldset>
+        <div class="submit-row">
+            <input type="submit" class="default" value="{% translate 'Submit' %}">
+        </div>
+    </form>
+
+    {# JavaScript pour le filtrage dynamique des listes déroulantes #}
+    {% if form.niv_spe_dep %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var nivSpeDepSelect = document.getElementById('id_niv_spe_dep');
+        var nivSpeDepSgSelect = document.getElementById('id_niv_spe_dep_sg');
+        var loadingIndicator = document.getElementById('loading-sg');
+
+        if (!nivSpeDepSelect || !nivSpeDepSgSelect) {
+            console.warn('Les éléments de formulaire ne sont pas trouvés');
+            return;
+        }
+
+        // Désactiver la deuxième liste au chargement si aucune sélection
+        if (!nivSpeDepSelect.value) {
+            nivSpeDepSgSelect.disabled = true;
+        }
+
+        // Gestionnaire de changement pour la première liste
+        nivSpeDepSelect.addEventListener('change', function() {
+            var selectedValue = this.value;
+
+            // Vider la deuxième liste
+            nivSpeDepSgSelect.innerHTML = '<option value="">---------</option>';
+
+            if (!selectedValue) {
+                nivSpeDepSgSelect.disabled = true;
+                return;
+            }
+
+            // Afficher l'indicateur de chargement
+            loadingIndicator.classList.add('show');
+            nivSpeDepSgSelect.disabled = true;
+
+            // Appel AJAX pour récupérer les options filtrées
+            fetch('/departement/admin/ajax/niv-spe-dep-sg/' + selectedValue + '/')
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(data) {
+                    loadingIndicator.classList.remove('show');
+
+                    if (data.success && data.options.length > 0) {
+                        data.options.forEach(function(opt) {
+                            var option = document.createElement('option');
+                            option.value = opt.id;
+                            option.textContent = opt.text;
+                            nivSpeDepSgSelect.appendChild(option);
+                        });
+                        nivSpeDepSgSelect.disabled = false;
+                    } else {
+                        var option = document.createElement('option');
+                        option.value = '';
+                        option.textContent = 'لا توجد أفواج متاحة / Aucun groupe disponible';
+                        nivSpeDepSgSelect.appendChild(option);
+                        nivSpeDepSgSelect.disabled = true;
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Erreur AJAX:', error);
+                    loadingIndicator.classList.remove('show');
+                    nivSpeDepSgSelect.disabled = true;
+
+                    var option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'خطأ في التحميل / Erreur de chargement';
+                    nivSpeDepSgSelect.appendChild(option);
+                });
+        });
+
+        // Si une valeur est déjà sélectionnée (retour formulaire avec erreurs)
+        if (nivSpeDepSelect.value) {
+            nivSpeDepSelect.dispatchEvent(new Event('change'));
+        }
+    });
+    </script>
+    {% endif %}
+{% endif %}
+
+{# Affichage des résultats #}
+{% if result %}
+    {% if result.has_errors %}
+        <h2>{% translate "Errors" %}</h2>
+        <ul class="errors">
+            {% for error in result.base_errors %}
+                <li>{{ error.error }}<div class="traceback">{{ error.traceback|linebreaks }}</div></li>
+            {% endfor %}
+            {% for line, errors in result.row_errors %}
+                {% for error in errors %}
+                    <li>{% translate "Line number" %}: {{ line }} - {{ error.error }}</li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+
+    {% elif result.has_validation_errors %}
+        <h2>{% translate "Some rows failed to validate" %}</h2>
+        <p>{% translate "Please correct these errors in your data where possible, then reupload it using the form above." %}</p>
+        <table class="import-preview">
+            <thead>
+                <tr>
+                    <th>{% translate "Row" %}</th>
+                    <th>{% translate "Errors" %}</th>
+                    {% for field in result.diff_headers %}<th>{{ field }}</th>{% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in result.invalid_rows %}
+                <tr>
+                    <td>{{ row.number }}</td>
+                    <td class="errors">
+                        {% for field_name, error_list in row.field_specific_errors.items %}
+                            <strong>{{ field_name }}:</strong> {% for error in error_list %}{{ error }} {% endfor %}<br>
+                        {% endfor %}
+                    </td>
+                    {% for field in row.values %}<td>{{ field }}</td>{% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    {% else %}
+        <fieldset class="module aligned">
+            <h2>{% translate "Preview" %}</h2>
+            <p class="help">{% translate "Showing only columns with data" %}</p>
+        </fieldset>
+        <div id="changelist">
+        <div id="changelist-form">
+        <table id="result_list">
+            <thead>
+                <tr>
+                    <th scope="col"><div class="text"><span>{% translate "Action" %}</span></div></th>
+                    {% for field in result.diff_headers %}<th scope="col"><div class="text"><span>{{ field }}</span></div></th>{% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in result.valid_rows %}
+                <tr class="row{% cycle '1' '2' %}">
+                    <td>{% if row.import_type == 'new' %}{% translate "New" %}{% elif row.import_type == 'skip' %}{% translate "Skipped" %}{% elif row.import_type == 'delete' %}{% translate "Delete" %}{% elif row.import_type == 'update' %}{% translate "Update" %}{% endif %}</td>
+                    {% for field in row.diff %}<td>{{ field }}</td>{% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var table = document.getElementById('result_list');
+            if (!table) return;
+
+            var rows = table.querySelectorAll('tbody tr');
+            var headers = table.querySelectorAll('thead th');
+            var colCount = headers.length;
+
+            // Colonnes à afficher
+            var showCols = ['action', 'matricule', 'nom_fr', 'prenom_fr', 'nom_ar', 'prenom_ar'];
+
+            for (var col = 0; col < colCount; col++) {
+                var headerText = headers[col].textContent.trim().toLowerCase();
+                var show = (col === 0) || showCols.some(function(c) {
+                    return headerText === c || headerText.indexOf(c) !== -1;
+                });
+                if (!show) {
+                    headers[col].style.display = 'none';
+                    for (var r = 0; r < rows.length; r++) {
+                        if (rows[r].cells[col]) {
+                            rows[r].cells[col].style.display = 'none';
+                        }
+                    }
+                }
+            }
+        });
+        </script>
+    {% endif %}
+{% endif %}
+</div>
+{% endblock %}

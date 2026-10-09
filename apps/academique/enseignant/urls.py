@@ -19,15 +19,22 @@ app_name = "enseignant"
 
 urlpatterns = [
     # ══════════════════════════════════════════════════════════════
-    # DASHBOARD (avec dep_id pour le décorateur enseignant_access_required)
+    # DASHBOARD (Mode propre sans ID dans l'URL + compatibilité)
     # ══════════════════════════════════════════════════════════════
+    path("dashboard/", dashboard.dashboard_Ens, name="dashboard_Ens_clean"),
     path("<int:dep_id>/dashboard/", dashboard.dashboard_Ens, name="dashboard_Ens"),
+    path("switch-department/<int:dep_id>/", dashboard.switch_department_ens, name="switch_department_ens"),
     # ══════════════════════════════════════════════════════════════
     # PROFIL
     # ══════════════════════════════════════════════════════════════
     path("profile/", profil.profile_Ens, name="profile_Ens"),
     path("profile/<int:enseignant_id>/", profil.profile_Ens, name="profile_Ens_id"),
     path("profile/update/", profil.profileUpdate_Ens, name="profileUpdate_Ens"),
+    path("profile/update/<int:enseignant_id>/", profil.profileUpdate_Ens, name="profileUpdate_Ens_id"),
+    path("profileUpdate/<int:enseignant_id>/", profil.profileUpdate_Ens, name="profileUpdate_legacy_id"),
+    path("profileUpdate/", profil.profileUpdate_Ens, name="profileUpdate_legacy"),
+    path("profile/update-scholar/", profil.update_scholar_ens, name="update_scholar_my_profile"),
+    path("profile/<int:enseignant_id>/update-scholar/", profil.update_scholar_ens, name="update_scholar_ens"),
     path("change-password/", profil.change_password_Ens, name="change_password_Ens_simple"),
     # ══════════════════════════════════════════════════════════════
     # LISTE ET DÉTAILS

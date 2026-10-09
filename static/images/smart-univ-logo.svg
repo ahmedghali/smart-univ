@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Smart-Univ">
+  <defs>
+    <linearGradient id="su-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd700"/>
+      <stop offset="1" stop-color="#ff9800"/>
+    </linearGradient>
+  </defs>
+  <!-- Fond -->
+  <rect width="64" height="64" rx="15" fill="url(#su-bg)"/>
+  <!-- Toque universitaire -->
+  <path d="M32 13 6 24l26 11 26-11z" fill="#1b262c"/>
+  <path d="M17 29.5v9.5c0 3.6 6.7 7 15 7s15-3.4 15-7v-9.5l-15 6.4z" fill="#1b262c"/>
+  <!-- Gland relié à un nœud de circuit : le côté « smart » -->
+  <path d="M52 26v11" stroke="#1b262c" stroke-width="2.6" stroke-linecap="round"/>
+  <circle cx="52" cy="40" r="3.6" fill="#ffffff" stroke="#1b262c" stroke-width="2.4"/>
+  <!-- Pistes de circuit sur la toque -->
+  <path d="M24 39.5h5l3-3h6" stroke="#ffd700" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="40" cy="36.5" r="1.9" fill="#ffd700"/>
+  <circle cx="23" cy="39.5" r="1.9" fill="#ffd700"/>
+</svg>

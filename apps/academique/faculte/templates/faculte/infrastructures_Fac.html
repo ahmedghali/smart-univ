@@ -1,0 +1,323 @@
+{% extends 'faculte/base_Fac.html' %}
+{% load static %}
+
+{% block title %}هياكل وقاعات الكلية - {{ my_Fac.nom_complet_ar }}{% endblock %}
+
+{% block content_fac %}
+<div class="dep-page-container">
+
+    <!-- ─── HERO HEADER UNIFIÉ ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-building-columns" style="color: #ffd700;"></i>
+                    <span>هياكل وقاعات ومخابر الكلية</span>
+                </h1>
+                <p class="dep-hero-subtitle">
+                    <span>{{ my_Fac.nom_complet_ar }}</span>
+                    <span>•</span>
+                    <span>الهياكل والمقررات: الخريطة الشاملة للمدرجات، القاعات والمخابر المخصصة لأقسام الكلية</span>
+                    <span class="dep-hero-badge">
+                        <i class="fas fa-school"></i>
+                        {{ total_rooms }} هيكل تدريسي
+                    </span>
+                </p>
+            </div>
+            <div class="dep-hero-actions">
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── STATISTIQUES ET INDICATEURS RAPIDES ─── -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="dep-table-card p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block mb-1">إجمالي الهياكل المخصصة</span>
+                    <h3 class="fw-bold mb-0 text-dark">{{ total_rooms }}</h3>
+                </div>
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59, 130, 246, 0.12); display: flex; align-items: center; justify-content: center; color: #2563eb; font-size: 1.3rem;">
+                    <i class="fas fa-building-columns"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dep-table-card p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block mb-1">المدرجات</span>
+                    <h3 class="fw-bold mb-0 text-primary">{{ total_amphis }}</h3>
+                </div>
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(37, 99, 235, 0.12); display: flex; align-items: center; justify-content: center; color: #2563eb; font-size: 1.3rem;">
+                    <i class="fas fa-chalkboard"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dep-table-card p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block mb-1">القاعات الدراسية</span>
+                    <h3 class="fw-bold mb-0 text-success">{{ total_salles }}</h3>
+                </div>
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(16, 185, 129, 0.12); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 1.3rem;">
+                    <i class="fas fa-door-open"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dep-table-card p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block mb-1">مخابر الأشغال التطبيقية</span>
+                    <h3 class="fw-bold mb-0 text-purple" style="color: #7c3aed;">{{ total_labos }}</h3>
+                </div>
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(139, 92, 246, 0.12); display: flex; align-items: center; justify-content: center; color: #8b5cf6; font-size: 1.3rem;">
+                    <i class="fas fa-flask"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── CARTE TABLEAU AVEC ONGLETS PAR TYPE ─── -->
+    <div class="dep-table-card">
+        <div class="dep-table-header flex-wrap gap-2 pb-0 border-bottom-0">
+            <!-- Onglets de sélection du type d'infrastructure -->
+            <ul class="nav nav-tabs border-0" id="infraTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active fw-bold" id="amphis-tab" data-bs-toggle="tab" data-bs-target="#amphis-pane" type="button" role="tab">
+                        <i class="fas fa-chalkboard me-1 text-primary"></i>
+                        المدرجات ({{ total_amphis }})
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold" id="salles-tab" data-bs-toggle="tab" data-bs-target="#salles-pane" type="button" role="tab">
+                        <i class="fas fa-door-open me-1 text-success"></i>
+                        القاعات الدراسية ({{ total_salles }})
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold" id="labos-tab" data-bs-toggle="tab" data-bs-target="#labos-pane" type="button" role="tab">
+                        <i class="fas fa-flask me-1 text-warning"></i>
+                        المخابر المتخصصة ({{ total_labos }})
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Filtre Département & Recherche -->
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                <form method="GET" class="d-flex align-items-center gap-2">
+                    <select name="dep" class="form-select form-select-sm" style="min-width: 200px;" onchange="this.form.submit()">
+                        <option value="">جميع أقسام الكلية</option>
+                        {% for dep in departements %}
+                        <option value="{{ dep.id }}" {% if selected_dep == dep.id %}selected{% endif %}>{{ dep.nom_ar }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+
+                <div class="search-input-wrapper" style="min-width: 200px;">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="infraLiveSearch" placeholder="بحث سريع بالاسم، الرقم..." autocomplete="off">
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content border-top" id="infraTabsContent">
+
+            <!-- ─── ONGLET 1 : AMPHITHEATRES ─── -->
+            <div class="tab-pane fade show active" id="amphis-pane" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="dep-table align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;" class="text-center">#</th>
+                                <th class="text-center" style="width: 90px;"><i class="fas fa-hashtag text-primary me-1"></i> الرقم</th>
+                                <th>المدرج</th>
+                                <th>القسم المخصص له</th>
+                                <th class="text-center" style="width: 120px;">السعة</th>
+                                <th class="text-center" style="width: 130px;">السداسي 1 (S1)</th>
+                                <th class="text-center" style="width: 130px;">السداسي 2 (S2)</th>
+                                <th class="text-center" style="width: 110px;">الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for x in amphis %}
+                            <tr class="infra-row" data-name="{{ x.amphi.nom_ar }} {{ x.amphi.nom_fr }} {{ x.amphi.numero }} {{ x.departement.nom_ar }}">
+                                <td class="text-muted fw-bold text-center">{{ forloop.counter }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold fs-6 px-3 py-1">{{ x.amphi.numero }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ x.amphi.nom_ar|default:"مدرج" }}</strong>
+                                    {% if x.amphi.nom_fr %}<small class="text-muted d-block" dir="ltr">Amphi {{ x.amphi.nom_fr }}</small>{% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-primary border border-primary-subtle px-2 py-1">
+                                        <i class="fas fa-building me-1"></i> {{ x.departement.nom_ar }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    {% if x.amphi.capacite %}<span class="badge bg-warning-subtle text-dark border">{{ x.amphi.capacite }} مقعد</span>{% else %}-{% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if x.semestre_1 %}<span class="badge bg-success-subtle text-success border">مفعّل</span>{% else %}<span class="badge bg-light text-muted border">-</span>{% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if x.semestre_2 %}<span class="badge bg-info-subtle text-info border">مفعّل</span>{% else %}<span class="badge bg-light text-muted border">-</span>{% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if x.est_actif %}<span class="badge bg-success text-white">نشط</span>{% else %}<span class="badge bg-danger text-white">معطل</span>{% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="8" class="text-center py-4 text-muted">لا توجد مدرجات مسجلة لهذا الاختيار.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ─── ONGLET 2 : SALLES ─── -->
+            <div class="tab-pane fade" id="salles-pane" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="dep-table align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;" class="text-center">#</th>
+                                <th class="text-center" style="width: 90px;"><i class="fas fa-hashtag text-success me-1"></i> الرقم</th>
+                                <th>القاعة الدراسية</th>
+                                <th>القسم المخصص له</th>
+                                <th class="text-center" style="width: 120px;">السعة</th>
+                                <th class="text-center" style="width: 130px;">السداسي 1 (S1)</th>
+                                <th class="text-center" style="width: 130px;">السداسي 2 (S2)</th>
+                                <th class="text-center" style="width: 110px;">الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for x in salles %}
+                            <tr class="infra-row" data-name="{{ x.salle.nom_ar }} {{ x.salle.nom_fr }} {{ x.salle.numero }} {{ x.departement.nom_ar }}">
+                                <td class="text-muted fw-bold text-center">{{ forloop.counter }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold fs-6 px-3 py-1">{{ x.salle.numero }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ x.salle.nom_ar|default:"قاعة" }}</strong>
+                                    {% if x.salle.nom_fr %}<small class="text-muted d-block" dir="ltr">{{ x.salle.nom_fr }}</small>{% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-primary border border-primary-subtle px-2 py-1">
+                                        <i class="fas fa-building me-1"></i> {{ x.departement.nom_ar }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    {% if x.salle.capacite %}<span class="badge bg-warning-subtle text-dark border">{{ x.salle.capacite }} مقعد</span>{% else %}-{% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if x.semestre_1 %}<span class="badge bg-success-subtle text-success border">مفعّل</span>{% else %}<span class="badge bg-light text-muted border">-</span>{% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if x.semestre_2 %}<span class="badge bg-info-subtle text-info border">مفعّل</span>{% else %}<span class="badge bg-light text-muted border">-</span>{% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if x.est_actif %}<span class="badge bg-success text-white">نشط</span>{% else %}<span class="badge bg-danger text-white">معطل</span>{% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="8" class="text-center py-4 text-muted">لا توجد قاعات مسجلة لهذا الاختيار.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ─── ONGLET 3 : LABORATOIRES ─── -->
+            <div class="tab-pane fade" id="labos-pane" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="dep-table align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;" class="text-center">#</th>
+                                <th class="text-center" style="width: 90px;"><i class="fas fa-hashtag text-purple me-1" style="color: #7c3aed;"></i> الرقم</th>
+                                <th>المخبر</th>
+                                <th class="text-center" style="width: 150px;">التخصص / النوع</th>
+                                <th>القسم المخصص له</th>
+                                <th class="text-center" style="width: 110px;">السعة</th>
+                                <th class="text-center" style="width: 120px;">السداسي 1 (S1)</th>
+                                <th class="text-center" style="width: 120px;">السداسي 2 (S2)</th>
+                                <th class="text-center" style="width: 100px;">الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for x in labos %}
+                            <tr class="infra-row" data-name="{{ x.laboratoire.nom_ar }} {{ x.laboratoire.nom_fr }} {{ x.laboratoire.numero }} {{ x.departement.nom_ar }} {{ x.laboratoire.get_type_display }}">
+                                <td class="text-muted fw-bold text-center">{{ forloop.counter }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-purple-subtle text-purple border border-purple-subtle fw-bold fs-6 px-3 py-1" style="background: rgba(139, 92, 246, 0.1); color: #7c3aed;">{{ x.laboratoire.numero }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ x.laboratoire.nom_ar|default:"مخبر" }}</strong>
+                                    {% if x.laboratoire.nom_fr %}<small class="text-muted d-block" dir="ltr">{{ x.laboratoire.nom_fr }}</small>{% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-purple-subtle text-purple border border-purple-subtle px-2 py-1 fw-bold" style="background: rgba(139, 92, 246, 0.1); color: #7c3aed;">
+                                        {{ x.laboratoire.get_type_display|default:x.laboratoire.type|default:"مخبر عام" }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-primary border border-primary-subtle px-2 py-1">
+                                        <i class="fas fa-building me-1"></i> {{ x.departement.nom_ar }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    {% if x.laboratoire.capacite %}<span class="badge bg-warning-subtle text-dark border">{{ x.laboratoire.capacite }} مكان</span>{% else %}-{% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if x.semestre_1 %}<span class="badge bg-success-subtle text-success border">مفعّل</span>{% else %}<span class="badge bg-light text-muted border">-</span>{% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if x.semestre_2 %}<span class="badge bg-info-subtle text-info border">مفعّل</span>{% else %}<span class="badge bg-light text-muted border">-</span>{% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if x.est_actif %}<span class="badge bg-success text-white">نشط</span>{% else %}<span class="badge bg-danger text-white">معطل</span>{% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="9" class="text-center py-4 text-muted">لا توجد مخابر مسجلة لهذا الاختيار.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('infraLiveSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                const q = this.value.toLowerCase().trim();
+                const activePane = document.querySelector('.tab-pane.active');
+                if (activePane) {
+                    const rows = activePane.querySelectorAll('.infra-row');
+                    rows.forEach(r => {
+                        const text = (r.dataset.name || '').toLowerCase();
+                        r.style.display = (!q || text.includes(q)) ? '' : 'none';
+                    });
+                }
+            });
+        }
+
+        // Réappliquer la recherche au changement d'onglet
+        const tabs = document.querySelectorAll('button[data-bs-toggle="tab"]');
+        tabs.forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function () {
+                if (searchInput && searchInput.value) {
+                    searchInput.dispatchEvent(new Event('input'));
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

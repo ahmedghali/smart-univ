@@ -53,16 +53,13 @@
 {% endblock %}
 
 {% block content_ens %}
-<div class="grey_zone m-1 p-2">
+<div class="dep-page-container">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="border-bottom border-danger text-dark mb-0 pb-2">
             <i class="fas fa-layer-group text-primary me-2"></i>
             قائمة المستويات - {{my_Dep.nom_ar}}
         </h4>
-        <a href="{% url 'ense:dashboard_Ens' my_Dep.id %}" class="btn btn-outline-secondary btn-sm">
-            <i class="fas fa-arrow-left me-1"></i> العودة
-        </a>
     </div>
 
 {% if all_NivSpeDep.count == 0 %}
@@ -95,7 +92,7 @@
                     </p>
                     <p class="mb-0 text-muted">
                         <i class="fas fa-university me-1"></i>
-                        <strong>الكلية:</strong> {{my_Fac.nom_ar}}
+                        <strong>الكلية:</strong> {{ my_Fac.nom_complet_ar }}
                     </p>
                 </div>
             </div>
@@ -170,10 +167,6 @@
                                     <a href="{% url 'ense:timeTable_Niv_Ens' my_Dep.id x.niv_spe_dep.id x.semestre.numero %}"
                                        class="btn btn-outline-primary btn-sm" title="استعمال الزمن">
                                         <i class="fas fa-calendar-alt"></i>
-                                    </a>
-                                    <a href="{% url 'ense:list_etudiants_ens' my_Dep.id %}?niveau={{x.niv_spe_dep.niveau.id}}"
-                                       class="btn btn-outline-success btn-sm" title="قائمة الطلبة">
-                                        <i class="fas fa-users"></i>
                                     </a>
                                 </div>
                             </td>
@@ -260,10 +253,6 @@
                                        class="btn btn-outline-primary btn-sm" title="استعمال الزمن">
                                         <i class="fas fa-calendar-alt"></i>
                                     </a>
-                                    <a href="{% url 'ense:list_etudiants_ens' my_Dep.id %}?niveau={{x.niv_spe_dep.niveau.id}}"
-                                       class="btn btn-outline-success btn-sm" title="قائمة الطلبة">
-                                        <i class="fas fa-users"></i>
-                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -282,9 +271,6 @@
 
     <!-- Bouton de retour -->
     <div class="text-center">
-        <a href="{% url 'ense:dashboard_Ens' my_Dep.id %}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-2"></i>العودة للوحة التحكم
-        </a>
     </div>
 
 {% endif %}

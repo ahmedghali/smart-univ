@@ -23,7 +23,7 @@
        HERO BAND - Modern Style
        ═══════════════════════════════════════════════════════════════════════════ */
     .hero-band {
-        background: linear-gradient(135deg, #0d1b2a 0%, #1b3a4b 50%, #344D59 100%);
+        background: linear-gradient(135deg, #344d59 0%, #000000 100%);
         position: relative;
         overflow: hidden;
     }
@@ -39,21 +39,37 @@
     }
 
     .hero-logo {
-        width: 100px;
-        height: 100px;
+        width: 180px;
+        height: 180px;
         margin: 0 auto;
-        background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 8px 32px rgba(255, 215, 0, 0.3);
+        border-radius: 42px;
+        box-shadow: 0 12px 40px rgba(255, 215, 0, 0.35);
         animation: float 3s ease-in-out infinite;
     }
 
-    .hero-logo i {
-        font-size: 3rem;
-        color: #0d1b2a;
+    .hero-logo img {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+
+    .hero-brand {
+        color: #ffd700;
+        font-size: 2.6rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        direction: ltr;
+    }
+
+    .brand-logo {
+        width: 34px;
+        height: 34px;
+        vertical-align: middle;
+    }
+
+    @media (max-width: 576px) {
+        .hero-logo { width: 130px; height: 130px; border-radius: 30px; }
+        .hero-brand { font-size: 2rem; }
     }
 
     @keyframes float {
@@ -133,11 +149,11 @@
 
 {% block body %}
 <!-- Navbar Public -->
-<nav class="navbar navbar-expand-lg navbar-dark navbar-public" style="background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);">
+<nav class="navbar navbar-expand-lg navbar-dark navbar-public" style="background: linear-gradient(135deg, #344d59 0%, #000000 100%);">
     <div class="container">
         <a class="navbar-brand" href="{% url 'comm:home' %}">
-            <i class="fas fa-university me-2"></i>
-            نظام الجامعة الذكية
+            <img src="{% static 'images/smart-univ-logo.svg' %}" alt="Smart-Univ" class="brand-logo me-2">
+            Smart-Univ
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarPublic">
             <span class="navbar-toggler-icon"></span>
@@ -206,11 +222,11 @@
 </main>
 
 <!-- Footer -->
-<footer class="footer text-center" style="background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);">
+<footer class="footer text-center" style="background: linear-gradient(135deg, #344d59 0%, #000000 100%);">
     <div class="container">
         <div class="row">
             <div class="col-md-4 mb-3">
-                <h5><i class="fas fa-university me-2"></i>نظام الجامعة الذكية</h5>
+                <h5><img src="{% static 'images/smart-univ-logo.svg' %}" alt="Smart-Univ" class="brand-logo me-2">Smart-Univ - نظام الجامعة الذكية</h5>
                 <p style="color: rgba(255,255,255,0.7);">نظام إدارة شامل للجامعات والمؤسسات التعليمية</p>
             </div>
             <div class="col-md-4 mb-3">
@@ -230,11 +246,17 @@
                 </div>
             </div>
         </div>
-        <hr class="bg-white my-3">
-        <p class="mb-0">
-            <i class="fas fa-copyright me-1"></i>
-            <span id="currentYear"></span> نظام الجامعة الذكية. جميع الحقوق محفوظة.
-        </p>
+        <hr class="bg-white my-3 opacity-25">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <p class="mb-0 text-white-50 small">
+                <i class="far fa-copyright me-1"></i>
+                <span id="currentYear"></span> <strong>Smart-Univ</strong> • نظام الجامعة الذكية. جميع الحقوق محفوظة.
+            </p>
+            <div class="d-flex align-items-center gap-3 text-white-50 small">
+                <span><i class="fas fa-shield-alt text-success me-1"></i>بوابة آمنة ومحمية</span>
+                <span><i class="fas fa-code-branch text-info me-1"></i>v2.5</span>
+            </div>
+        </div>
     </div>
 </footer>
 

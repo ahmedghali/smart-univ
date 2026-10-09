@@ -315,25 +315,19 @@
 {% endblock %}
 
 {% block content_ens %}
-<div class="grey_zone m-1 p-2">
-    <!-- EN-TÊTE PRINCIPAL -->
-    <div class="main-header d-flex justify-content-between align-items-center mb-3">
-        <h4 class="page-title border-bottom border-danger text-dark mb-0">
-            <i class="fas fa-door-open text-success"></i>
-            استعمال الزمن - {{salle_dep.salle.nom_ar|default:salle_dep.salle.nom_fr}}
-            <small class="text-muted ms-2">(السداسي {{semestre_numero}})</small>
-        </h4>
-
-        <!-- Boutons d'action -->
-        <div class="btn-group" role="group">
-            <a href="{% url 'ense:list_Salle_Ens' my_Dep.id %}" class="btn btn-outline-secondary btn-sm">
-                <i class="fas fa-arrow-right"></i> العودة للقائمة
-            </a>
-            {% if all_classes > 0 %}
-            <button class="btn btn-outline-primary btn-sm" onclick="printTimetable()">
-                <i class="fas fa-print"></i> طباعة
-            </button>
-            {% endif %}
+<div class="dep-page-container">
+    <!-- ─── Bandeau de titre (modèle commun) ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-door-open text-success" style="color: #ffd700;"></i>
+                    <span>استعمال الزمن</span>
+                </h1>
+                <p class="dep-hero-subtitle"><span>{{salle_dep.salle.nom_ar|default:salle_dep.salle.nom_fr}} <small class="text-muted ms-2">(السداسي {{semestre_numero}})</small></span></p>
+            </div>
+            <div class="dep-hero-actions">
+            </div>
         </div>
     </div>
 
@@ -383,6 +377,14 @@
                         <div class="stat-card-timetable bg-info-subtle rounded">
                             <h3 class="text-info mb-0">{{nbr_TP}}</h3>
                             <small class="text-muted">أعمال تطبيقية (TP)</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if nbr_SS > 0 %}
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card-timetable bg-secondary-subtle rounded">
+                            <h3 class="text-secondary mb-0">{{nbr_SS}}</h3>
+                            <small class="text-muted">خرجات علمية (SS)</small>
                         </div>
                     </div>
                     {% endif %}
@@ -496,7 +498,7 @@
                 <div class="col-md-6 text-end">
                     <small class="text-muted">
                         <i class="fas fa-university"></i>
-                        {{my_Dep.nom_ar}} - {{my_Fac.nom_ar}}
+                        {{my_Dep.nom_ar}} - {{ my_Fac.nom_complet_ar }}
                     </small>
                 </div>
             </div>

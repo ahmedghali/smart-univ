@@ -395,7 +395,16 @@ def timeTable_Etu(request):
         context["all_semestres"] = all_semestres
 
         # Définir les horaires et jours (valeurs du modèle Classe.Dayblock)
-        horaires = ["08:00-09:30", "09:40-11:10", "11:20-12:50", "13:10-14:40", "14:50-16:20", "16:30-18:00"]
+        horaires = [
+            "08:00-09:30",
+            "09:40-11:10",
+            "11:20-12:50",
+            "13:10-14:40",
+            "14:50-16:20",
+            "16:30-18:00",
+            "18:00-19:30",
+            "19:40-21:10",
+        ]
 
         # Jours avec valeurs françaises (pour comparaison) et labels arabes (pour affichage)
         jours_data = [
@@ -459,7 +468,7 @@ def timeTable_Etu(request):
         nbr_Cours = len([c for c in all_Classe_Time if c.type == "Cours"])
         nbr_TD = len([c for c in all_Classe_Time if c.type == "TD"])
         nbr_TP = len([c for c in all_Classe_Time if c.type == "TP"])
-        nbr_SS = len([c for c in all_Classe_Time if c.type == "SS"])
+        nbr_SS = len([c for c in all_Classe_Time if c.type in ["Sortie Scientifique", "Sortie", "SS"]])
 
         context["nbr_Cours"] = nbr_Cours
         context["nbr_TD"] = nbr_TD

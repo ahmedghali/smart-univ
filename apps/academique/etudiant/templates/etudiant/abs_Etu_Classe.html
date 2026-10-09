@@ -2,10 +2,10 @@
 {% block content %}
 {% load crispy_forms_tags %}
 
-<div class="grey_zone m-1 p-2">
+<div class="dep-page-container">
   <!-- En-tête de la page -->
   <h4 class="border-bottom border-danger text-dark font-weight-bold mb-3">
-    غيابات الطالب: {{ my_Etu.nom_ar }} {{ my_Etu.prenom_ar }}
+    غيابات {{ my_Etu.titre_etudiant_ar|default:"الطالب" }}: {{ my_Etu.nom_ar }} {{ my_Etu.prenom_ar }}
   </h4>
   <h5 class="oneBorder mb-3">
     المادة: <span class="text-danger fw-bold">{{ titre_01 }}</span> -
@@ -195,10 +195,6 @@
 
   <!-- Actions -->
   <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-    <a href="{% url 'etud:timeTable_Etu' %}" class="btn btn-outline-secondary">
-      <i class="fas fa-arrow-left me-2"></i>
-      العودة إلى الجدول الزمني
-    </a>
 
     <div class="d-flex gap-2">
       <button class="btn btn-outline-primary btn-sm" onclick="window.print()">

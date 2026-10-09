@@ -1,0 +1,198 @@
+{% extends 'faculte/base_Fac.html' %}
+{% load static %}
+
+{% block title %}أقسام الكلية - {{ my_Fac.nom_complet_ar }}{% endblock %}
+
+{% block content_fac %}
+<div class="dep-page-container">
+
+    <!-- ─── HERO HEADER ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-building" style="color: #ffd700;"></i>
+                    <span>أقسام الكلية المعتمدة</span>
+                </h1>
+                <p class="dep-hero-subtitle">
+                    <span>{{ my_Fac.nom_complet_ar }}</span>
+                    <span>•</span>
+                    <span>الهيكل التنظيمي الأكاديمي: إدارة ومتابعة كافة الأقسام التعليمية والبحثية</span>
+                    <span class="dep-hero-badge">
+                        <i class="fas fa-sitemap"></i>
+                        {{ total_departements }} أقسام
+                    </span>
+                </p>
+            </div>
+            <div class="dep-hero-actions">
+                <a href="/faculte/admin/departement/departement/add/" class="btn-hero-primary">
+                    <i class="fas fa-plus"></i>
+                    <span>إضافة قسم جديد</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── KPI CARDS ─── -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="dep-table-card p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block mb-1">إجمالي الأقسام</span>
+                    <h3 class="fw-bold mb-0 text-dark">{{ total_departements }}</h3>
+                </div>
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59, 130, 246, 0.12); display: flex; align-items: center; justify-content: center; color: #2563eb; font-size: 1.3rem;">
+                    <i class="fas fa-building"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dep-table-card p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block mb-1">إجمالي الأساتذة</span>
+                    <h3 class="fw-bold mb-0 text-success">{{ totaux.enseignants }}</h3>
+                </div>
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(16, 185, 129, 0.12); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 1.3rem;">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dep-table-card p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block mb-1">إجمالي الطلبة</span>
+                    <h3 class="fw-bold mb-0 text-info">{{ totaux.etudiants }}</h3>
+                </div>
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(14, 165, 233, 0.12); display: flex; align-items: center; justify-content: center; color: #0284c7; font-size: 1.3rem;">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dep-table-card p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block mb-1">الهياكل والقاعات</span>
+                    <h3 class="fw-bold mb-0 text-warning">{{ totaux.rooms }}</h3>
+                </div>
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(245, 158, 11, 0.12); display: flex; align-items: center; justify-content: center; color: #d97706; font-size: 1.3rem;">
+                    <i class="fas fa-building-columns"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── TABLEAU DES DÉPARTEMENTS ─── -->
+    <div class="dep-table-card">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="fas fa-list text-primary me-2"></i>
+                قائمة الأقسام والتفاصيل الإدارية
+            </h5>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+                {{ total_departements }} أقسام نشطة
+            </span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 50px;" class="text-center">#</th>
+                        <th>الرمز</th>
+                        <th>اسم القسم</th>
+                        <th>رئيس القسم الحالي</th>
+                        <th class="text-center">الأساتذة</th>
+                        <th class="text-center">الطلبة</th>
+                        <th class="text-center">التخصصات</th>
+                        <th class="text-center">المواد</th>
+                        <th class="text-center">الهياكل والقاعات</th>
+                        <th class="text-center" style="width: 140px;">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in departements_data %}
+                    <tr>
+                        <td class="text-center text-muted fw-bold">{{ forloop.counter }}</td>
+                        <td>
+                            <span class="badge bg-secondary-subtle text-secondary border px-2 py-1 font-monospace">
+                                {{ d.dep.code|default:"—" }}
+                            </span>
+                        </td>
+                        <td>
+                            <strong class="d-block text-dark fs-6">{{ d.dep.nom_ar }}</strong>
+                            {% if d.dep.nom_fr %}
+                            <small class="text-muted" dir="ltr">{{ d.dep.nom_fr }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if d.chef %}
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-success-subtle text-success p-1 rounded-circle" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-user-tie"></i>
+                                </span>
+                                <div>
+                                    <strong class="text-dark small d-block">
+                                        {{ d.chef.user.get_full_name|default:d.chef.user.username }}
+                                    </strong>
+                                    {% if d.chef.user.enseignant_profile %}
+                                    <small class="text-muted" style="font-size: 0.75rem;">
+                                        {{ d.chef.user.enseignant_profile.grade|default:"أستاذ" }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% else %}
+                            <span class="text-muted small">لم يتم التعيين بعد</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'facu:list_enseignants_fac' 1 %}?dep={{ d.dep.id }}" class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 text-decoration-none fw-bold">
+                                {{ d.enseignants }} أستاذ
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'facu:list_etudiants_fac' %}?dep={{ d.dep.id }}" class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1 text-decoration-none fw-bold">
+                                {{ d.etudiants }} طالب
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'facu:list_Specialite_Fac' %}?dep={{ d.dep.id }}" class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 text-decoration-none fw-bold">
+                                {{ d.specialites }} تخصص
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'facu:list_Mat_Fac' %}?dep={{ d.dep.id }}" class="badge bg-secondary-subtle text-secondary border px-2 py-1 text-decoration-none fw-bold">
+                                {{ d.matieres }} مادة
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'facu:infrastructures_Fac' %}?dep={{ d.dep.id }}" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 text-decoration-none fw-bold">
+                                {{ d.rooms }} مكان ({{ d.amphis }} م · {{ d.salles }} ق · {{ d.labos }} خ)
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'facu:infrastructures_Fac' %}?dep={{ d.dep.id }}" class="btn btn-outline-secondary" title="الهياكل والقاعات">
+                                    <i class="fas fa-building-columns"></i>
+                                </a>
+                                <a href="/faculte/admin/departement/departement/{{ d.dep.id }}/change/" class="btn btn-outline-primary" title="تعديل بيانات القسم">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center py-5 text-muted">
+                            <i class="fas fa-building fa-3x mb-3 text-secondary opacity-50 d-block"></i>
+                            لا توجد أقسام مسجلة في هذه الكلية حتى الآن.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

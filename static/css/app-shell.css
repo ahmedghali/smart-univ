@@ -1,0 +1,1698 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   APP-SHELL SMART-UNIV — harmonisation visuelle avec la landing page
+   Chargé en dernier par base_dashboard.html (block shell_css).
+   Garde la disposition existante (menu latéral) et applique le dégradé
+   noir → bleu-gris de la landing page au bandeau, au menu et aux titres.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+    --sidebar-width: 285px;
+    --shell-gradient: linear-gradient(135deg, #344d59 0%, #000000 100%);
+    --shell-sidebar-gradient: linear-gradient(180deg, #000000 0%, #22343d 55%, #344d59 100%);
+    --shell-gold: #ffd700;
+    --shell-gold-soft: rgba(255, 215, 0, 0.16);
+    --shell-page-bg: #f3f5f1;
+}
+
+html body {
+    background: var(--shell-page-bg);
+}
+
+/* ─── Menu latéral : sobre et lisible ───
+   Fond uni, texte clair, un seul repère doré pour la page active,
+   pas de lueurs, de dégradés ni de pastilles colorées. */
+html body .sidebar {
+    background: #11191e;
+    box-shadow: none;
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+html body .sidebar-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+html body .sidebar-brand-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+html body .sidebar-brand-text h4 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
+html body .sidebar-nav {
+    padding: 14px 12px;
+}
+
+html body .sap-tree-section-title {
+    margin: 18px 10px 6px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: rgba(255, 255, 255, 0.38);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+html body .sap-tree-section-title:first-child {
+    margin-top: 2px;
+}
+
+html body .sap-tree-item,
+html body .sap-tree-branch-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin: 1px 0;
+    padding: 9px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    box-shadow: none;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    transform: none;
+}
+
+html body .sap-tree-branch-header {
+    justify-content: space-between;
+}
+
+html body .sap-tree-branch-header .branch-title {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+html body .sap-tree-item i,
+html body .sap-tree-branch-header i,
+html body .sap-tree-item i.tree-icon {
+    width: 18px;
+    text-align: center;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.5);
+    background: none;
+    box-shadow: none;
+}
+
+html body .sap-tree-branch-header .branch-chevron {
+    width: auto;
+    font-size: 0.65rem;
+}
+
+html body .sap-tree-item:hover,
+html body .sap-tree-branch-header:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+/* Page active : un seul repère, identique partout (lien direct ou sous-lien) :
+   fond doré léger + barre dorée intérieure côté début (droite en arabe).
+   La rubrique parente d'une page active garde seulement son texte en blanc. */
+html body .sap-tree-item.active,
+html body .sap-tree-leaf.active {
+    background: rgba(255, 215, 0, 0.12);
+    color: #fff;
+    font-weight: 600;
+    border: 0;
+    box-shadow: inset -3px 0 0 var(--shell-gold);
+}
+
+html body .sap-tree-item.active::after,
+html body .sap-tree-leaf.active::after {
+    display: none;
+}
+
+html body .sap-tree-branch.active > .sap-tree-branch-header {
+    background: none;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+html body .sap-tree-item.active i,
+html body .sap-tree-leaf.active i,
+html body .sap-tree-branch.active > .sap-tree-branch-header i {
+    color: var(--shell-gold);
+}
+
+/* Sous-éléments : simple retrait, sans lignes d'arborescence */
+html body .sap-tree-children {
+    padding: 2px 30px 6px 0;
+}
+
+html body .sap-tree-children::before,
+html body .sap-tree-leaf::before {
+    display: none;
+}
+
+html body .sap-tree-leaf {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 1px 0;
+    padding: 7px 10px;
+    border: 0;
+    border-radius: 7px;
+    background: none;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 0.86rem;
+    font-weight: 400;
+    text-decoration: none;
+}
+
+html body .sap-tree-leaf i {
+    width: 16px;
+    text-align: center;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+html body .sap-tree-leaf:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+/* Pied du menu : poste actif, identique pour tous les utilisateurs.
+   Une carte discrète : nom du poste, département en dessous, actions en icônes. */
+html body .sidebar-footer {
+    padding: 12px;
+    background: transparent;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+html body .compact-role-box {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 2px 10px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 0;
+    border-radius: 12px;
+    box-shadow: none;
+}
+
+html body .compact-role-header {
+    display: none;
+}
+
+html body .compact-role-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    margin: 0;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+html body .compact-role-name i {
+    color: var(--shell-gold);
+    font-size: 0.9rem;
+}
+
+html body .compact-role-box > .text-white-50 {
+    grid-column: 1;
+    margin: 0 !important;
+    padding-inline-start: 24px;
+    color: rgba(255, 255, 255, 0.5) !important;
+    font-size: 0.76rem;
+}
+
+html body .compact-role-box > .text-white-50 i {
+    color: rgba(255, 255, 255, 0.4) !important;
+}
+
+html body .compact-role-actions {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+}
+
+html body .compact-role-actions .dropdown {
+    flex-grow: 0 !important;
+}
+
+html body .btn-switch-compact {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: auto !important;
+    height: 32px;
+    min-width: 32px;
+    padding: 0 9px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 0;
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 0.78rem;
+    box-shadow: none;
+}
+
+html body .btn-switch-compact:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff !important;
+}
+
+html body .btn-switch-compact i {
+    color: inherit !important;
+}
+
+/* ─── Bandeau supérieur ─── */
+html body .top-navbar {
+    background: linear-gradient(135deg, #344d59 0%, #000000 100%);
+    color: #fff;
+    border: 0;
+}
+
+/* Contexte (faculté, département, année, date) : texte simple séparé par de
+   fins traits, sans pastilles encadrées */
+html body .top-navbar {
+    min-height: 58px;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+html body .top-navbar .shell-dept-pill,
+html body .top-navbar .shell-annee-pill,
+html body .top-navbar .shell-date-pill {
+    height: auto;
+    padding: 2px 12px;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 0.84rem;
+    font-weight: 500;
+}
+
+html body .top-navbar .shell-dept-pill + .shell-dept-pill,
+html body .top-navbar .shell-annee-pill + .shell-date-pill {
+    border-inline-start: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+html body .top-navbar .shell-fac-pill {
+    max-width: none;
+}
+
+html body .top-navbar .shell-dept-pill span,
+html body .top-navbar .shell-annee-pill span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+html body .top-navbar .shell-annee-pill strong {
+    color: #fff;
+    font-weight: 600;
+}
+
+html body .top-navbar i.text-warning,
+html body .top-navbar i.text-info,
+html body .top-navbar .shell-dept-pill i,
+html body .top-navbar .shell-annee-pill i,
+html body .top-navbar .shell-date-pill i {
+    color: var(--shell-gold) !important;
+    opacity: 0.8;
+    font-size: 0.85rem;
+}
+
+/* Changer de poste : bouton discret */
+html body .top-navbar .btn-shell-switch-role {
+    height: 36px;
+    padding: 0 12px;
+    background: none;
+    border: 0;
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.84rem;
+    box-shadow: none;
+}
+
+html body .top-navbar .btn-shell-switch-role:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+html body .top-navbar .sidebar-toggle {
+    background: rgba(255, 255, 255, 0.1);
+    border: 0;
+    color: #fff;
+}
+
+html body .top-navbar .user-chip-name,
+html body .top-navbar .user-chip-role {
+    color: #fff;
+}
+
+html body .top-navbar .user-chip-role {
+    opacity: 0.75;
+}
+
+/* ─── Bandeaux de titre des pages ─── */
+html body .dep-page-hero,
+html body .dep-hero,
+html body .ens-hero,
+html body .edit-hero {
+    background: var(--shell-gradient);
+    color: #fff;
+    border: 0;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+/* ─── Composants ─── */
+html body .card {
+    border: 0;
+    border-radius: 16px;
+    box-shadow: 0 4px 18px rgba(27, 38, 44, 0.07);
+}
+
+html body .btn-primary {
+    background: #344d59;
+    border-color: #344d59;
+}
+
+html body .btn-primary:hover {
+    background: #22343d;
+    border-color: #22343d;
+}
+
+html body .dashboard-footer {
+    background: linear-gradient(135deg, #344d59 0%, #000000 100%); /* même sens que le bandeau */
+    color: rgba(255, 255, 255, 0.8);
+    border: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LECTURE — règles communes à tous les espaces et à tous les postes
+   ═══════════════════════════════════════════════════════════════════════════ */
+html body .main-content {
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: #1f2a30;
+}
+
+html body .main-content h1,
+html body .main-content h2,
+html body .main-content h3,
+html body .main-content h4,
+html body .main-content h5 {
+    line-height: 1.35;
+}
+
+html body .main-content .text-muted {
+    color: #66737a !important;
+}
+
+/* Tableaux */
+html body .main-content .table {
+    margin-bottom: 0;
+}
+
+/* En-têtes de tableaux : dégradé sombre des pages département (règle :where(.table thead th) plus bas) */
+html body .main-content .table > thead > tr > th,
+html body .main-content .table thead th {
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    padding: 0.7rem 0.75rem;
+}
+
+html body .main-content .table > tbody > tr > td {
+    padding: 0.65rem 0.75rem;
+    border-color: #edf0eb;
+    vertical-align: middle;
+}
+
+html body .main-content .table-hover > tbody > tr:hover > * {
+    background: #f8faf6;
+}
+
+/* Formulaires */
+html body .main-content .form-control,
+html body .main-content .form-select {
+    border-radius: 10px;
+    border-color: #d7ddd4;
+}
+
+html body .main-content .form-control:focus,
+html body .main-content .form-select:focus {
+    border-color: #344d59;
+    box-shadow: 0 0 0 3px rgba(52, 77, 89, 0.15);
+}
+
+html body .main-content .form-label {
+    color: #344d59;
+}
+
+/* Boutons des bandeaux de titre : mêmes couleurs dans tous les espaces */
+html body .btn-hero-primary,
+html body .btn-hero-gold,
+html body .btn-hero-save {
+    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+    color: #0d1b2a !important;
+    border: 0;
+    box-shadow: 0 4px 14px rgba(255, 215, 0, 0.3);
+}
+
+html body .btn-hero-primary:hover,
+html body .btn-hero-gold:hover,
+html body .btn-hero-save:hover {
+    filter: brightness(1.05);
+    color: #0d1b2a !important;
+}
+
+html body .btn-hero-secondary,
+html body .btn-hero-ghost,
+html body .btn-hero-outline {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+/* Alertes et badges */
+html body .main-content .alert {
+    border-radius: 12px;
+}
+
+html body .main-content .badge {
+    font-weight: 600;
+}
+
+/* ─── Largeur : le contenu ne doit jamais pousser la page sous le menu ───
+   (un tableau large défile dans sa carte au lieu d'élargir toute la page) */
+html body .main-wrapper,
+html body .main-content {
+    min-width: 0;
+}
+
+html body .main-content {
+    overflow-x: clip;
+}
+
+html body .main-content .table-responsive,
+html body .main-content .card-body:has(> .table),
+html body .main-content .card-body:has(> table) {
+    overflow-x: auto;
+}
+
+/* ─── Bouton utilisateur du bandeau : compact et sobre ─── */
+html body .top-navbar .user-chip-button {
+    height: 40px;
+    gap: 9px;
+    padding: 0 4px 0 12px;
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+    color: #fff;
+    transition: background 0.15s ease;
+}
+
+html body .top-navbar .user-chip-button:hover,
+html body .top-navbar .user-chip-button[aria-expanded="true"] {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+html body .top-navbar .user-chip-avatar {
+    width: 34px;
+    height: 34px;
+    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%) !important;
+    color: #0d1b2a !important;
+    border: 0;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15);
+    font-size: 0.78rem !important;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+html body .top-navbar .user-chip-info {
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.15;
+}
+
+html body .top-navbar .user-chip-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+html body .top-navbar .user-chip-role {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.6);
+    opacity: 1;
+}
+
+html body .top-navbar .user-chip-button > .fa-chevron-down {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EMPREINTE UNIQUE — anciens composants des pages enseignant / étudiant /
+   université ramenés au style des pages du chef de département
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Zone grise d'encadrement : plus de fond, la page respire */
+html body .main-content .grey_zone {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+/* En-tête de page « titre + boutons » → bandeau de titre en dégradé */
+html body .main-content .main-header {
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 1.5rem !important;
+    padding: 1.3rem 1.7rem;
+    background: var(--shell-gradient);
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    color: #fff;
+}
+
+html body .main-content .main-header .page-title {
+    margin: 0;
+    padding: 0;
+    border: 0 !important;
+    color: #fff !important;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+html body .main-content .main-header .page-title i {
+    color: var(--shell-gold);
+    margin-inline-end: 6px;
+}
+
+html body .main-content .main-header .btn-primary {
+    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+    border: 0;
+    color: #0d1b2a;
+    font-weight: 600;
+}
+
+html body .main-content .main-header .btn-outline-primary,
+html body .main-content .main-header .btn-outline-secondary,
+html body .main-content .main-header .btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: #fff;
+}
+
+html body .main-content .main-header .btn-outline-primary:hover,
+html body .main-content .main-header .btn-outline-secondary:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+/* Titres de page isolés (sans bandeau) */
+html body .main-content .page-title {
+    border-bottom: 0 !important;
+}
+
+/* En-têtes de cartes et de sections colorés → en-tête blanc unique */
+html body .main-content .card-header[class*="bg-"],
+html body .main-content .section-header[class*="bg-"],
+html body .main-content .card-header.text-white,
+html body .main-content .section-header.text-white {
+    background: #fff !important;
+    color: #1b262c !important;
+    border-bottom: 1px solid #edf0eb;
+    font-weight: 600;
+}
+
+html body .main-content .card-header[class*="bg-"] *,
+html body .main-content .section-header[class*="bg-"] * {
+    color: inherit;
+}
+
+html body .main-content .card-header h5,
+html body .main-content .card-header h6,
+html body .main-content .section-header h5,
+html body .main-content .section-header h6 {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+html body .main-content .card-header > h5 > i,
+html body .main-content .card-header > h6 > i,
+html body .main-content .section-header > h5 > i,
+html body .main-content .section-header > h6 > i {
+    color: #c9a400;
+    margin-inline-end: 4px;
+}
+
+html body .main-content .card {
+    overflow: hidden;
+}
+
+
+
+/* ─── Bandeau : partage de la largeur sans chevauchement ─── */
+html body .top-navbar .shell-start-area {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+}
+
+html body .top-navbar .shell-center-area {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+html body .top-navbar .shell-dept-pill {
+    min-width: 0;
+    flex-shrink: 1;
+}
+
+html body .top-navbar .shell-dep-name-pill {
+    flex-shrink: 0;
+}
+
+@media (max-width: 1700px) {
+    html body .top-navbar .shell-date-pill {
+        display: none !important;
+    }
+}
+
+/* Pied du menu : actions en icônes seules (libellé dans l'infobulle) pour
+   laisser toute la place au nom du poste */
+html body .compact-role-actions .btn-switch-compact > span {
+    display: none;
+}
+
+/* Nom du poste toujours complet (retour à la ligne plutôt que « … ») */
+html body .compact-role-name > span,
+html body .compact-role-box > .text-white-50 > span {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    line-height: 1.35;
+}
+
+html body .compact-role-name {
+    align-items: flex-start;
+}
+
+html body .compact-role-name i {
+    margin-top: 3px;
+}
+
+/* Bouton utilisateur : distingué du reste du bandeau (capsule à liseré doré,
+   séparée du contexte par un trait vertical) */
+html body .top-navbar .shell-end-area {
+    padding-inline-start: 14px;
+    border-inline-start: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+html body .top-navbar .user-chip-button {
+    padding: 0 5px 0 14px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 215, 0, 0.4);
+}
+
+html body .top-navbar .user-chip-button:hover,
+html body .top-navbar .user-chip-button[aria-expanded="true"] {
+    background: rgba(255, 215, 0, 0.12);
+    border-color: var(--shell-gold);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMPOSANTS DE PAGE COMMUNS (dsh-*) — indicateurs, panneaux, tuiles, personnes
+   Utilisables dans toutes les pages de tous les espaces.
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* Indicateurs */
+.dsh-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.dsh-kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 18px 20px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 18px rgba(27, 38, 44, 0.06);
+    color: inherit;
+    text-decoration: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dsh-kpi:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px rgba(27, 38, 44, 0.1);
+    color: inherit;
+}
+
+.dsh-kpi-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #66737a;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.dsh-kpi-head i {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: #f1f4ef;
+    color: #344d59;
+}
+
+.dsh-kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: #11191e;
+}
+
+.dsh-kpi-sub {
+    color: #66737a;
+    font-size: 0.8rem;
+}
+
+.dsh-kpi-sub strong {
+    color: #344d59;
+}
+
+/* Panneaux */
+.dsh-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.dsh-panel {
+    padding: 20px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 18px rgba(27, 38, 44, 0.06);
+}
+
+.dsh-panel + .dsh-panel {
+    margin-top: 20px;
+}
+
+.dsh-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 16px;
+    color: #11191e;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.dsh-panel-title i {
+    color: #c9a400;
+}
+
+/* Accès rapides */
+.dsh-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.dsh-action {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid #edf0eb;
+    border-radius: 12px;
+    color: #1f2a30;
+    text-decoration: none;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.dsh-action:hover {
+    border-color: #ffd700;
+    background: #fffcea;
+    color: #1f2a30;
+}
+
+.dsh-action i {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: #11191e;
+    color: #ffd700;
+}
+
+.dsh-action-title {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.dsh-action-desc {
+    display: block;
+    color: #66737a;
+    font-size: 0.76rem;
+}
+
+/* Direction */
+.dsh-person {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+}
+
+.dsh-person + .dsh-person {
+    border-top: 1px solid #edf0eb;
+}
+
+.dsh-avatar {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #f1f4ef;
+    color: #344d59;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.dsh-person-role {
+    display: block;
+    color: #66737a;
+    font-size: 0.76rem;
+}
+
+.dsh-person-name {
+    display: block;
+    font-weight: 600;
+}
+
+/* Semestres */
+.dsh-semesters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.dsh-semester {
+    padding: 14px;
+    border-radius: 12px;
+    background: #f6f8f4;
+    color: inherit;
+    text-decoration: none;
+    text-align: center;
+}
+
+.dsh-semester:hover {
+    background: #eef2ea;
+    color: inherit;
+}
+
+.dsh-semester-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #11191e;
+}
+
+.dsh-semester-label {
+    color: #66737a;
+    font-size: 0.8rem;
+}
+
+.dsh-empty {
+    color: #66737a;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 1200px) {
+    .dsh-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dsh-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+    .dsh-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 520px) {
+    .dsh-kpis,
+    .dsh-actions { grid-template-columns: 1fr; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMPOSANTS DES PAGES DÉPARTEMENT (bandeau dep-page-hero, cartes dep-table-card…)
+   rendus disponibles dans tous les espaces. Sélecteurs en :where() :
+   spécificité nulle, les styles propres à une page restent prioritaires.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:where(.dep-page-container) {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+/* ─── BANNIÈRE HERO UNIFIÉE ─── */
+:where(.dep-page-hero) {
+    background: linear-gradient(135deg, #344d59 0%, #000000 100%);
+    border-radius: 16px;
+    padding: 1.6rem 2rem;
+    color: #ffffff;
+    box-shadow: 0 10px 30px rgba(27, 38, 44, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+:where(.dep-page-hero::before) {
+    content: '';
+    position: absolute;
+    top: -60px;
+    left: -60px;
+    width: 240px;
+    height: 240px;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.12) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+:where(.dep-hero-content) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    position: relative;
+    z-index: 2;
+}
+
+:where(.dep-hero-titles h1) {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0 0 0.35rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #ffffff;
+}
+
+:where(.dep-hero-subtitle) {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.92rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin: 0;
+}
+
+:where(.dep-hero-badge) {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+:where(.dep-hero-actions) {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+/* ─── BOUTONS HERO UNIFIÉS ─── */
+:where(.btn-hero-primary) {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff !important;
+    border: none;
+    padding: 0.6rem 1.35rem;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    transition: all 0.2s ease;
+}
+
+:where(.btn-hero-primary:hover) {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: #ffffff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+}
+
+:where(.btn-hero-secondary) {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+:where(.btn-hero-secondary:hover) {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff !important;
+    transform: translateY(-2px);
+}
+
+:where(.btn-hero-gold) {
+    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+    color: #0d1b2a !important;
+    border: none;
+    padding: 0.6rem 1.35rem;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(255, 215, 0, 0.35);
+    transition: all 0.2s ease;
+}
+
+:where(.btn-hero-gold:hover) {
+    background: linear-gradient(135deg, #ffaa00 0%, #ff8c00 100%);
+    color: #0d1b2a !important;
+    transform: translateY(-2px);
+}
+
+/* ─── CARTES ET TABLEAUX UNIFIÉS ─── */
+:where(.dep-table-card) {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid rgba(13, 27, 42, 0.08);
+    box-shadow: 0 4px 20px rgba(13, 27, 42, 0.05);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+:where(.dep-table-header) {
+    padding: 1.25rem 1.5rem;
+    background: #ffffff;
+    border-bottom: 1px solid rgba(13, 27, 42, 0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+:where(.dep-table-header h2), :where(.dep-table-header h5) {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1b262c;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+:where(.dep-search-box) {
+    position: relative;
+    min-width: 280px;
+    max-width: 400px;
+}
+
+:where(.dep-search-box input) {
+    border-radius: 10px;
+    padding-right: 38px;
+    border: 1.5px solid #e2e8f0;
+    font-size: 0.88rem;
+}
+
+:where(.dep-search-box input:focus) {
+    border-color: #344D59;
+    box-shadow: 0 0 0 3px rgba(52, 77, 89, 0.12);
+}
+
+:where(.dep-search-box .search-icon) {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+    font-size: 0.85rem;
+}
+
+/* Tableaux SAP Fiori */
+:where(.table-responsive) {
+    border-radius: 0 0 14px 14px;
+    overflow-x: auto;
+}
+
+:where(.dep-table), :where(.table) {
+    margin-bottom: 0;
+    font-size: 0.88rem;
+    direction: rtl;
+    text-align: right;
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+
+:where(.dep-table thead th), :where(.table thead th) {
+    background: linear-gradient(135deg, #344d59 0%, #000000 100%) !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    font-size: 0.84rem;
+    padding: 13px 16px;
+    border: none;
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+}
+
+:where(.dep-table tbody td), :where(.table tbody td) {
+    padding: 13px 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid #edf2f7;
+    color: #2d3748;
+}
+
+:where(.dep-table tbody tr:hover), :where(.table tbody tr:hover) {
+    background-color: rgba(52, 77, 89, 0.04) !important;
+}
+
+/* Badges unifiés */
+:where(.badge-code) {
+    background: #f1f5f9;
+    color: #334155;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.82rem;
+}
+
+:where(.badge-semester) {
+    background: rgba(52, 77, 89, 0.1);
+    color: #344D59;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+
+/* Formulaires et Cartes */
+:where(.dep-form-card) {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid rgba(13, 27, 42, 0.08);
+    box-shadow: 0 4px 20px rgba(13, 27, 42, 0.05);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+:where(.dep-upload-zone) {
+    border: 2px dashed #cbd5e1;
+    border-radius: 14px;
+    background: #f8fafc;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+
+:where(.dep-upload-zone:hover) {
+    border-color: #344D59;
+    background: #f1f5f9;
+}
+
+:where(.dep-upload-icon) {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(52, 77, 89, 0.1);
+    color: #344D59;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    margin: 0 auto 1.2rem auto;
+}
+
+/* Pagination */
+:where(.pagination .page-link) {
+    color: #344D59;
+    border: 1px solid #e2e8f0;
+    margin: 0 3px;
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 6px 14px;
+}
+
+:where(.pagination .page-item.active .page-link) {
+    background: linear-gradient(135deg, #344d59 0%, #000000 100%);
+    border-color: #1b262c;
+    color: white;
+}
+
+.dsh-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #f1f4ef;
+    color: #344d59;
+    font-size: 0.82rem;
+}
+
+.dsh-chip strong {
+    color: #11191e;
+}
+
+/* ═══ Profils (enseignant, département) : mêmes couleurs que le reste ═══ */
+html body .su-icon-box,
+html body .su-icon-box[class*=" "] {
+    background: #f1f4ef;
+    color: #344d59;
+    border: 0;
+}
+
+html body .scholar-icon-box,
+html body .scholar-icon-box[class*=" "] {
+    background: #f1f4ef !important;
+    color: #344d59 !important;
+}
+
+html body .scholar-stat-card {
+    border: 0;
+    border-radius: 16px;
+    box-shadow: 0 4px 18px rgba(27, 38, 44, 0.06);
+}
+
+html body .ens-data-item {
+    background: #f8faf6;
+    border: 0;
+    border-radius: 10px;
+}
+
+html body .ens-data-label {
+    color: #66737a;
+}
+
+html body .ens-data-label i {
+    color: #c9a400;
+}
+
+html body .ens-data-val,
+html body .ens-data-val.text-primary {
+    color: #11191e !important;
+    font-weight: 600;
+}
+
+html body .ens-empty {
+    color: #b7c0bb;
+    font-weight: 400;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ÉCHELLE TYPOGRAPHIQUE UNIQUE — mêmes tailles sur toutes les pages
+   Titre de page · titre de section · texte courant · texte secondaire · chiffres
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+    --fs-page-title: 1.35rem;    /* titre du bandeau de page */
+    --fs-page-sub: 0.85rem;      /* sous-titre du bandeau */
+    --fs-section: 1rem;          /* titre de panneau / carte */
+    --fs-body: 0.92rem;          /* texte courant, tableaux, formulaires */
+    --fs-meta: 0.8rem;           /* texte secondaire, étiquettes */
+    --fs-figure: 1.75rem;        /* chiffres des indicateurs */
+}
+
+/* Titres de page (bandeaux) */
+html body .dep-hero-titles h1,
+html body .ens-hero h1,
+html body .ens-hero-titles h1,
+html body .edit-hero h1,
+html body .edit-hero-titles h1,
+html body .dep-hero-title,
+html body .main-content .main-header .page-title,
+html body .main-content .page-title {
+    font-size: var(--fs-page-title) !important;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: 0;
+}
+
+html body .dep-hero-titles h1 i,
+html body .ens-hero h1 i {
+    font-size: 1.1rem;
+}
+
+/* Sous-titres des bandeaux */
+html body .dep-hero-subtitle,
+html body .ens-hero-sub,
+html body .ens-hero-subtitle,
+html body .edit-hero-subtitle {
+    font-size: var(--fs-page-sub) !important;
+    line-height: 1.5;
+}
+
+/* Titres de section */
+html body .dsh-panel-title,
+html body .main-content .card-header h4,
+html body .main-content .card-header h5,
+html body .main-content .card-header h6,
+html body .main-content .section-header h5,
+html body .main-content .section-header h6,
+html body .main-content .dep-table-header h4,
+html body .main-content .dep-table-header h5,
+html body .su-card-title,
+html body .panel-header-title {
+    font-size: var(--fs-section) !important;
+    font-weight: 700;
+}
+
+/* Titres internes au contenu */
+html body .main-content h1 { font-size: var(--fs-page-title); }
+html body .main-content h2 { font-size: 1.15rem; }
+html body .main-content h3 { font-size: 1.05rem; }
+html body .main-content h4 { font-size: 1rem; }
+html body .main-content h5 { font-size: var(--fs-section); }
+html body .main-content h6 { font-size: 0.9rem; }
+
+/* Texte courant */
+html body .main-content,
+html body .main-content .table,
+html body .main-content .form-control,
+html body .main-content .form-select,
+html body .main-content .btn {
+    font-size: var(--fs-body);
+}
+
+/* Texte secondaire */
+html body .main-content small,
+html body .main-content .small,
+html body .main-content .text-muted.small,
+html body .dsh-kpi-sub,
+html body .dsh-action-desc,
+html body .dsh-person-role,
+html body .main-content .form-label,
+html body .main-content .badge {
+    font-size: var(--fs-meta);
+}
+
+/* Chiffres des indicateurs */
+html body .dsh-kpi-value,
+html body .scholar-stat-num,
+html body .dsh-semester-value {
+    font-size: var(--fs-figure);
+}
+
+/* Nom de la faculté toujours complet dans le bandeau (retour à la ligne si besoin) */
+html body .top-navbar .shell-fac-pill {
+    flex-shrink: 1;
+}
+
+html body .top-navbar .shell-fac-pill span {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    line-height: 1.3;
+}
+
+/* ═══ En-tête unique de TOUS les tableaux du site ═══
+   Mise en forme de la liste des enseignants du département, couleur unie = bleu-gris principal du site */
+html body .main-content table thead th,
+html body .main-content table > thead > tr > th,
+html body .main-content .table-dark th {
+    background: #344d59 !important; /* couleur unie : bleu-gris principal du site */
+    color: #ffffff !important;
+    font-size: 0.84rem !important;
+    font-weight: 600 !important;
+    padding: 13px 14px !important;
+    border: none !important;
+    white-space: nowrap;
+    box-shadow: none !important;
+    vertical-align: middle;
+}
+
+html body .main-content table thead th i,
+html body .main-content table thead th a {
+    color: inherit !important;
+}
+
+/* Logo et nom « Smart-Univ » alignés à droite (début de ligne en arabe) en haut du menu latéral */
+html body .sidebar-header {
+    justify-content: flex-start;
+}
+
+/* Boutons des bandeaux : jamais soulignés */
+html body .btn-hero-primary,
+html body .btn-hero-secondary,
+html body .btn-hero-gold,
+html body .btn-hero-ghost,
+html body .btn-hero-outline,
+html body .btn-hero-action {
+    text-decoration: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DENSITÉ COMPACTE — moins d'espace perdu sur toutes les pages
+   (marges de page, bandeaux, indicateurs, panneaux, cartes, tableaux, menu)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Page */
+html body .main-content {
+    padding: 16px 20px !important;
+}
+
+html body .dep-page-container {
+    padding: 0 !important;
+}
+
+html body .main-content .mb-5 { margin-bottom: 1.25rem !important; }
+html body .main-content .mb-4 { margin-bottom: 1rem !important; }
+html body .main-content .mt-5 { margin-top: 1.25rem !important; }
+html body .main-content .mt-4 { margin-top: 1rem !important; }
+html body .main-content .py-5 { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
+html body .main-content .p-5 { padding: 1.5rem !important; }
+html body .main-content .m-5 { margin: 1.25rem !important; }
+
+/* Bandeaux de titre */
+html body .dep-page-hero,
+html body .dep-hero,
+html body .ens-hero,
+html body .edit-hero,
+html body .main-content .main-header {
+    padding: 0.9rem 1.3rem !important;
+    margin-bottom: 14px !important;
+    border-radius: 14px;
+}
+
+html body .dep-hero-content {
+    gap: 12px;
+}
+
+html body .dep-hero-subtitle {
+    margin-top: 2px;
+    margin-bottom: 0;
+}
+
+html body .btn-hero-primary,
+html body .btn-hero-secondary,
+html body .btn-hero-gold,
+html body .btn-hero-action {
+    padding: 0.4rem 0.95rem !important;
+    border-radius: 9px;
+}
+
+/* Indicateurs */
+html body .dsh-kpis {
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+html body .dsh-kpi {
+    padding: 12px 16px;
+    gap: 4px;
+    border-radius: 12px;
+}
+
+html body .dsh-kpi-head i {
+    width: 30px;
+    height: 30px;
+}
+
+html body .dsh-kpi-value,
+html body .dsh-semester-value,
+html body .scholar-stat-num {
+    font-size: 1.45rem !important;
+}
+
+/* Panneaux, cartes et grilles */
+html body .dsh-grid {
+    gap: 14px;
+}
+
+html body .dsh-panel {
+    padding: 14px 16px;
+    border-radius: 12px;
+}
+
+html body .dsh-panel + .dsh-panel {
+    margin-top: 14px;
+}
+
+html body .dsh-panel-title {
+    margin-bottom: 10px;
+}
+
+html body .dsh-actions {
+    gap: 8px;
+}
+
+html body .dsh-action {
+    padding: 10px 12px;
+}
+
+html body .dsh-action i {
+    width: 32px;
+    height: 32px;
+}
+
+html body .main-content .card {
+    margin-bottom: 14px;
+    border-radius: 12px;
+}
+
+html body .main-content .card-header {
+    padding: 0.6rem 1rem;
+}
+
+html body .main-content .card-body {
+    padding: 0.85rem 1rem;
+}
+
+html body .main-content .row {
+    --bs-gutter-y: 0.75rem;
+}
+
+/* Tableaux */
+html body .main-content table thead th,
+html body .main-content table > thead > tr > th {
+    padding: 9px 12px !important;
+}
+
+html body .main-content .table > tbody > tr > td,
+html body .main-content table tbody td {
+    padding: 0.5rem 0.75rem;
+}
+
+/* Formulaires */
+html body .main-content .form-control,
+html body .main-content .form-select {
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+}
+
+html body .main-content .mb-3 {
+    margin-bottom: 0.75rem !important;
+}
+
+/* Bandeau supérieur et menu latéral */
+html body .top-navbar {
+    min-height: 52px;
+    height: 52px;
+    max-height: 52px;
+}
+
+html body .sidebar-header {
+    height: 52px;
+    min-height: 52px;
+    max-height: 52px;
+}
+
+html body .sidebar-nav {
+    padding: 10px 10px;
+}
+
+html body .sap-tree-section-title {
+    margin: 12px 10px 4px;
+}
+
+html body .sap-tree-item,
+html body .sap-tree-branch-header {
+    padding: 7px 12px;
+}
+
+html body .sap-tree-leaf {
+    padding: 6px 10px;
+}
+
+html body .sidebar-footer {
+    padding: 8px 10px;
+}
+
+html body .compact-role-box {
+    padding: 8px 10px;
+}
+
+/* Pied de page */
+html body .dashboard-footer {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+/* Grille à deux colonnes égales */
+html body .dsh-grid.dsh-grid-even {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 992px) {
+    html body .dsh-grid.dsh-grid-even { grid-template-columns: 1fr; }
+}

@@ -3,6 +3,7 @@ import traceback
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Count, Min
+from django.db.models.functions import Length
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -376,15 +377,41 @@ def list_Etudiant_Ens(request, dep_id, enseignant, departement):
 @enseignant_access_required
 def list_Mat_Niv_Ens(request, dep_id, enseignant, departement):
     """
-    Liste des matières/modules adaptée pour l'enseignant.
-    Affiche un formulaire de filtrage en cascade et la liste des matières.
+    Liste des matières et modules du département (الهياكل والمقررات) - classée selon le code/numéro.
+    Présentation unifiée identique au chef de département avec pagination et recherche directe.
     """
-    # Contexte avec sidebar commun
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+
+    query = request.GET.get("q", "").strip()
+
+    matieres_qs = (
+        Matiere.objects.filter(niv_spe_dep__specialite__departement=departement)
+        .select_related("niv_spe_dep__specialite", "niv_spe_dep__niveau", "semestre")
+        .order_by("semestre__numero", Length("code"), "code", "id")
+        .distinct()
+    )
+
+    if query:
+        matieres_qs = matieres_qs.filter(
+            Q(nom_ar__icontains=query) | Q(nom_fr__icontains=query) | Q(code__icontains=query)
+        )
+
+    paginator = Paginator(matieres_qs, 25)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     context = get_sidebar_context(request, enseignant, departement)
     context.update(
         {
-            "title": "قائمة المواد",
+            "title": "قائمة المواد والمقررات الدراسية - الهياكل والمقررات",
             "active_menu": "matieres",
+            "matieres": page_obj,
+            "page_obj": page_obj,
+            "paginator": paginator,
+            "is_paginated": page_obj.has_other_pages(),
+            "query": query,
+            "total_matieres": matieres_qs.count(),
         }
     )
     return render(request, "enseignant/list_Mat_Niv_Ens.html", context)
@@ -393,90 +420,44 @@ def list_Mat_Niv_Ens(request, dep_id, enseignant, departement):
 @enseignant_access_required
 def list_Specialite_Ens(request, dep_id, enseignant, departement):
     """
-    Liste des spécialités du département adaptée pour l'enseignant.
-    Affiche toutes les spécialités avec statistiques.
+    Liste des spécialités du département (الهياكل والمقررات) - classée selon le code/numéro.
+    Présentation unifiée identique au chef de département avec pagination, statistiques et recherche.
     """
     try:
-        # Récupérer toutes les spécialités du département
-        queryset = (
+        from django.core.paginator import Paginator
+        from django.db.models import Count, Q
+
+        query = request.GET.get("q", "").strip()
+
+        specialites_qs = (
             Specialite.objects.filter(departement=departement)
-            .select_related("reforme", "identification", "parcours")
-            .order_by("reforme__code", "nom_ar")
+            .annotate(
+                nb_matieres=Count("nivspedep__matieres", distinct=True),
+                nb_etudiants=Count("nivspedep__sections_groupes__etudiants", distinct=True),
+            )
+            .order_by(Length("code"), "code", "id")
         )
 
-        # Statistiques de base
-        total_count = queryset.count()
-        count_with_reforme = queryset.filter(reforme__isnull=False).count()
-        count_with_identification = queryset.filter(identification__isnull=False).count()
-        reformes_count = queryset.values("reforme").distinct().count()
-
-        # Convertir le queryset en liste de dictionnaires pour éviter les problèmes d'encodage dans le template
-        all_Specialite_Ens = []
-        for spe in queryset:
-            try:
-                spe_data = {
-                    "id": spe.id,
-                    "nom_ar": _safe_str(spe.nom_ar),
-                    "nom_fr": _safe_str(spe.nom_fr),
-                    "code": _safe_str(spe.code),
-                    "reforme": None,
-                    "identification": None,
-                    "parcours": None,
-                }
-                if spe.reforme:
-                    spe_data["reforme"] = {
-                        "nom_ar": _safe_str(spe.reforme.nom_ar),
-                        "code": _safe_str(spe.reforme.code),
-                    }
-                if spe.identification:
-                    spe_data["identification"] = {
-                        "nom_ar": _safe_str(
-                            spe.identification.nom_ar if hasattr(spe.identification, "nom_ar") else None
-                        ),
-                        "code": _safe_str(spe.identification.code if hasattr(spe.identification, "code") else None),
-                    }
-                if spe.parcours:
-                    spe_data["parcours"] = {
-                        "nom_ar": _safe_str(spe.parcours.nom_ar if hasattr(spe.parcours, "nom_ar") else None),
-                        "code": _safe_str(spe.parcours.code if hasattr(spe.parcours, "code") else None),
-                    }
-                all_Specialite_Ens.append(spe_data)
-            except Exception:
-                # Skip problematic records
-                continue
-
-        # Statistiques par réforme
-        reforme_stats = []
-        try:
-            stats = (
-                queryset.exclude(reforme__isnull=True)
-                .values("reforme__code", "reforme__nom_ar")
-                .annotate(count=Count("id"))
-                .order_by("-count")
+        if query:
+            specialites_qs = specialites_qs.filter(
+                Q(nom_ar__icontains=query) | Q(nom_fr__icontains=query) | Q(code__icontains=query)
             )
-            for stat in stats:
-                reforme_stats.append(
-                    {
-                        "reforme__code": _safe_str(stat.get("reforme__code")),
-                        "reforme__nom_ar": _safe_str(stat.get("reforme__nom_ar")),
-                        "count": stat.get("count", 0),
-                    }
-                )
-        except Exception:
-            reforme_stats = []
 
-        # Contexte avec sidebar commun
+        paginator = Paginator(specialites_qs, 25)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+
         context = get_sidebar_context(request, enseignant, departement)
         context.update(
             {
-                "title": "قائمة التخصصات",
+                "title": "قائمة التخصصات والشعب - الهياكل والمقررات",
                 "active_menu": "specialites",
-                "all_Specialite_Ens": all_Specialite_Ens,
-                "total_count": total_count,
-                "count_with_reforme": count_with_reforme,
-                "count_with_identification": count_with_identification,
-                "reformes_count": reformes_count,
-                "reforme_stats": reforme_stats,
+                "specialites": page_obj,
+                "page_obj": page_obj,
+                "paginator": paginator,
+                "is_paginated": page_obj.has_other_pages(),
+                "query": query,
+                "total_count": specialites_qs.count(),
             }
         )
         return render(request, "enseignant/list_Specialite_Ens.html", context)

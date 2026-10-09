@@ -1,5 +1,6 @@
 import traceback
 
+from django.db.models.functions import Length
 from django.http import JsonResponse
 
 from apps.academique.departement.models import Matiere, NivSpeDep_SG, Specialite
@@ -56,7 +57,7 @@ def matieres_json_ens(request, dep_id, enseignant, departement):
                         )
                         .distinct()
                         .values("id", "code", "nom_ar", "nom_fr")
-                        .order_by("nom_ar")
+                        .order_by(Length("code"), "code", "id")
                     )
                     return JsonResponse({"data": list(specialites)})
                 return JsonResponse({"data": []})
@@ -85,11 +86,11 @@ def matieres_json_ens(request, dep_id, enseignant, departement):
                 if semestre_id:
                     filters["semestre_id"] = semestre_id
 
-                # Récupérer les matières
+                # Récupérer les matières classées selon le code/numéro
                 matieres = (
                     Matiere.objects.filter(**filters)
                     .values("id", "nom_ar", "nom_fr", "code", "coeff", "credit")
-                    .order_by("code")
+                    .order_by(Length("code"), "code", "id")
                 )
 
                 return JsonResponse({"data": list(matieres)})

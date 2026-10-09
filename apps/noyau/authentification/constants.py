@@ -39,6 +39,20 @@ ROLE_LABELS = {
     ROLE_VICE_RECT_PG: "لوحة تحكم ن.ر.ج ما بعد التدرج",
 }
 
+ROLE_TITLES = {
+    ROLE_ETUDIANT: "طالب",
+    ROLE_ENSEIGNANT: "أستاذ",
+    ROLE_CHEF_DEP: "رئيس القسم",
+    ROLE_CHEF_DEP_ADJ_P: "نائب رئيس القسم للبيداغوجيا",
+    ROLE_CHEF_DEP_ADJ_PG: "نائب رئيس القسم لما بعد التدرج",
+    ROLE_DOYEN: "عميد الكلية",
+    ROLE_VICE_DOYEN_P: "نائب عميد الكلية للبيداغوجيا",
+    ROLE_VICE_DOYEN_PG: "نائب عميد الكلية لما بعد التدرج",
+    ROLE_RECTEUR: "رئيس الجامعة",
+    ROLE_VICE_RECT_P: "نائب رئيس الجامعة للبيداغوجيا",
+    ROLE_VICE_RECT_PG: "نائب رئيس الجامعة لما بعد التدرج",
+}
+
 # ══════════════════════════════════════════════════════════════
 # MAPPING RÔLES → URLS DE REDIRECTION
 # ══════════════════════════════════════════════════════════════

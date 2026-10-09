@@ -1,0 +1,278 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% translate 'Import' %} {{ opts.verbose_name_plural|capfirst }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/changelists.css' %}">
+<style>
+/* Supprimer highlighting des cellules */
+#result_list td, #result_list td span, #result_list td ins, #result_list td del {
+    background: transparent !important;
+    text-decoration: none !important;
+    color: var(--body-fg, #333) !important;
+}
+
+/* Statistiques d'import */
+.import-stats {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin: 15px 0;
+    padding: 15px;
+    background: var(--darkened-bg, #f8f8f8);
+    border: 1px solid var(--hairline-color, #e8e8e8);
+    border-radius: 4px;
+}
+.import-stats .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    background: var(--body-bg, #fff);
+    border-radius: 4px;
+    border: 1px solid var(--hairline-color, #ddd);
+}
+.import-stats .stat-item .stat-count {
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--primary, #417690);
+}
+.import-stats .stat-item .stat-label {
+    font-size: 12px;
+    color: var(--body-quiet-color, #666);
+}
+.import-stats .stat-item.stat-new .stat-count { color: #28a745; }
+.import-stats .stat-item.stat-update .stat-count { color: #ffc107; }
+.import-stats .stat-item.stat-skip .stat-count { color: #6c757d; }
+.import-stats .stat-item.stat-error .stat-count { color: #dc3545; }
+.import-stats .stat-item.stat-total .stat-count { color: var(--primary, #417690); }
+</style>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+{% if confirm_form %}{{ confirm_form.media }}{% elif form %}{{ form.media }}{% endif %}
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="/departement/admin/">{% translate 'Home' %}</a>
+    &rsaquo; <a href="/departement/admin/{{ opts.app_label }}/">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; <a href="/departement/admin/{{ opts.app_label }}/{{ opts.model_name }}/">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; {% translate 'Import' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>{% translate 'Import' %} {{ opts.verbose_name_plural|capfirst }}</h1>
+
+<div id="content-main">
+{% if confirm_form %}
+    {# Étape 2: Confirmation après preview #}
+    <form action="/departement/admin/{{ opts.app_label }}/{{ opts.model_name }}/process_import/" method="POST">
+        {% csrf_token %}
+        {{ confirm_form.as_p }}
+        <p>{% translate "Below is a preview of data to be imported. If you are satisfied with the results, click 'Confirm import'" %}</p>
+        <div class="submit-row">
+            <input type="submit" class="default" name="confirm" value="{% translate 'Confirm import' %}">
+        </div>
+    </form>
+
+{% elif form %}
+    {# Étape 1: Upload du fichier #}
+    <form action="" method="post" enctype="multipart/form-data" id="import-form">
+        {% csrf_token %}
+
+        {# Section 1: Sélection du niveau et semestre #}
+        {% if form.niv_spe_dep %}
+        <fieldset class="module aligned">
+            <h2>1. اختيار المستوى والفصل / Sélection du niveau et semestre</h2>
+            <div class="form-row">
+                {{ form.niv_spe_dep.errors }}
+                <div>
+                    <label for="id_niv_spe_dep" class="required">{{ form.niv_spe_dep.label }}:</label>
+                    {{ form.niv_spe_dep }}
+                    {% if form.niv_spe_dep.help_text %}<p class="help">{{ form.niv_spe_dep.help_text|safe }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                {{ form.semestre.errors }}
+                <div>
+                    <label for="id_semestre" class="required">{{ form.semestre.label }}:</label>
+                    {{ form.semestre }}
+                    {% if form.semestre.help_text %}<p class="help">{{ form.semestre.help_text|safe }}</p>{% endif %}
+                </div>
+            </div>
+        </fieldset>
+        {% endif %}
+
+        {# Section 2: Sélection du fichier #}
+        <fieldset class="module aligned">
+            {% if form.niv_spe_dep %}<h2>2. اختيار الملف / Sélection du fichier</h2>{% endif %}
+            {% for field in form.visible_fields %}
+                {# Exclure les champs niv_spe_dep et semestre déjà affichés #}
+                {% if field.name != 'niv_spe_dep' and field.name != 'semestre' %}
+                <div class="form-row">
+                    {{ field.errors }}
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.help_text %}<p class="help">{{ field.help_text|safe }}</p>{% endif %}
+                </div>
+                {% endif %}
+            {% endfor %}
+            {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+        </fieldset>
+        <div class="submit-row">
+            <input type="submit" class="default" value="{% translate 'Submit' %}">
+        </div>
+    </form>
+{% endif %}
+
+{# Affichage des résultats #}
+{% if result %}
+    {% if result.has_errors %}
+        <h2>{% translate "Errors" %}</h2>
+        <ul class="errors">
+            {% for error in result.base_errors %}
+                <li>{{ error.error }}<div class="traceback">{{ error.traceback|linebreaks }}</div></li>
+            {% endfor %}
+            {% for line, errors in result.row_errors %}
+                {% for error in errors %}
+                    <li>{% translate "Line number" %}: {{ line }} - {{ error.error }}</li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+
+    {% elif result.has_validation_errors %}
+        <h2>{% translate "Some rows failed to validate" %}</h2>
+        <p>{% translate "Please correct these errors in your data where possible, then reupload it using the form above." %}</p>
+        <table class="import-preview">
+            <thead>
+                <tr>
+                    <th>{% translate "Row" %}</th>
+                    <th>{% translate "Errors" %}</th>
+                    {% for field in result.diff_headers %}<th>{{ field }}</th>{% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in result.invalid_rows %}
+                <tr>
+                    <td>{{ row.number }}</td>
+                    <td class="errors">
+                        {% for field_name, error_list in row.field_specific_errors.items %}
+                            <strong>{{ field_name }}:</strong> {% for error in error_list %}{{ error }} {% endfor %}<br>
+                        {% endfor %}
+                    </td>
+                    {% for field in row.values %}<td>{{ field }}</td>{% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    {% else %}
+        <fieldset class="module aligned">
+            <h2>{% translate "Preview" %}</h2>
+
+            {# Statistiques d'import #}
+            <div class="import-stats" id="import-stats">
+                <div class="stat-item stat-total">
+                    <span class="stat-count" id="stat-total">0</span>
+                    <span class="stat-label">الإجمالي<br>Total</span>
+                </div>
+                <div class="stat-item stat-new">
+                    <span class="stat-count" id="stat-new">0</span>
+                    <span class="stat-label">جديد<br>Nouveau</span>
+                </div>
+                <div class="stat-item stat-update">
+                    <span class="stat-count" id="stat-update">0</span>
+                    <span class="stat-label">تحديث<br>Mise à jour</span>
+                </div>
+                <div class="stat-item stat-skip">
+                    <span class="stat-count" id="stat-skip">0</span>
+                    <span class="stat-label">تخطي<br>Ignoré</span>
+                </div>
+            </div>
+        </fieldset>
+        <div id="changelist">
+        <div id="changelist-form">
+        <table id="result_list">
+            <thead>
+                <tr>
+                    <th scope="col"><div class="text"><span>{% translate "Action" %}</span></div></th>
+                    {% for field in result.diff_headers %}<th scope="col"><div class="text"><span>{{ field }}</span></div></th>{% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in result.valid_rows %}
+                <tr class="row{% cycle '1' '2' %}">
+                    <td>{% if row.import_type == 'new' %}{% translate "New" %}{% elif row.import_type == 'skip' %}{% translate "Skipped" %}{% elif row.import_type == 'delete' %}{% translate "Delete" %}{% elif row.import_type == 'update' %}{% translate "Update" %}{% endif %}</td>
+                    {% for field in row.diff %}<td>{{ field }}</td>{% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var table = document.getElementById('result_list');
+            if (!table) return;
+
+            var rows = table.querySelectorAll('tbody tr');
+            var headers = table.querySelectorAll('thead th');
+
+            // Calculer les statistiques
+            var stats = { total: 0, new: 0, update: 0, skip: 0 };
+            rows.forEach(function(row) {
+                stats.total++;
+                var actionCell = row.cells[0];
+                if (actionCell) {
+                    var actionText = actionCell.textContent.trim().toLowerCase();
+                    if (actionText === 'new' || actionText === 'nouveau' || actionText === 'جديد') {
+                        stats.new++;
+                    } else if (actionText === 'update' || actionText === 'mise à jour' || actionText === 'تحديث') {
+                        stats.update++;
+                    } else if (actionText === 'skipped' || actionText === 'ignoré' || actionText === 'تخطي' || actionText === 'skip') {
+                        stats.skip++;
+                    }
+                }
+            });
+
+            // Mettre à jour l'affichage des statistiques
+            var statTotal = document.getElementById('stat-total');
+            var statNew = document.getElementById('stat-new');
+            var statUpdate = document.getElementById('stat-update');
+            var statSkip = document.getElementById('stat-skip');
+
+            if (statTotal) statTotal.textContent = stats.total;
+            if (statNew) statNew.textContent = stats.new;
+            if (statUpdate) statUpdate.textContent = stats.update;
+            if (statSkip) statSkip.textContent = stats.skip;
+
+            // Colonnes à afficher pour les matières
+            var showCols = ['action', 'code', 'nom_fr', 'nom_ar', 'coeff', 'credit', 'unite'];
+            var colCount = headers.length;
+
+            for (var col = 0; col < colCount; col++) {
+                var headerText = headers[col].textContent.trim().toLowerCase();
+                var show = (col === 0) || showCols.some(function(c) {
+                    return headerText === c || headerText.indexOf(c) !== -1;
+                });
+                if (!show) {
+                    headers[col].style.display = 'none';
+                    for (var r = 0; r < rows.length; r++) {
+                        if (rows[r].cells[col]) {
+                            rows[r].cells[col].style.display = 'none';
+                        }
+                    }
+                }
+            }
+        });
+        </script>
+    {% endif %}
+{% endif %}
+</div>
+{% endblock %}

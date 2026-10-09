@@ -2,11 +2,19 @@
 
 from django.conf import settings
 from django.contrib import admin
+from django.templatetags.static import static
 from django.urls import include, path, re_path
+from django.views.generic import RedirectView
 from django.views.static import serve
+
+admin.site.site_header = "Administration Smart-Univ"
+admin.site.site_title = "Smart-Univ Admin"
+admin.site.index_title = "Panneau d'administration"
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    # Icône d'onglet demandée par défaut par les navigateurs
+    path("favicon.ico", RedirectView.as_view(url=static("images/smart-univ-logo.svg"), permanent=False)),
     path("", include("apps.noyau.commun.urls", namespace="comm")),
     path("", include("apps.noyau.authentification.urls", namespace="auth")),
     path("universite/", include("apps.academique.universite.urls", namespace="univ")),

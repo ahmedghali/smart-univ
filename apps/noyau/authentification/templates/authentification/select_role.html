@@ -1,119 +1,232 @@
 {% extends "authentification/base.html" %}
+{% load static %}
 
-{% block title %}اختيار المنصب - Smart-Univ{% endblock %}
+{% block title %}اختيار فضاء العمل - Smart-Univ{% endblock %}
+
+{% block container_class %}auth-container-wide{% endblock %}
+
+{% block extra_css %}
+<style>
+    .role-hub {
+        max-width: 640px;
+        margin: 0 auto;
+        overflow: hidden;
+        background: #fff;
+        border-radius: 22px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    .role-hub-header {
+        padding: 30px 28px 24px;
+        text-align: center;
+        background: linear-gradient(135deg, #344d59 0%, #000000 100%);
+        color: #fff;
+    }
+
+    .role-hub-header img {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        margin-bottom: 12px;
+    }
+
+    .role-hub-header h1 {
+        margin: 0 0 4px;
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
+
+    .role-hub-header p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+    }
+
+    .role-hub-body {
+        padding: 24px 28px 20px;
+    }
+
+    .role-hub-body h2 {
+        margin: 0 0 14px;
+        color: #11191e;
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .role-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .role-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        width: 100%;
+        padding: 14px 16px;
+        background: #fff;
+        border: 1px solid #e6eae3;
+        border-radius: 14px;
+        text-align: right;
+        cursor: pointer;
+        transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+    }
+
+    .role-row:hover,
+    .role-row:focus-visible {
+        border-color: #ffd700;
+        background: #fffcea;
+        transform: translateY(-1px);
+        outline: none;
+    }
+
+    .role-row-icon {
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: #11191e;
+        color: #ffd700;
+        font-size: 1.05rem;
+    }
+
+    .role-row-text {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .role-row-title {
+        display: block;
+        color: #11191e;
+        font-weight: 700;
+        font-size: 0.98rem;
+    }
+
+    .role-row-desc {
+        display: block;
+        color: #66737a;
+        font-size: 0.8rem;
+        line-height: 1.5;
+    }
+
+    .role-row-arrow {
+        color: #b7c0bb;
+        transition: color 0.15s ease, transform 0.15s ease;
+    }
+
+    .role-row:hover .role-row-arrow {
+        color: #c9a400;
+        transform: translateX(-3px);
+    }
+
+    .role-row.is-loading .role-row-arrow {
+        color: #c9a400;
+    }
+
+    .role-hub-footer {
+        display: flex;
+        justify-content: space-between;
+        padding: 14px 28px 20px;
+        border-top: 1px solid #eef1ec;
+    }
+
+    .role-hub-footer a {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #344d59;
+        font-size: 0.85rem;
+        text-decoration: none;
+    }
+
+    .role-hub-footer a:hover {
+        color: #11191e;
+    }
+
+    .role-hub-footer a.logout {
+        color: #b42318;
+    }
+
+    .role-empty {
+        padding: 20px 0;
+        text-align: center;
+        color: #66737a;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="auth-card">
-    <div class="auth-header">
-        <div class="logo">
-            <i class="fas fa-user-circle"></i>
-        </div>
-        <h1>مرحباً بك!</h1>
-        <p>اختر المنصب للمتابعة</p>
+<div class="role-hub">
+    <div class="role-hub-header">
+        <img src="{% static 'images/smart-univ-logo.svg' %}" alt="Smart-Univ">
+        <h1>مرحباً، {{ user.get_full_name|default:user.username }}</h1>
+        <p>اختر فضاء العمل للمتابعة</p>
     </div>
 
-    <div class="auth-body">
-        <h3 class="text-center mb-4">اختر منصبك</h3>
-
+    <div class="role-hub-body">
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
             {% endfor %}
         {% endif %}
 
         {% if roles %}
-            <form method="post" action="{% url 'auth:select_role' %}" id="roleForm">
-                {% csrf_token %}
-
-                <div class="roles-container mb-4">
-                    {% for role_code, role_label in roles %}
-                        <label class="role-card" for="role_{{ forloop.counter }}">
-                            <div class="d-flex align-items-center">
-                                <input
-                                    type="radio"
-                                    name="role"
-                                    value="{{ role_code }}"
-                                    id="role_{{ forloop.counter }}"
-                                    class="me-3"
-                                    required
-                                >
-                                <div class="flex-grow-1">
-                                    <div class="role-label">
-                                        {% if role_code == 'etudiant' %}
-                                            <i class="fas fa-user-graduate text-primary me-2"></i>
-                                        {% elif role_code == 'enseignant' %}
-                                            <i class="fas fa-chalkboard-teacher text-success me-2"></i>
-                                        {% elif 'chef_departement' in role_code %}
-                                            <i class="fas fa-user-tie text-warning me-2"></i>
-                                        {% elif 'doyen' in role_code %}
-                                            <i class="fas fa-user-shield text-info me-2"></i>
-                                        {% elif 'recteur' in role_code %}
-                                            <i class="fas fa-crown text-danger me-2"></i>
-                                        {% else %}
-                                            <i class="fas fa-user text-secondary me-2"></i>
-                                        {% endif %}
-                                        {{ role_label }}
-                                    </div>
-                                </div>
-                            </div>
-                        </label>
-                    {% endfor %}
-                </div>
-
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-arrow-left me-2"></i>متابعة
+        <form method="post" action="{% url 'auth:select_role' %}" id="roleForm">
+            {% csrf_token %}
+            <div class="role-list">
+                {% for role_code, role_label in roles %}
+                <button type="submit" name="role" value="{{ role_code }}" class="role-row" id="roleBtn_{{ role_code }}">
+                    <span class="role-row-icon">
+                        {% if role_code == 'etudiant' %}<i class="fas fa-user-graduate"></i>
+                        {% elif role_code == 'enseignant' %}<i class="fas fa-chalkboard-teacher"></i>
+                        {% elif 'chef_dep' in role_code %}<i class="fas fa-user-tie"></i>
+                        {% elif 'doyen' in role_code %}<i class="fas fa-user-shield"></i>
+                        {% elif 'recteur' in role_code %}<i class="fas fa-crown"></i>
+                        {% else %}<i class="fas fa-briefcase"></i>{% endif %}
+                    </span>
+                    <span class="role-row-text">
+                        <span class="role-row-title">{{ role_label }}</span>
+                        <span class="role-row-desc">
+                            {% if role_code == 'etudiant' %}المقاييس، استعمال الزمن والنتائج
+                            {% elif role_code == 'enseignant' %}التدريس، الأفواج واستعمال الزمن
+                            {% elif 'chef_dep' in role_code %}تسيير القسم: الأساتذة، الطلبة والحصص
+                            {% elif 'doyen' in role_code %}الإشراف على أقسام الكلية
+                            {% elif 'recteur' in role_code %}التسيير العام للجامعة
+                            {% else %}المهام المرتبطة بهذا المنصب{% endif %}
+                        </span>
+                    </span>
+                    <i class="fas fa-arrow-left role-row-arrow"></i>
                 </button>
-            </form>
-
-            <div class="text-center mt-4">
-                <a href="{% url 'comm:home' %}" class="text-muted small me-3">
-                    <i class="fas fa-home me-1"></i>الصفحة الرئيسية
-                </a>
-                <a href="{% url 'auth:logout' %}" class="text-muted small">
-                    <i class="fas fa-sign-out-alt me-1"></i>تسجيل الخروج
-                </a>
+                {% endfor %}
             </div>
+        </form>
         {% else %}
-            <div class="alert alert-warning text-center">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                لا توجد مناصب متاحة لحسابك. يرجى الاتصال بالمسؤول.
-            </div>
-            <a href="{% url 'auth:logout' %}" class="btn btn-secondary w-100">
-                <i class="fas fa-sign-out-alt me-2"></i>تسجيل الخروج
-            </a>
+        <div class="role-empty">
+            <p class="mb-3">لا توجد مناصب مخصصة لهذا الحساب. يرجى التواصل مع إدارة النظام.</p>
+            <a href="{% url 'comm:home' %}" class="btn btn-primary px-4">العودة للرئيسية</a>
+        </div>
         {% endif %}
     </div>
+
+    <div class="role-hub-footer">
+        <a href="{% url 'comm:home' %}"><i class="fas fa-home"></i><span>الصفحة الرئيسية</span></a>
+        <a href="{% url 'auth:logout' %}" class="logout"><i class="fas fa-sign-out-alt"></i><span>تسجيل الخروج</span></a>
+    </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
-    // Highlight selected role card
-    document.addEventListener('DOMContentLoaded', function() {
-        const roleCards = document.querySelectorAll('.role-card');
-        const radioInputs = document.querySelectorAll('input[type="radio"]');
-
-        roleCards.forEach((card, index) => {
-            card.addEventListener('click', function() {
-                // Remove selected class from all cards
-                roleCards.forEach(c => c.classList.remove('selected'));
-
-                // Add selected class to clicked card
-                this.classList.add('selected');
-
-                // Check the corresponding radio button
-                radioInputs[index].checked = true;
-            });
-        });
-
-        // Check if a radio is already selected on page load
-        radioInputs.forEach((radio, index) => {
-            if (radio.checked) {
-                roleCards[index].classList.add('selected');
-            }
+    // Retour visuel au clic : la flèche devient un indicateur de chargement
+    document.querySelectorAll('.role-row').forEach(function (row) {
+        row.addEventListener('click', function () {
+            row.classList.add('is-loading');
+            row.querySelector('.role-row-arrow').className = 'fas fa-spinner fa-spin role-row-arrow';
         });
     });
 </script>

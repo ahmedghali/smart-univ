@@ -16,7 +16,9 @@ class Faculte(BaseModel):
     # INFORMATIONS DE BASE
     # ══════════════════════════════════════════════════════════════
 
-    code = models.CharField(max_length=20, unique=True, verbose_name="الرمز / Code", help_text="Ex: FSI, FSNV")
+    code = models.CharField(
+        blank=True, null=True, max_length=20, unique=True, verbose_name="الرمز / Code", help_text="Ex: FSI, FSNV"
+    )
     nom_ar = models.CharField(max_length=200, verbose_name="الكلية / Faculté", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Faculté", blank=True, default="")
     sigle = models.CharField(
@@ -96,6 +98,19 @@ class Faculte(BaseModel):
     def vice_doyen_pg(self):
         return self.titulaire("vice_doyen_pg")
 
+    @property
+    def nom_complet_ar(self):
+        """
+        Retourne le nom complet en arabe avec le préfixe 'كلية' si non présent.
+        Exemple: 'كلية المحروقات والطاقات المتجددة وعلوم الأرض والكون'.
+        """
+        if not self.nom_ar:
+            return ""
+        clean_name = self.nom_ar.strip()
+        if clean_name.startswith("كلية"):
+            return clean_name
+        return f"كلية {clean_name}"
+
     def __str__(self):
         return self.nom_ar or self.nom_fr or self.code
 
@@ -115,7 +130,7 @@ class Filiere(BaseModel):
     Une filière appartient à un domaine et regroupe plusieurs spécialités.
     """
 
-    code = models.CharField(max_length=20, verbose_name="الرمز / Code", help_text="Ex: MI, INFO")
+    code = models.CharField(blank=True, null=True, max_length=20, verbose_name="الرمز / Code", help_text="Ex: MI, INFO")
     nom_ar = models.CharField(max_length=200, verbose_name="الشعبة / Filière", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Filière", blank=True, default="")
     domaine = models.ForeignKey(

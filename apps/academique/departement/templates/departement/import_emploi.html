@@ -1,0 +1,136 @@
+{% extends 'departement/base_Dep.html' %}
+{% load static %}
+
+{% block title %}استيراد جدول الحصص - قسم {{ my_Dep.nom_ar }}{% endblock %}
+
+{% block content_dep %}
+<div class="dep-page-container">
+
+    <!-- ─── HERO HEADER UNIFIÉ ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-calendar-alt" style="color: #ffd700;"></i>
+                    <span>استيراد استعمال الزمن وجداول الحصص</span>
+                </h1>
+                <p class="dep-hero-subtitle">
+                    <span>قسم {{ my_Dep.nom_ar }}</span>
+                    <span>•</span>
+                    <span>رفع وتحديث جداول التوقيت الأسبوعية وتوزيع القاعات والأساتذة</span>
+                </p>
+            </div>
+            <div class="dep-hero-actions">
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── CONTENU D'IMPORTATION ─── -->
+    <div class="row g-4">
+        <!-- Formulaire de téléversement -->
+        <div class="col-lg-7">
+            <div class="dep-table-card p-4 h-100">
+                <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+                    <div style="width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(135deg, rgba(52, 77, 89, 0.15), rgba(27, 38, 44, 0.25)); display: flex; align-items: center; justify-content: center; color: #1b262c; font-size: 1.5rem;">
+                        <i class="fas fa-file-circle-plus"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-1" style="color: #1b262c;">رفع ملف جدول الحصص</h4>
+                        <p class="text-muted mb-0 small">يدعم ملفات الجداول بصيغ Excel (.xlsx, .xls) وصيغ XML المعتمدة (FET Timetable)</p>
+                    </div>
+                </div>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="dep-upload-zone mb-4" onclick="document.getElementById('emploiFile').click();">
+                        <div class="dep-upload-icon" style="background: rgba(255, 170, 0, 0.15); color: #d97706;">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">اختر ملف جدول الحصص أو اسحبه هنا</h5>
+                        <p class="text-muted small mb-3">الصيغ المقبولة: Excel (.xlsx, .xls)، FET XML (.xml)، CSV</p>
+                        <input type="file" id="emploiFile" name="file" accept=".xlsx,.xls,.xml,.csv" class="d-none" required onchange="updateEmploiFileName(this)">
+                        <button type="button" class="btn btn-sm btn-outline-secondary px-3">
+                            <i class="fas fa-folder-open me-1"></i> تصفح الجهاز
+                        </button>
+                        <div id="fileEmploiSelectedDisplay" class="mt-3 text-success fw-bold small d-none">
+                            <i class="fas fa-check-circle me-1"></i> تم اختيار: <span id="emploiFileNameText"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pt-2 border-top">
+                        <button type="submit" class="btn-hero-primary px-4 py-2">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>بدء معالجة واستيراد الجدول</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Colonne Guide et spécifications -->
+        <div class="col-lg-5">
+            <div class="d-flex flex-column gap-4">
+                <!-- Structure du traitement -->
+                <div class="dep-table-card p-4">
+                    <h5 class="fw-bold mb-3 pb-2 border-bottom" style="color: #1b262c; font-size: 1.05rem;">
+                        <i class="fas fa-gears text-primary me-2"></i>
+                        آلية معالجة جدول التوقيت
+                    </h5>
+                    <p class="text-muted small mb-3">
+                        يقوم النظام بالمعالجة الآلية وتوزيع الحصص على الجداول وفق الشروط التالية:
+                    </p>
+                    <ul class="list-unstyled mb-0 d-flex flex-column gap-3 small">
+                        <li class="d-flex gap-3 align-items-start">
+                            <span class="badge bg-primary rounded-circle p-2" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.72rem;">1</span>
+                            <div>
+                                <strong class="d-block text-dark">مطابقة القاعات والمدرجات</strong>
+                                <span class="text-muted">الربط التلقائي مع هياكل وقاعات قسم {{ my_Dep.nom_ar }}.</span>
+                            </div>
+                        </li>
+                        <li class="d-flex gap-3 align-items-start">
+                            <span class="badge bg-primary rounded-circle p-2" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.72rem;">2</span>
+                            <div>
+                                <strong class="d-block text-dark">ربط الأساتذة والمواد</strong>
+                                <span class="text-muted">إسناد حصص المحاضرات والـ TD/TP للأساتذة المعنيين.</span>
+                            </div>
+                        </li>
+                        <li class="d-flex gap-3 align-items-start">
+                            <span class="badge bg-primary rounded-circle p-2" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.72rem;">3</span>
+                            <div>
+                                <strong class="d-block text-dark">تحديث الأنصبة الساعية</strong>
+                                <span class="text-muted">حساب الحجم الساعي الأسبوعي لكل أستاذ آلياً.</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Avertissement -->
+                <div class="dep-table-card p-4">
+                    <h5 class="fw-bold mb-2 pb-2 border-bottom" style="color: #1b262c; font-size: 1.05rem;">
+                        <i class="fas fa-circle-exclamation text-warning me-2"></i>
+                        تنبيه بخصوص تضارب الحصص
+                    </h5>
+                    <p class="text-muted small mb-0 lh-lg">
+                        يتم التحقق آلياً من عدم وجود تضارب (Clashes) في القاعات أو تضارب في توقيت الأستاذ الواحد قبل إتمام التحديث النهائي في قاعدة البيانات.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function updateEmploiFileName(input) {
+    var display = document.getElementById('fileEmploiSelectedDisplay');
+    var text = document.getElementById('emploiFileNameText');
+    if (input.files && input.files.length > 0) {
+        text.textContent = input.files[0].name;
+        display.classList.remove('d-none');
+    } else {
+        display.classList.add('d-none');
+    }
+}
+</script>
+{% endblock %}

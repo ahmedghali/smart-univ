@@ -1,278 +1,884 @@
-{% extends 'base_dashboard.html' %}
+{% extends 'departement/base_Dep.html' %}
+{% load static %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}تعديل الملف التعريفي - قسم {{ my_Dep.nom_ar }}{% endblock %}
 
-{% block page_title %}{{ title }}{% endblock %}
+{% block page_title %}تعديل الملف التعريفي للقسم{% endblock %}
+
+{# Suppression du bandeau redondant du layout parent #}
+{% block dep_action_bar %}{% endblock %}
 
 {% block extra_css %}
 {{ block.super }}
-{% load crispy_forms_tags %}
 <style>
-.avatar-sm {
-    width: 40px;
-    height: 40px;
-    font-size: 16px;
-}
-
-.info-card {
-    background-color: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,.05);
-    margin-bottom: 1.5rem;
-}
-
-.info-card-header {
-    border-bottom: 2px solid #e9ecef;
-    padding-bottom: 0.75rem;
-    margin-bottom: 1rem;
-}
-
-.info-card-header h5 {
-    color: #495057;
-    font-weight: 600;
-    margin: 0;
-}
-
-.form-container {
-    background-color: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,.05);
-}
-
-.form-container .form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-container .form-control {
-    border-radius: 8px;
-    border: 2px solid #e9ecef;
-    padding: 0.75rem 1rem;
-    transition: all 0.3s ease;
-}
-
-.form-container .form-control:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-.form-container label {
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 0.5rem;
-}
-
-.btn {
-    border-radius: 8px;
-    padding: 0.75rem 1.5rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.faculty-header {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-    color: white;
-    padding: 1rem 1.5rem;
-    border-radius: 12px;
-    margin-bottom: 1.5rem;
-    text-align: center;
-}
-
-@media (max-width: 768px) {
-    .avatar-sm {
-        width: 35px;
-        height: 35px;
-        font-size: 14px;
+    /* ══════════════════════════════════════════════════════════════
+       DESIGN MODERNE ERP : PAGE MODIFICATION DU DÉPARTEMENT
+       ══════════════════════════════════════════════════════════════ */
+    .dep-edit-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
     }
 
-    .d-flex.justify-content-between {
-        flex-direction: column;
+    /* ─── HERO HEADER ─── */
+    .edit-hero {
+        background: linear-gradient(135deg, #344d59 0%, #000000 100%);
+        border-radius: 16px;
+        padding: 1.75rem 2rem;
+        color: #ffffff;
+        box-shadow: 0 10px 30px rgba(27, 38, 44, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .edit-hero::before {
+        content: '';
+        position: absolute;
+        top: -60px;
+        left: -60px;
+        width: 220px;
+        height: 220px;
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.12) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .edit-hero-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .edit-hero-titles h1 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 0 0 0.4rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #ffffff;
+    }
+
+    .edit-hero-subtitle {
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .edit-hero-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-hero-ghost {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 0.65rem 1.25rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-hero-ghost:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        transform: translateY(-2px);
+    }
+
+    .btn-hero-save {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #ffffff;
+        border: none;
+        padding: 0.65rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.92rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        transition: all 0.2s ease;
+    }
+
+    .btn-hero-save:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+    }
+
+    /* ─── LEADERS BANNER ─── */
+    .leaders-strip {
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid rgba(13, 27, 42, 0.08);
+        padding: 1.25rem 1.5rem;
+        box-shadow: 0 4px 16px rgba(13, 27, 42, 0.04);
+    }
+
+    .leaders-strip-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.6rem;
+        border-bottom: 1px dashed rgba(13, 27, 42, 0.1);
+    }
+
+    .leaders-strip-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #1b262c;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .leaders-strip-hint {
+        font-size: 0.78rem;
+        color: #6c757d;
+        background: #f8f9fa;
+        padding: 4px 10px;
+        border-radius: 20px;
+        border: 1px solid #edf2f7;
+    }
+
+    .leaders-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
         gap: 1rem;
     }
 
-    .d-flex.justify-content-between .btn {
-        width: 100%;
+    .leader-chip {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        background: #f8fafc;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
     }
-}
+
+    .leader-chip-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .icon-chef { background: rgba(52, 77, 89, 0.12); color: #344D59; }
+    .icon-p { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+    .icon-pg { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+
+    .leader-chip-text small {
+        font-size: 0.75rem;
+        color: #64748b;
+        display: block;
+        font-weight: 600;
+    }
+
+    .leader-chip-text strong {
+        font-size: 0.9rem;
+        color: #1e293b;
+        font-weight: 700;
+    }
+
+    /* ─── FORM SECTIONS / CARDS ─── */
+    .form-section-card {
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid rgba(13, 27, 42, 0.08);
+        box-shadow: 0 4px 16px rgba(13, 27, 42, 0.04);
+        overflow: hidden;
+        margin-bottom: 1.25rem;
+    }
+
+    .section-card-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .section-card-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+    }
+
+    .section-card-title i {
+        color: #344D59;
+        font-size: 1.1rem;
+    }
+
+    .section-card-body {
+        padding: 1.5rem;
+    }
+
+    /* ─── FORM CONTROLS & INPUT GROUPS ─── */
+    .field-label {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 0.45rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .field-hint {
+        font-size: 0.78rem;
+        color: #64748b;
+        margin-top: 0.35rem;
+    }
+
+    .input-icon-group {
+        position: relative;
+        display: flex;
+        align-items: stretch;
+    }
+
+    .input-icon-addon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        background: #f8fafc;
+        border: 1.5px solid #cbd5e1;
+        border-left: none;
+        border-radius: 0 10px 10px 0;
+        color: #64748b;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .input-icon-group .form-control {
+        border-radius: 10px 0 0 10px !important;
+        border: 1.5px solid #cbd5e1;
+        border-right: none;
+        padding: 0.7rem 0.95rem;
+        font-size: 0.92rem;
+        color: #1e293b;
+        transition: all 0.2s ease;
+    }
+
+    .input-icon-group:focus-within .input-icon-addon {
+        border-color: #344D59;
+        background: rgba(52, 77, 89, 0.08);
+        color: #344D59;
+    }
+
+    .input-icon-group:focus-within .form-control {
+        border-color: #344D59;
+        box-shadow: 0 0 0 3px rgba(52, 77, 89, 0.12);
+    }
+
+    /* Standard Inputs */
+    .standard-input {
+        border-radius: 10px;
+        border: 1.5px solid #cbd5e1;
+        padding: 0.7rem 0.95rem;
+        font-size: 0.92rem;
+        color: #1e293b;
+        width: 100%;
+        transition: all 0.2s ease;
+    }
+
+    .standard-input:focus {
+        border-color: #344D59;
+        box-shadow: 0 0 0 3px rgba(52, 77, 89, 0.12);
+        outline: none;
+    }
+
+    /* Logo Upload Box */
+    .logo-upload-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.25rem;
+        background: #f8fafc;
+        border: 1.5px dashed #cbd5e1;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
+
+    .logo-upload-wrapper:hover {
+        border-color: #344D59;
+        background: #f1f5f9;
+    }
+
+    .logo-current-preview {
+        width: 80px;
+        height: 80px;
+        border-radius: 14px;
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+        flex-shrink: 0;
+    }
+
+    .logo-current-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .logo-current-preview i {
+        font-size: 2.2rem;
+        color: #94a3b8;
+    }
+
+    .logo-input-content {
+        flex: 1;
+    }
+
+    /* Social Icons specific colors */
+    .addon-fb { color: #1877f2; }
+    .addon-tw { color: #000000; }
+    .addon-li { color: #0a66c2; }
+    .addon-tg { color: #229ed9; }
+    .addon-tt { color: #fe2c55; }
+
+    /* Switch Settings Card */
+    .setting-toggle-box {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+    }
+
+    .form-check-input {
+        width: 2.8rem;
+        height: 1.5rem;
+        cursor: pointer;
+    }
+
+    .form-check-input:checked {
+        background-color: #10b981;
+        border-color: #10b981;
+    }
+
+    /* ─── BOTTOM STICKY ACTION BAR ─── */
+    .bottom-action-bar {
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid rgba(13, 27, 42, 0.08);
+        padding: 1.25rem 1.75rem;
+        box-shadow: 0 8px 24px rgba(13, 27, 42, 0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-save-main {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #ffffff;
+        border: none;
+        padding: 0.85rem 2.2rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.65rem;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        transition: all 0.25s ease;
+    }
+
+    .btn-save-main:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+    }
+
+    .btn-cancel-main {
+        background: #f1f5f9;
+        color: #475569;
+        border: 1.5px solid #cbd5e1;
+        padding: 0.85rem 1.75rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-cancel-main:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+
+    /* ─── RESPONSIVE BREAKPOINTS ─── */
+    @media (max-width: 767.98px) {
+        .edit-hero {
+            padding: 1.25rem 1rem;
+        }
+
+        .edit-hero-titles h1 {
+            font-size: 1.3rem;
+        }
+
+        .edit-hero-actions {
+            width: 100%;
+        }
+
+        .btn-hero-ghost, .btn-hero-save {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .logo-upload-wrapper {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .bottom-action-bar {
+            flex-direction: column-reverse;
+            gap: 0.75rem;
+            padding: 1rem;
+        }
+
+        .btn-save-main, .btn-cancel-main {
+            width: 100%;
+            justify-content: center;
+        }
+    }
 </style>
 {% endblock %}
 
-{% block context_info %}
-{% if my_Fac %}
-<div class="context-info">
-    <i class="fas fa-university"></i>
-    <span>الكلية: <strong>{{ my_Fac.nom_ar }}</strong></span>
-</div>
-{% endif %}
-{% endblock %}
+{% block content_dep %}
+<div class="dep-edit-container">
 
-{% block sidebar_menu %}
-<!-- Menu spécifique département -->
-<div class="nav-section">الإدارة</div>
-
-<div class="sub-menu">
-    <a class="nav-link">
-        <i class="fas fa-users"></i>
-        الأساتذة
-    </a>
-    <div class="sub-menu-items">
-        <a class="nav-link" href="#">
-            <i class="fas fa-list"></i>
-            قائمة الأساتذة
-        </a>
-    </div>
-</div>
-
-<a class="nav-link" href="#">
-    <i class="fas fa-chart-bar"></i>
-    الإحصائيات
-    <span class="badge bg-secondary ms-auto">قريباً</span>
-</a>
-{% endblock %}
-
-{% block content %}
-{% load crispy_forms_tags %}
-
-<!-- Boutons d'action en haut -->
-<div class="row mb-4">
-    <div class="col-12">
-        <a href="{% url 'depa:profile_Dep' %}" class="btn btn-secondary">
-            <i class="fas fa-arrow-right me-2"></i>رجوع / Retour
-        </a>
-    </div>
-</div>
-
-<!-- Section des responsables -->
-<div class="info-card">
-    <div class="info-card-header">
-        <h5>
-            <i class="fas fa-users me-2 text-primary"></i>
-            المسؤولون
-        </h5>
-    </div>
-
-    <div class="row">
-        <div class="col-md-4 mb-3">
-            <div class="d-flex align-items-center">
-                <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-3">
-                    <i class="fas fa-user-tie text-white"></i>
+    <!-- ══════════════════════════════════════════════════════════
+         1. HERO BANNER
+         ══════════════════════════════════════════════════════════ -->
+    <div class="edit-hero">
+        <div class="edit-hero-content">
+            <div class="edit-hero-titles">
+                <h1>
+                    <i class="fas fa-edit text-warning"></i>
+                    <span>تعديل الملف التعريفي للقسم</span>
+                </h1>
+                <div class="edit-hero-subtitle">
+                    <span>قسم {{ my_Dep.nom_ar }}</span>
+                    {% if my_Fac %}
+                        <span class="opacity-50">|</span>
+                        <span>{{ my_Fac.nom_complet_ar }}</span>
+                    {% endif %}
                 </div>
-                <div>
-                    <small class="text-muted d-block">رئيس القسم</small>
-                    <strong>
-                        {% if my_Dep.chef_departement %}
-                            <span class="text-primary">{{my_Dep.chef_departement}}</span>
-                        {% else %}
-                            <span class="text-muted">غير محدد</span>
-                        {% endif %}
-                    </strong>
-                </div>
+            </div>
+
+            <div class="edit-hero-actions">
+                <a href="{% url 'depa:profile_Dep' %}" class="btn-hero-ghost">
+                    <i class="fas fa-arrow-right"></i>
+                    <span>العودة للملف</span>
+                </a>
+                <button type="submit" form="depUpdateForm" class="btn-hero-save">
+                    <i class="fas fa-save"></i>
+                    <span>حفظ التعديلات</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         2. BANDEAU DE RAPPEL DE LA DIRECTION ACTUELLE
+         ══════════════════════════════════════════════════════════ -->
+    <div class="leaders-strip">
+        <div class="leaders-strip-header">
+            <div class="leaders-strip-title">
+                <i class="fas fa-users-cog text-primary"></i>
+                <span>الإدارة الحالية للقسم</span>
+            </div>
+            <div class="leaders-strip-hint">
+                <i class="fas fa-info-circle me-1"></i>
+                تعيين المسؤولين يتم تلقائياً عبر نظام المناصب والتكليفات
             </div>
         </div>
 
-        <div class="col-md-4 mb-3">
-            <div class="d-flex align-items-center">
-                <div class="avatar-sm bg-success rounded-circle d-flex align-items-center justify-content-center me-3">
-                    <i class="fas fa-chalkboard-teacher text-white"></i>
+        <div class="leaders-row">
+            <div class="leader-chip">
+                <div class="leader-chip-icon icon-chef">
+                    <i class="fas fa-user-tie"></i>
                 </div>
-                <div>
-                    <small class="text-muted d-block">النائب - بيداغوجيا</small>
-                    <strong>
-                        {% if my_Dep.chef_dep_adj_p %}
-                            <span class="text-success">{{my_Dep.chef_dep_adj_p}}</span>
-                        {% else %}
-                            <span class="text-muted">غير محدد</span>
-                        {% endif %}
-                    </strong>
+                <div class="leader-chip-text">
+                    <small>رئيس القسم</small>
+                    <strong>{{ my_Dep.chef_departement|default:"غير محدد" }}</strong>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-4 mb-3">
-            <div class="d-flex align-items-center">
-                <div class="avatar-sm bg-warning rounded-circle d-flex align-items-center justify-content-center me-3">
-                    <i class="fas fa-graduation-cap text-white"></i>
+            <div class="leader-chip">
+                <div class="leader-chip-icon icon-p">
+                    <i class="fas fa-chalkboard-teacher"></i>
                 </div>
-                <div>
-                    <small class="text-muted d-block">النائب - ما بعد التدرج</small>
-                    <strong>
-                        {% if my_Dep.chef_dep_adj_pg %}
-                            <span class="text-warning">{{my_Dep.chef_dep_adj_pg}}</span>
-                        {% else %}
-                            <span class="text-muted">غير محدد</span>
-                        {% endif %}
-                    </strong>
+                <div class="leader-chip-text">
+                    <small>النائب المكلف بالبيداغوجيا</small>
+                    <strong>{{ my_Dep.chef_dep_adj_p|default:"غير محدد" }}</strong>
+                </div>
+            </div>
+
+            <div class="leader-chip">
+                <div class="leader-chip-icon icon-pg">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="leader-chip-text">
+                    <small>النائب المكلف بما بعد التدرج والبحث</small>
+                    <strong>{{ my_Dep.chef_dep_adj_pg|default:"غير محدد" }}</strong>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Formulaire de modification -->
-<div class="form-container">
-    <!-- En-tête faculté -->
-    {% if my_Fac %}
-    <div class="faculty-header">
-        <h4 class="mb-0"><strong>كلية </strong> {{my_Fac}}</h4>
-    </div>
-    {% endif %}
-
-    <div class="info-card-header">
-        <h5>
-            <i class="fas fa-cog me-2 text-primary"></i>
-            معلومات القسم
-        </h5>
-    </div>
-
-    <form method="POST" enctype="multipart/form-data" id="departmentForm">
+    <!-- ══════════════════════════════════════════════════════════
+         3. FORMULAIRE PRINCIPAL DE MODIFICATION
+         ══════════════════════════════════════════════════════════ -->
+    <form method="POST" enctype="multipart/form-data" id="depUpdateForm">
         {% csrf_token %}
 
-        {{Dep_form|crispy}}
+        {% if form.errors %}
+        <div class="alert alert-danger shadow-sm border-0 rounded-3 mb-4" role="alert">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="fas fa-exclamation-triangle fs-5"></i>
+                <strong>يرجى تصحيح الأخطاء التالية قبل المتابعة:</strong>
+            </div>
+            <ul class="mb-0 ps-3">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <li>{{ field }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
 
-        <!-- Boutons d'action -->
-        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-            <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
-                <i class="fas fa-arrow-left me-2"></i>
-                إلغاء
-            </button>
+        <!-- CARTE 1: الهوية الأكاديمية والشعار -->
+        <div class="form-section-card">
+            <div class="section-card-header">
+                <h3 class="section-card-title">
+                    <i class="fas fa-university"></i>
+                    <span>الهوية الأكاديمية والشعار</span>
+                </h3>
+            </div>
+            <div class="section-card-body">
+                <!-- Zone Logo -->
+                <div class="mb-4">
+                    <label class="field-label">
+                        <i class="fas fa-image text-warning"></i>
+                        <span>شعار القسم الرسمي</span>
+                    </label>
+                    <div class="logo-upload-wrapper">
+                        <div class="logo-current-preview">
+                            {% if my_Dep.logo %}
+                                <img src="{{ my_Dep.logo.url }}" alt="Logo {{ my_Dep.nom_ar }}">
+                            {% else %}
+                                <i class="fas fa-university"></i>
+                            {% endif %}
+                        </div>
+                        <div class="logo-input-content">
+                            <label for="{{ form.logo.id_for_label }}" class="form-label text-muted small mb-1">
+                                اختر ملف صورة جديد لتحديث الشعار (PNG, JPG, SVG):
+                            </label>
+                            <input type="file" name="{{ form.logo.name }}" id="{{ form.logo.id_for_label }}" class="form-control standard-input" accept="image/*">
+                            {% if my_Dep.logo %}
+                            <div class="field-hint">
+                                <i class="fas fa-check-circle text-success me-1"></i>
+                                يوجد شعار حالي محمل للقسم
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
 
-            <button type="submit" class="btn btn-success btn-lg">
-                <i class="fas fa-save me-2"></i>
-                حفظ التغييرات
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label for="{{ form.nom_ar.id_for_label }}" class="field-label">
+                            <i class="fas fa-signature text-primary"></i>
+                            <span>اسم القسم بالعربية <span class="text-danger">*</span></span>
+                        </label>
+                        <input type="text" name="{{ form.nom_ar.name }}" id="{{ form.nom_ar.id_for_label }}" class="form-control standard-input" value="{{ form.nom_ar.value|default:'' }}" dir="rtl" required placeholder="مثال: هندسة الطرائق">
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label for="{{ form.nom_fr.id_for_label }}" class="field-label">
+                            <i class="fas fa-globe-africa text-info"></i>
+                            <span>Nom du département en français</span>
+                        </label>
+                        <input type="text" name="{{ form.nom_fr.name }}" id="{{ form.nom_fr.id_for_label }}" class="form-control standard-input" value="{{ form.nom_fr.value|default:'' }}" dir="ltr" placeholder="Ex: Génie des Procédés">
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label for="{{ form.sigle.id_for_label }}" class="field-label">
+                            <i class="fas fa-tag text-warning"></i>
+                            <span>الرمز المختصر (Sigle)</span>
+                        </label>
+                        <input type="text" name="{{ form.sigle.name }}" id="{{ form.sigle.id_for_label }}" class="form-control standard-input" value="{{ form.sigle.value|default:'' }}" placeholder="مثال: GP أو INFO">
+                        <div class="field-hint">يظهر في الشارات والاختصارات الرسمية</div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label for="{{ form.code.id_for_label }}" class="field-label">
+                            <i class="fas fa-barcode text-secondary"></i>
+                            <span>الكود التعريفي (Code)</span>
+                        </label>
+                        <input type="text" name="{{ form.code.name }}" id="{{ form.code.id_for_label }}" class="form-control standard-input" value="{{ form.code.value|default:'' }}" placeholder="مثال: DEP-01">
+                        <div class="field-hint">الرمز المرجعي للقسم في النظام الأكاديمي</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARTE 2: وسائل الاتصال المؤسساتي -->
+        <div class="form-section-card">
+            <div class="section-card-header">
+                <h3 class="section-card-title">
+                    <i class="fas fa-address-book"></i>
+                    <span>وسائل الاتصال المؤسساتي</span>
+                </h3>
+            </div>
+            <div class="section-card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label for="{{ form.email.id_for_label }}" class="field-label">
+                            <span>البريد الإلكتروني الرسمي</span>
+                        </label>
+                        <div class="input-icon-group">
+                            <span class="input-icon-addon"><i class="fas fa-envelope text-primary"></i></span>
+                            <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}" class="form-control" value="{{ form.email.value|default:'' }}" dir="ltr" placeholder="dep-nom@univ-ouargla.dz">
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label for="{{ form.siteweb.id_for_label }}" class="field-label">
+                            <span>الموقع الإلكتروني أو صفحة الويب</span>
+                        </label>
+                        <div class="input-icon-group">
+                            <span class="input-icon-addon"><i class="fas fa-globe text-info"></i></span>
+                            <input type="url" name="{{ form.siteweb.name }}" id="{{ form.siteweb.id_for_label }}" class="form-control" value="{{ form.siteweb.value|default:'' }}" dir="ltr" placeholder="https://univ-ouargla.dz/departement">
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="{{ form.telmobile.id_for_label }}" class="field-label">
+                            <span>الهاتف النقال</span>
+                        </label>
+                        <div class="input-icon-group">
+                            <span class="input-icon-addon"><i class="fas fa-mobile-alt text-success"></i></span>
+                            <input type="text" name="{{ form.telmobile.name }}" id="{{ form.telmobile.id_for_label }}" class="form-control" value="{{ form.telmobile.value|default:'' }}" dir="ltr" placeholder="06 00 00 00 00">
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="{{ form.telfix1.id_for_label }}" class="field-label">
+                            <span>الهاتف الثابت 1</span>
+                        </label>
+                        <div class="input-icon-group">
+                            <span class="input-icon-addon"><i class="fas fa-phone text-secondary"></i></span>
+                            <input type="text" name="{{ form.telfix1.name }}" id="{{ form.telfix1.id_for_label }}" class="form-control" value="{{ form.telfix1.value|default:'' }}" dir="ltr" placeholder="029 00 00 00">
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="{{ form.telfix2.id_for_label }}" class="field-label">
+                            <span>الهاتف الثابت 2</span>
+                        </label>
+                        <div class="input-icon-group">
+                            <span class="input-icon-addon"><i class="fas fa-phone text-secondary"></i></span>
+                            <input type="text" name="{{ form.telfix2.name }}" id="{{ form.telfix2.id_for_label }}" class="form-control" value="{{ form.telfix2.value|default:'' }}" dir="ltr" placeholder="029 00 00 01">
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label for="{{ form.tel3chiffre.id_for_label }}" class="field-label">
+                            <span>رقم الموزع الداخلي (Poste 3 chiffres)</span>
+                        </label>
+                        <div class="input-icon-group">
+                            <span class="input-icon-addon"><i class="fas fa-hashtag text-warning"></i></span>
+                            <input type="text" name="{{ form.tel3chiffre.name }}" id="{{ form.tel3chiffre.id_for_label }}" class="form-control" value="{{ form.tel3chiffre.value|default:'' }}" dir="ltr" placeholder="Ex: 123">
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label for="{{ form.fax.id_for_label }}" class="field-label">
+                            <span>الفاكس (Fax)</span>
+                        </label>
+                        <div class="input-icon-group">
+                            <span class="input-icon-addon"><i class="fas fa-fax text-dark"></i></span>
+                            <input type="text" name="{{ form.fax.name }}" id="{{ form.fax.id_for_label }}" class="form-control" value="{{ form.fax.value|default:'' }}" dir="ltr" placeholder="029 00 00 02">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARTE 3: التواجد الرقمي والشبكات الرسمية -->
+        <div class="form-section-card">
+            <div class="section-card-header">
+                <h3 class="section-card-title">
+                    <i class="fas fa-share-alt"></i>
+                    <span>التواجد الرقمي والشبكات الرسمية</span>
+                </h3>
+            </div>
+            <div class="section-card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label for="{{ form.facebook.id_for_label }}" class="field-label">
+                            <span>صفحة فيسبوك الرسمية (Facebook)</span>
+                        </label>
+                        <div class="input-icon-group">
+                            <span class="input-icon-addon addon-fb"><i class="fab fa-facebook-f"></i></span>
+                            <input type="url" name="{{ form.facebook.name }}" id="{{ form.facebook.id_for_label }}" class="form-control" value="{{ form.facebook.value|default:'' }}" dir="ltr" placeholder="https://facebook.com/departement">
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label for="{{ form.x_twitter.id_for_label }}" class="field-label">
+                            <span>حساب إكس / تويتر (X / Twitter)</span>
+                        </label>
+                        <div class="input-icon-group">
+                            <span class="input-icon-addon addon-tw"><i class="fab fa-x-twitter"></i></span>
+                            <input type="url" name="{{ form.x_twitter.name }}" id="{{ form.x_twitter.id_for_label }}" class="form-control" value="{{ form.x_twitter.value|default:'' }}" dir="ltr" placeholder="https://x.com/departement">
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="{{ form.linkedIn.id_for_label }}" class="field-label">
+                            <span>لينكد إن (LinkedIn)</span>
+                        </label>
+                        <div class="input-icon-group">
+                            <span class="input-icon-addon addon-li"><i class="fab fa-linkedin-in"></i></span>
+                            <input type="url" name="{{ form.linkedIn.name }}" id="{{ form.linkedIn.id_for_label }}" class="form-control" value="{{ form.linkedIn.value|default:'' }}" dir="ltr" placeholder="https://linkedin.com/company/departement">
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="{{ form.telegram.id_for_label }}" class="field-label">
+                            <span>قناة تيليغرام (Telegram)</span>
+                        </label>
+                        <div class="input-icon-group">
+                            <span class="input-icon-addon addon-tg"><i class="fab fa-telegram-plane"></i></span>
+                            <input type="url" name="{{ form.telegram.name }}" id="{{ form.telegram.id_for_label }}" class="form-control" value="{{ form.telegram.value|default:'' }}" dir="ltr" placeholder="https://t.me/departement">
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="{{ form.tiktok.id_for_label }}" class="field-label">
+                            <span>حساب تيك توك (TikTok)</span>
+                        </label>
+                        <div class="input-icon-group">
+                            <span class="input-icon-addon addon-tt"><i class="fab fa-tiktok"></i></span>
+                            <input type="url" name="{{ form.tiktok.name }}" id="{{ form.tiktok.id_for_label }}" class="form-control" value="{{ form.tiktok.value|default:'' }}" dir="ltr" placeholder="https://tiktok.com/@departement">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARTE 4: الإعدادات التشغيلية المتقدمة -->
+        <div class="form-section-card">
+            <div class="section-card-header">
+                <h3 class="section-card-title">
+                    <i class="fas fa-sliders-h"></i>
+                    <span>الإعدادات التشغيلية للقسم</span>
+                </h3>
+            </div>
+            <div class="section-card-body">
+                <div class="setting-toggle-box">
+                    <div>
+                        <div class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                            <i class="fas fa-calendar-check text-success"></i>
+                            <span>إنشاء الحصص تلقائياً (Création automatique des séances)</span>
+                        </div>
+                        <div class="text-muted small">
+                            تفعيل هذا الخيار يقوم بتوليد حصص التدريس تلقائياً عند اعتماد جداول التوقيت والأفواج البيداغوجية.
+                        </div>
+                    </div>
+                    <div class="form-check form-switch m-0">
+                        <input class="form-check-input" type="checkbox" role="switch" name="{{ form.creationALLseances.name }}" id="{{ form.creationALLseances.id_for_label }}" {% if form.creationALLseances.value %}checked{% endif %}>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════
+             4. BARRE D'ACTIONS INFERIEURE
+             ══════════════════════════════════════════════════════════ -->
+        <div class="bottom-action-bar">
+            <a href="{% url 'depa:profile_Dep' %}" class="btn-cancel-main">
+                <i class="fas fa-times"></i>
+                <span>إلغاء التغييرات والرجوع</span>
+            </a>
+
+            <button type="submit" class="btn-save-main" id="btnSubmitForm">
+                <i class="fas fa-check-circle"></i>
+                <span>حفظ كافة التغييرات</span>
             </button>
         </div>
     </form>
 </div>
+{% endblock %}
 
-<!-- JavaScript pour améliorer l'UX -->
+{% block extra_js %}
+{{ block.super }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Animation lors du chargement
-    const cards = document.querySelectorAll('.info-card, .form-container');
-    cards.forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
+    const form = document.getElementById('depUpdateForm');
+    const submitBtn = document.getElementById('btnSubmitForm');
+    const heroSaveBtn = document.querySelector('.btn-hero-save');
 
-        setTimeout(() => {
-            card.style.transition = 'all 0.3s ease';
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-        }, 100 + (index * 100));
-    });
-
-    // Validation basique du formulaire
-    const form = document.getElementById('departmentForm');
-    form.addEventListener('submit', function(e) {
-        const submitBtn = form.querySelector('button[type="submit"]');
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري الحفظ...';
-        submitBtn.disabled = true;
-    });
+    if (form) {
+        form.addEventListener('submit', function() {
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>جاري حفظ البيانات...</span>';
+            }
+            if (heroSaveBtn) {
+                heroSaveBtn.disabled = true;
+                heroSaveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>جاري الحفظ...</span>';
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

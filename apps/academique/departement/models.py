@@ -27,7 +27,9 @@ class Departement(BaseModel):
     # INFORMATIONS DE BASE
     # ══════════════════════════════════════════════════════════════
 
-    code = models.CharField(max_length=20, unique=True, verbose_name="الرمز / Code", help_text="Ex: INFO, MATH")
+    code = models.CharField(
+        blank=True, null=True, max_length=20, unique=True, verbose_name="الرمز / Code", help_text="Ex: INFO, MATH"
+    )
     nom_ar = models.CharField(max_length=200, verbose_name="القسم / Département", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Département", blank=True, default="")
     sigle = models.CharField(
@@ -131,7 +133,9 @@ class Specialite(BaseModel):
     Une spécialité appartient à un département et suit une réforme/identification/parcours.
     """
 
-    code = models.CharField(max_length=20, verbose_name="الرمز / Code", help_text="Ex: INFO-L, MATH-M")
+    code = models.CharField(
+        blank=True, null=True, max_length=20, verbose_name="الرمز / Code", help_text="Ex: INFO-L, MATH-M"
+    )
     nom_ar = models.CharField(max_length=200, verbose_name="التخصص / Spécialité", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Spécialité", blank=True, default="")
     departement = models.ForeignKey(
@@ -199,8 +203,8 @@ class NivSpeDep(models.Model):
     nbr_etudiants = models.IntegerField(verbose_name="عدد الطلبة / Nombre d'étudiants", default=0)
 
     class Meta:
-        verbose_name = "Niveau-Spécialité-Département"
-        verbose_name_plural = "Niveaux-Spécialités-Départements"
+        verbose_name = "مستوى-تخصص-قسم / Niveau-Spécialité-Département"
+        verbose_name_plural = "المستويات-التخصصات-الأقسام / Niveaux-Spécialités-Départements"
         unique_together = ("niveau", "specialite", "departement")
         indexes = [
             models.Index(fields=["departement", "specialite", "niveau"]),
@@ -275,7 +279,7 @@ class Matiere(models.Model):
     Une matière appartient à un niveau-spécialité-département et à un semestre.
     """
 
-    code = models.CharField(max_length=20, verbose_name="الرمز / Code", blank=True, default="")
+    code = models.CharField(max_length=20, verbose_name="الرمز / Code", blank=True, null=True)
     nom_ar = models.CharField(max_length=100, verbose_name="المادة / Matière", blank=True, default="")
     nom_fr = models.CharField(max_length=100, verbose_name="Matière", blank=True, default="")
     coeff = models.FloatField(verbose_name="المعامل / Coefficient", default=1.0)

@@ -301,4 +301,15 @@ def logout_view(request):
     if request.method == "POST":
         logout(request)
         return redirect("comm:home")
-    return render(request, "authentification/logout_confirm.html")
+
+    context = {}
+    if request.user.is_authenticated:
+        dep_id = request.session.get("selected_departement_id")
+        if dep_id:
+            try:
+                from apps.academique.departement.models import Departement
+                context["my_Dep"] = Departement.objects.filter(id=dep_id).first()
+            except Exception:
+                pass
+
+    return render(request, "authentification/logout_confirm.html", context)

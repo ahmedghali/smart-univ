@@ -49,7 +49,7 @@ class EtudiantForm(forms.ModelForm):
             "en_maladie",
         ]
         widgets = {
-            "date_nais": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "date_nais": forms.DateInput(attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"),
             "civilite": forms.Select(attrs={"class": "form-select"}),
             "sexe": forms.Select(attrs={"class": "form-select"}),
             "sit_fam": forms.Select(attrs={"class": "form-select"}),
@@ -66,7 +66,7 @@ class EtudiantForm(forms.ModelForm):
             "tel_fix": forms.TextInput(attrs={"class": "form-control"}),
             "fax": forms.TextInput(attrs={"class": "form-control"}),
             "email_perso": forms.EmailInput(attrs={"class": "form-control", "placeholder": "exemple@email.com"}),
-            "email_prof": forms.EmailInput(attrs={"class": "form-control", "placeholder": "prenom.nom@univ.dz"}),
+            "email_prof": forms.EmailInput(attrs={"class": "form-control", "placeholder": "prenom.nom@univ-ouargla.dz"}),
             "adresse": forms.TextInput(attrs={"class": "form-control"}),
             "wilaya": forms.Select(attrs={"class": "form-select"}),
             "google_scholar": forms.URLInput(
@@ -131,7 +131,7 @@ class ProfileUpdateEtudForm(forms.ModelForm):
             "telegram",
         ]
         widgets = {
-            "date_nais": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "date_nais": forms.DateInput(attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"),
             "civilite": forms.Select(attrs={"class": "form-select"}),
             "sexe": forms.Select(attrs={"class": "form-select"}),
             "sit_fam": forms.Select(attrs={"class": "form-select"}),
@@ -144,7 +144,7 @@ class ProfileUpdateEtudForm(forms.ModelForm):
             "tel_fix": forms.TextInput(attrs={"class": "form-control"}),
             "fax": forms.TextInput(attrs={"class": "form-control"}),
             "email_perso": forms.EmailInput(attrs={"class": "form-control", "placeholder": "exemple@email.com"}),
-            "email_prof": forms.EmailInput(attrs={"class": "form-control", "placeholder": "prenom.nom@univ.dz"}),
+            "email_prof": forms.EmailInput(attrs={"class": "form-control", "placeholder": "prenom.nom@univ-ouargla.dz"}),
             "adresse": forms.TextInput(attrs={"class": "form-control"}),
             "wilaya": forms.Select(attrs={"class": "form-select"}),
             "google_scholar": forms.URLInput(

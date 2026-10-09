@@ -3,7 +3,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from apps.noyau.authentification.models import CustomUser
+from apps.noyau.authentification.models import CustomUser, get_avatar_palette_for
 from apps.noyau.commun.models import BaseModel, Diplome, Grade, Wilaya
 
 # ══════════════════════════════════════════════════════════════
@@ -144,7 +144,7 @@ class Enseignant(BaseModel):
         related_name="enseignants_diplome",
     )
 
-    specialite_ar = models.CharField(max_length=100, verbose_name="التخصص / Spécialité", blank=True, default="")
+    specialite_ar = models.CharField(max_length=100, verbose_name="التخصص", blank=True, default="")
 
     specialite_fr = models.CharField(max_length=100, verbose_name="Spécialité", blank=True, default="")
 
@@ -241,18 +241,96 @@ class Enseignant(BaseModel):
         """Représentation string de l'enseignant."""
         nom = self.nom_ar or self.nom_fr or "Sans nom"
         prenom = self.prenom_ar or self.prenom_fr or ""
-        return f"{nom} {prenom}".strip() or self.matricule
+        return f"{nom} {prenom}".strip() or self.matricule or ""
+
+    @property
+    def is_feminin(self):
+        """Vérifie si l'enseignant est de sexe féminin."""
+        if self.sex in [self.Sexe.F, "أنثى", "F", "Femme", "femme", "female"]:
+            return True
+        if self.civilite in [self.Civilite.MME, self.Civilite.MLLE, "Mme", "Mlle", "السيدة", "الآنسة"]:
+            return True
+        return False
+
+    @property
+    def titre_enseignant_ar(self):
+        """Retourne 'الأستاذة' si féminin, sinon 'الأستاذ'."""
+        return "الأستاذة" if self.is_feminin else "الأستاذ"
+
+    @property
+    def initiales(self):
+        """
+        Retourne les deux premières lettres (en Français) du Nom et Prénom séparées par un point.
+        Ex: 'D.A' (DOBBI Abdelmadjid), 'H.T' (HALILAT Tahar), 'A.M' (Atlili Mohamed).
+        """
+        if self.nom_fr and self.prenom_fr:
+            n = self.nom_fr.strip().upper()
+            p = self.prenom_fr.strip().upper()
+            if n and p:
+                return f"{n[0]}.{p[0]}"
+        if self.user and self.user.last_name and self.user.first_name:
+            n = self.user.last_name.strip().upper()
+            p = self.user.first_name.strip().upper()
+            if n and p:
+                return f"{n[0]}.{p[0]}"
+        if self.nom_fr:
+            parts = self.nom_fr.strip().split()
+            if len(parts) >= 2:
+                return f"{parts[0][0].upper()}.{parts[1][0].upper()}"
+            elif parts and len(parts[0]) >= 2:
+                return f"{parts[0][0].upper()}.{parts[0][1].upper()}"
+            elif parts:
+                return f"{parts[0][0].upper()}"
+        if self.nom_ar and self.prenom_ar:
+            n = self.nom_ar.strip()
+            p = self.prenom_ar.strip()
+            if n and p:
+                return f"{n[0]}.{p[0]}"
+        return "E.N"
+
+    @property
+    def initiales_fr(self):
+        """Retourne les initiales en français (ex: 'D.A')."""
+        return self.initiales
+
+    @property
+    def avatar_palette(self):
+        """Palette de couleur harmonieuse et déterministe pour l'enseignant."""
+        if self.user:
+            return self.user.avatar_palette
+        return get_avatar_palette_for(self.id or f"{self.nom_fr} {self.prenom_fr}")
+
+    @property
+    def avatar_bg(self):
+        return self.avatar_palette["bg"]
+
+    @property
+    def avatar_color(self):
+        return self.avatar_palette["color"]
+
+    @property
+    def avatar_border(self):
+        return self.avatar_palette["border"]
+
+    @property
+    def avatar_gradient(self):
+        return self.avatar_palette["gradient"]
+
+    @property
+    def avatar_style(self):
+        p = self.avatar_palette
+        return f"background: {p['gradient']}; color: {p['color']};"
 
     def get_nom_complet(self, langue="ar"):
         """Retourne le nom complet selon la langue."""
         if langue == "ar":
             nom = self.nom_ar or self.nom_fr or ""
             prenom = self.prenom_ar or self.prenom_fr or ""
-            return f"{nom} {prenom}".strip() or self.matricule
+            return f"{nom} {prenom}".strip() or self.matricule or ""
         else:
             nom = self.nom_fr or self.nom_ar or ""
             prenom = self.prenom_fr or self.prenom_ar or ""
-            return f"{prenom} {nom}".strip() or self.matricule
+            return f"{prenom} {nom}".strip() or self.matricule or ""
 
     def get_specialite(self, langue="ar"):
         """Retourne la spécialité selon la langue."""
@@ -270,13 +348,17 @@ class Enseignant(BaseModel):
         match = re.search(r"user=([^&]+)", self.googlescholar)
         return match.group(1) if match else None
 
+    def get_departement_origine(self, annee_univ=None):
+        """Retourne le département d'origine (où l'enseignant est Permanent)."""
+        qs = self.affectations_departement.filter(statut="Permanent", est_actif=True)
+        if annee_univ:
+            qs = qs.filter(annee_univ=annee_univ)
+        aff = qs.select_related("departement").first()
+        return aff.departement if aff else None
+
     def clean(self):
         """Validation des données."""
         super().clean()
-
-        # Validation du matricule
-        if not self.matricule:
-            raise ValidationError({"matricule": "Le matricule est obligatoire."})
 
         # Au moins un nom doit être renseigné
         if not self.nom_ar and not self.nom_fr:

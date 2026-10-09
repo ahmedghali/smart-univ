@@ -1,0 +1,161 @@
+{% extends 'faculte/base_Fac.html' %}
+{% load static %}
+
+{% block title %}استيراد الطلبة - {{ my_Fac.nom_complet_ar }}{% endblock %}
+
+{% block content_fac %}
+<div class="dep-page-container">
+
+    <!-- ─── HERO HEADER ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-file-excel text-success"></i>
+                    <span>استيراد قوائم الطلبة بالكلية</span>
+                </h1>
+                <p class="dep-hero-subtitle">
+                    <span>{{ my_Fac.nom_complet_ar }}</span>
+                    <span>•</span>
+                    <span>تحديث واستيراد بيانات الطلبة الموزعين آلياً من ملفات Excel أو CSV لكافة الأقسام</span>
+                </p>
+            </div>
+            <div class="dep-hero-actions">
+                <a href="/faculte/admin/etudiant/etudiant/import/" class="btn-hero-primary">
+                    <i class="fas fa-cloud-arrow-up"></i>
+                    <span>بوابة الاستيراد المتقدم</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── CONTENU D'IMPORTATION ─── -->
+    <div class="row g-4">
+        <!-- Formulaire de téléversement -->
+        <div class="col-lg-7">
+            <div class="dep-table-card p-4 h-100">
+                <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+                    <div style="width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.25)); display: flex; align-items: center; justify-content: center; color: #059669; font-size: 1.5rem;">
+                        <i class="fas fa-cloud-arrow-up"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-1" style="color: #1b262c;">رفع ملف الطلبة للكلية</h4>
+                        <p class="text-muted mb-0 small">يدعم صيغ Excel الرسمية (.xlsx, .xls) وكذلك (.csv)</p>
+                    </div>
+                </div>
+
+                <form method="post" action="/faculte/admin/etudiant/etudiant/import/" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="dep-upload-zone mb-4" onclick="document.getElementById('excelFileFac').click();">
+                        <div class="dep-upload-icon">
+                            <i class="fas fa-file-excel text-success"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">اختر ملف الطلبة أو اسحبه هنا</h5>
+                        <p class="text-muted small mb-3">الصيغ المقبولة: Excel Workbook (.xlsx), Excel 97-2003 (.xls), CSV</p>
+                        <input type="file" id="excelFileFac" name="import_file" accept=".xlsx,.xls,.csv" class="d-none" required onchange="updateFileName(this)">
+                        <button type="button" class="btn btn-sm btn-outline-secondary px-3">
+                            <i class="fas fa-folder-open me-1"></i> تصفح الجهاز
+                        </button>
+                        <div id="fileSelectedDisplayFac" class="mt-3 text-success fw-bold small d-none">
+                            <i class="fas fa-check-circle me-1"></i> تم اختيار: <span id="fileNameTextFac"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pt-2 border-top">
+                        <button type="submit" class="btn-hero-primary px-4 py-2">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>الانتقال للمعالجة والتحقق (Preview)</span>
+                        </button>
+                        <a href="/faculte/admin/etudiant/etudiant/import/" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-cog me-1"></i> إعدادات الاستيراد المتقدم
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Colonne Guide et spécifications du format Excel -->
+        <div class="col-lg-5">
+            <div class="d-flex flex-column gap-4">
+                <!-- Structure du fichier -->
+                <div class="dep-table-card p-4">
+                    <h5 class="fw-bold mb-3 pb-2 border-bottom" style="color: #1b262c; font-size: 1.05rem;">
+                        <i class="fas fa-table-list text-primary me-2"></i>
+                        هيكل الأعمدة المطلوب في Excel
+                    </h5>
+                    <p class="text-muted small mb-3">
+                        يجب أن يحتوي السطر الأول من الجدول على الترويسات التالية بالترتيب أو أسمائها:
+                    </p>
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                            <span><i class="fas fa-id-badge text-muted me-2"></i>الرقم التسلسلي</span>
+                            <span class="badge-code">Matricule</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                            <span><i class="fas fa-user text-muted me-2"></i>اللقب (عربي)</span>
+                            <span class="badge-code">Nom_Ar</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                            <span><i class="fas fa-user text-muted me-2"></i>الاسم (عربي)</span>
+                            <span class="badge-code">Prenom_Ar</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                            <span><i class="fas fa-font text-muted me-2"></i>الاسم واللقب باللاتينية</span>
+                            <span class="badge-code">Nom_Fr / Prenom_Fr</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                            <span><i class="fas fa-building text-muted me-2"></i>القسم</span>
+                            <span class="badge-code">Departement</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                            <span><i class="fas fa-layer-group text-muted me-2"></i>المستوى والتخصص</span>
+                            <span class="badge-code">Niveau / Specialite</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                            <span><i class="fas fa-users-rectangle text-muted me-2"></i>الفوج أو القسم</span>
+                            <span class="badge-code">Groupe / Section</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Conseils de traitement -->
+                <div class="dep-table-card p-4">
+                    <h5 class="fw-bold mb-3 pb-2 border-bottom" style="color: #1b262c; font-size: 1.05rem;">
+                        <i class="fas fa-shield-halved text-warning me-2"></i>
+                        ملاحظات هامة للعمادة
+                    </h5>
+                    <ul class="list-unstyled mb-0 d-flex flex-column gap-2 small text-muted">
+                        <li class="d-flex align-items-start gap-2">
+                            <i class="fas fa-check-circle text-success mt-1"></i>
+                            <span>يتم تقييد استيراد الطلبة تلقائياً للأقسام والتخصصات التابعة لكلية {{ my_Fac.nom_ar }}.</span>
+                        </li>
+                        <li class="d-flex align-items-start gap-2">
+                            <i class="fas fa-check-circle text-success mt-1"></i>
+                            <span>يقوم النظام بتحديث بيانات الطلبة الموجودين مسبقاً بناءً على الرقم التسلسلي لتجنب التكرار.</span>
+                        </li>
+                        <li class="d-flex align-items-start gap-2">
+                            <i class="fas fa-check-circle text-success mt-1"></i>
+                            <span>يمكن إنشاء حسابات الدخول للطلبة تلقائياً بكلمات مرور افتراضية عبر بوابة المشرف الإداري.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function updateFileName(input) {
+    var display = document.getElementById('fileSelectedDisplayFac');
+    var text = document.getElementById('fileNameTextFac');
+    if (input.files && input.files.length > 0) {
+        text.textContent = input.files[0].name;
+        display.classList.remove('d-none');
+    } else {
+        display.classList.add('d-none');
+    }
+}
+</script>
+{% endblock %}

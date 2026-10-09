@@ -1,0 +1,57 @@
+{% extends 'faculte/base_Fac.html' %}
+
+{% block content_fac %}
+<div class="dep-page-container">
+
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-id-card" style="color: #ffd700;"></i>
+                    <span>{{ my_Fac.nom_complet_ar }}</span>
+                </h1>
+                <p class="dep-hero-subtitle">
+                    {% if my_Fac.nom_fr %}<span dir="ltr">{{ my_Fac.nom_fr }}</span>{% endif %}
+                    {% if my_Fac.sigle %}<span>•</span><span>{{ my_Fac.sigle }}</span>{% endif %}
+                </p>
+            </div>
+            <div class="dep-hero-actions">
+                <a href="{% url 'facu:profileUpdate_Fac' %}" class="btn-hero-primary">
+                    <i class="fas fa-edit"></i><span>تعديل البطاقة</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="dsh-grid">
+        <div class="dsh-panel">
+            <h2 class="dsh-panel-title"><i class="fas fa-address-card"></i>معلومات الاتصال</h2>
+            <table class="table mb-0">
+                <tbody>
+                    <tr><th style="width: 35%;">العنوان</th><td>{{ my_Fac.adresse|default:"—" }}</td></tr>
+                    <tr><th>المحمول</th><td dir="ltr" class="text-end">{{ my_Fac.telmobile|default:"—" }}</td></tr>
+                    <tr><th>الهاتف</th><td dir="ltr" class="text-end">{{ my_Fac.telfix1|default:"—" }}{% if my_Fac.telfix2 %} / {{ my_Fac.telfix2 }}{% endif %}</td></tr>
+                    <tr><th>الفاكس</th><td dir="ltr" class="text-end">{{ my_Fac.fax|default:"—" }}</td></tr>
+                    <tr><th>البريد الإلكتروني</th><td dir="ltr" class="text-end">{{ my_Fac.email|default:"—" }}</td></tr>
+                    <tr><th>الموقع</th><td dir="ltr" class="text-end">{% if my_Fac.siteweb %}<a href="{{ my_Fac.siteweb }}" target="_blank" rel="noopener">{{ my_Fac.siteweb }}</a>{% else %}—{% endif %}</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dsh-panel">
+            <h2 class="dsh-panel-title"><i class="fas fa-share-alt"></i>الشبكات الاجتماعية</h2>
+            {% if my_Fac.facebook or my_Fac.linkedIn or my_Fac.x_twitter or my_Fac.telegram or my_Fac.tikTok %}
+            <div class="d-flex flex-wrap gap-2">
+                {% if my_Fac.facebook %}<a class="dsh-chip" href="{{ my_Fac.facebook }}" target="_blank" rel="noopener"><i class="fab fa-facebook"></i>Facebook</a>{% endif %}
+                {% if my_Fac.linkedIn %}<a class="dsh-chip" href="{{ my_Fac.linkedIn }}" target="_blank" rel="noopener"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+                {% if my_Fac.x_twitter %}<a class="dsh-chip" href="{{ my_Fac.x_twitter }}" target="_blank" rel="noopener"><i class="fab fa-x-twitter"></i>X</a>{% endif %}
+                {% if my_Fac.telegram %}<a class="dsh-chip" href="{{ my_Fac.telegram }}" target="_blank" rel="noopener"><i class="fab fa-telegram"></i>Telegram</a>{% endif %}
+                {% if my_Fac.tikTok %}<a class="dsh-chip" href="{{ my_Fac.tikTok }}" target="_blank" rel="noopener"><i class="fab fa-tiktok"></i>TikTok</a>{% endif %}
+            </div>
+            {% else %}
+            <p class="dsh-empty mb-0">لا توجد روابط مسجلة.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

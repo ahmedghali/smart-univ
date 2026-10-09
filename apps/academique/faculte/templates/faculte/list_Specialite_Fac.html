@@ -1,0 +1,140 @@
+{% extends 'faculte/base_Fac.html' %}
+{% load static %}
+
+{% block title %}تخصصات الكلية - {{ my_Fac.nom_complet_ar }}{% endblock %}
+
+{% block content_fac %}
+<div class="dep-page-container">
+
+    <!-- ─── HERO HEADER UNIFIÉ ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-graduation-cap" style="color: #ffd700;"></i>
+                    <span>تخصصات وشعب الكلية</span>
+                </h1>
+                <p class="dep-hero-subtitle">
+                    <span>{{ my_Fac.nom_complet_ar }}</span>
+                    <span>•</span>
+                    <span>الهياكل والمقررات: دليل البرامج والشعب الأكاديمية بمختلف أقسام الكلية</span>
+                    <span class="dep-hero-badge">
+                        <i class="fas fa-sitemap"></i>
+                        {{ total_specialites }} تخصص معتمد
+                    </span>
+                </p>
+            </div>
+            <div class="dep-hero-actions">
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── CARTE TABLEAU ERP ─── -->
+    <div class="dep-table-card">
+        <div class="dep-table-header flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <h5>
+                    <i class="fas fa-sitemap text-primary"></i>
+                    <span>دليل التخصصات والمسارات الأكاديمية بالكلية</span>
+                </h5>
+                <span class="badge bg-light text-dark border ms-2">
+                    {{ total_specialites }} مسار معتمد
+                </span>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-2">
+                    <i class="fas fa-sort-numeric-down me-1"></i> مصنفة حسب الرقم / الرمز
+                </span>
+            </div>
+
+            <!-- Filtre Département & Recherche -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <form method="GET" class="d-flex align-items-center gap-2">
+                    <select name="dep" class="form-select form-select-sm" style="min-width: 220px;" onchange="this.form.submit()">
+                        <option value="">جميع أقسام الكلية</option>
+                        {% for dep in departements %}
+                        <option value="{{ dep.id }}" {% if selected_dep == dep.id %}selected{% endif %}>{{ dep.nom_ar }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+
+                <div class="search-input-wrapper" style="min-width: 220px;">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="specialiteSearchInput" placeholder="بحث باسم التخصص، الرمز..." autocomplete="off">
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="dep-table align-middle" id="specialitesTable">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;" class="text-center">#</th>
+                        <th class="text-center" style="width: 110px;"><i class="fas fa-hashtag text-primary me-1"></i> الرقم / الرمز</th>
+                        <th>اسم التخصص (عربي)</th>
+                        <th>Intitulé de la Spécialité (FR)</th>
+                        <th>القسم التابع له</th>
+                        <th class="text-center">عدد المواد</th>
+                        <th class="text-center">إجمالي الطلبة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for spe in specialites %}
+                    <tr class="spe-row" data-name="{{ spe.nom_ar }} {{ spe.nom_fr }} {{ spe.code }} {{ spe.departement.nom_ar }}">
+                        <td class="text-muted fw-bold text-center">{{ forloop.counter }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold px-2 py-1">{{ spe.code|default:spe.id }}</span>
+                        </td>
+                        <td class="fw-bold" style="color: #1b262c;">
+                            <i class="fas fa-folder text-warning me-2"></i>
+                            {{ spe.nom_ar }}
+                        </td>
+                        <td class="text-muted">
+                            {{ spe.nom_fr|default:"-" }}
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-primary border border-primary-subtle px-2 py-1">
+                                <i class="fas fa-building me-1"></i> {{ spe.departement.nom_ar }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill fw-bold">
+                                {{ spe.nb_matieres|default:"0" }} مادة
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill fw-bold">
+                                {{ spe.nb_etudiants|default:"0" }} طالب
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <i class="fas fa-folder-open text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+                            <h6 class="fw-bold text-dark mb-1">لا توجد تخصصات مسجلة</h6>
+                            <p class="text-muted small mb-0">لم يتم إسناد تخصصات لهذا القسم أو الكلية بعد.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('specialiteSearchInput');
+        const rows = document.querySelectorAll('.spe-row');
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                const q = this.value.toLowerCase().trim();
+                rows.forEach(r => {
+                    const text = (r.dataset.name || '').toLowerCase();
+                    r.style.display = (!q || text.includes(q)) ? '' : 'none';
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

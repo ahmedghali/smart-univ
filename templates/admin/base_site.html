@@ -1,0 +1,39 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block extrahead %}{{ block.super }}
+<style>html { font-size: 104%; } /* taille du texte de tout le site */</style>
+<link rel="icon" type="image/svg+xml" href="{% static 'images/smart-univ-logo.svg' %}">
+{% endblock %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></div>
+{% if user.is_anonymous %}
+  {% include "admin/color_theme_toggle.html" %}
+{% endif %}
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+<script>
+  // Conserve la position de défilement du menu latéral entre les pages
+  (function () {
+    const nav = document.getElementById('nav-sidebar');
+    if (!nav) return;
+    const key = 'smartuniv.admin.navSidebarScroll';
+    try {
+      const saved = sessionStorage.getItem(key);
+      if (saved !== null) nav.scrollTop = parseInt(saved, 10);
+    } catch (e) {}
+    const save = function () {
+      try { sessionStorage.setItem(key, nav.scrollTop); } catch (e) {}
+    };
+    nav.addEventListener('scroll', save, { passive: true });
+    window.addEventListener('beforeunload', save);
+  })();
+</script>
+{% endblock %}

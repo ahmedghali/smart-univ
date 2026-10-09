@@ -4,6 +4,7 @@ from pathlib import Path
 
 import dj_database_url
 from decouple import Csv, config
+from django.contrib.messages import constants as messages_constants
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -63,6 +64,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.i18n",
+                "apps.noyau.authentification.context_processors.auth_roles_context",
             ],
         },
     },
@@ -89,6 +91,11 @@ else:
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "authentification.CustomUser"
 
+AUTHENTICATION_BACKENDS = [
+    "apps.noyau.authentification.backends.EmailOrUsernameModelBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -100,11 +107,20 @@ LOGIN_URL = "auth:login"
 LOGIN_REDIRECT_URL = "auth:dashboard"
 LOGOUT_REDIRECT_URL = "/"
 
-# Internationalisation (interface arabe, écriture de droite à gauche)
-LANGUAGE_CODE = "ar"
+
+MESSAGE_TAGS = {
+    messages_constants.DEBUG: "secondary",
+    messages_constants.INFO: "info",
+    messages_constants.SUCCESS: "success",
+    messages_constants.WARNING: "warning",
+    messages_constants.ERROR: "danger",
+}
+
+# Internationalisation (interface en français par défaut pour Django admin, bilingue)
+LANGUAGE_CODE = "fr"
 LANGUAGES = [
-    ("ar", "العربية"),
     ("fr", "Français"),
+    ("ar", "العربية"),
     ("en", "English"),
 ]
 TIME_ZONE = "Africa/Algiers"

@@ -177,7 +177,7 @@ def create_user_for_etudiant(etudiant):
         user = CustomUser.objects.create_user(
             username=login,
             password=password,
-            email=etudiant.email_prof or etudiant.email_perso or f"{login}@univ.dz",
+            email=etudiant.email_prof or etudiant.email_perso or f"{login}@univ-ouargla.dz",
             first_name=etudiant.prenom_fr or etudiant.prenom_ar or "",
             last_name=etudiant.nom_fr or etudiant.nom_ar or "",
             doit_changer_mot_de_passe=True,

@@ -1,0 +1,207 @@
+{% extends 'departement/base_Dep.html' %}
+{% load static %}
+
+{% block title %}القاعات الدراسية - قسم {{ my_Dep.nom_ar }}{% endblock %}
+
+{% block content_dep %}
+<div class="dep-page-container">
+
+    <!-- ─── HERO HEADER UNIFIÉ ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-door-open" style="color: #ffd700;"></i>
+                    <span>القاعات الدراسية وقاعات الأعمال الموجهة</span>
+                </h1>
+                <p class="dep-hero-subtitle">
+                    <span>قسم {{ my_Dep.nom_ar }}</span>
+                    <span>•</span>
+                    <span>الهياكل والمقررات: قاعات التدريس المخصصة للأعمال الموجهة (TD) والدروس</span>
+                    <span class="dep-hero-badge">
+                        <i class="fas fa-door-open"></i>
+                        {{ total_salles }} قاعة متاحة
+                    </span>
+                </p>
+            </div>
+            <div class="dep-hero-actions">
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── STATISTIQUES ET INDICATEURS RAPIDES ─── -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="dep-table-card p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block mb-1">إجمالي القاعات</span>
+                    <h3 class="fw-bold mb-0 text-dark">{{ total_salles }}</h3>
+                </div>
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59, 130, 246, 0.12); display: flex; align-items: center; justify-content: center; color: #2563eb; font-size: 1.3rem;">
+                    <i class="fas fa-door-open"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dep-table-card p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block mb-1">متاحة بالسداسي 1 (S1)</span>
+                    <h3 class="fw-bold mb-0 text-success">{{ salles_s1 }}</h3>
+                </div>
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(16, 185, 129, 0.12); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 1.3rem;">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dep-table-card p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block mb-1">متاحة بالسداسي 2 (S2)</span>
+                    <h3 class="fw-bold mb-0 text-info">{{ salles_s2 }}</h3>
+                </div>
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(6, 182, 212, 0.12); display: flex; align-items: center; justify-content: center; color: #06b6d4; font-size: 1.3rem;">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dep-table-card p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block mb-1">السعة الاستيعابية الإجمالية</span>
+                    <h3 class="fw-bold mb-0 text-warning">{% if capacite_totale %}{{ capacite_totale }} <small class="fs-6 fw-normal text-muted">مقعد</small>{% else %}غير محدد{% endif %}</h3>
+                </div>
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(245, 158, 11, 0.12); display: flex; align-items: center; justify-content: center; color: #f59e0b; font-size: 1.3rem;">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── CARTE TABLEAU ERP ─── -->
+    <div class="dep-table-card">
+        <div class="dep-table-header flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <h5>
+                    <i class="fas fa-chalkboard-user text-primary"></i>
+                    <span>سجل القاعات الدراسية لقسم {{ my_Dep.nom_ar }}</span>
+                </h5>
+                <span class="badge bg-light text-dark border ms-2">
+                    {{ total_salles }} قاعة تدريس
+                </span>
+                <span class="badge bg-success-subtle text-success border border-success-subtle ms-2">
+                    <i class="fas fa-sort-numeric-down me-1"></i> مصنفة حسب الرقم
+                </span>
+            </div>
+
+            <div class="search-input-wrapper" style="min-width: 260px;">
+                <i class="fas fa-search"></i>
+                <input type="text" id="salleSearchInput" placeholder="بحث باسم القاعة، الرقم..." autocomplete="off">
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="dep-table align-middle" id="sallesTable">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;" class="text-center">#</th>
+                        <th class="text-center" style="width: 90px;"><i class="fas fa-hashtag text-success me-1"></i> الرقم</th>
+                        <th>القاعة الدراسية</th>
+                        <th class="text-center" style="width: 120px;">السعة</th>
+                        <th class="text-center" style="width: 130px;">السداسي 1 (S1)</th>
+                        <th class="text-center" style="width: 130px;">السداسي 2 (S2)</th>
+                        <th class="text-center" style="width: 110px;">الحالة</th>
+                        <th>ملاحظات وتخصيص</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for x in salles %}
+                    <tr class="salle-row" data-name="{{ x.salle.nom_ar }} {{ x.salle.nom_fr }} {{ x.salle.numero }}">
+                        <td class="text-muted fw-bold text-center">{{ forloop.counter }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold fs-6 px-3 py-1">
+                                {{ x.salle.numero }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); display: flex; align-items: center; justify-content: center; color: #10b981; font-weight: 700;">
+                                    <i class="fas fa-door-open"></i>
+                                </div>
+                                <div>
+                                    <strong class="d-block text-dark">{{ x.salle.nom_ar|default:"قاعة" }}</strong>
+                                    {% if x.salle.nom_fr %}<small class="text-muted" dir="ltr">{{ x.salle.nom_fr }}</small>{% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            {% if x.salle.capacite %}
+                                <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1 fw-bold">
+                                    <i class="fas fa-users me-1"></i> {{ x.salle.capacite }} مقعد
+                                </span>
+                            {% else %}
+                                <span class="text-muted small">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if x.semestre_1 %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                                    <i class="fas fa-check me-1"></i> مفعّل
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-muted border px-2 py-1">غير مفعّل</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if x.semestre_2 %}
+                                <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">
+                                    <i class="fas fa-check me-1"></i> مفعّل
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-muted border px-2 py-1">غير مفعّل</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if x.est_actif %}
+                                <span class="badge bg-success text-white px-2 py-1">
+                                    <i class="fas fa-check-circle me-1"></i> نشط
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger text-white px-2 py-1">غير نشط</span>
+                            {% endif %}
+                        </td>
+                        <td class="small text-muted">
+                            {{ x.observation|default:"تخصيص رسمي للقسم" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <i class="fas fa-door-open text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+                            <h6 class="fw-bold text-dark mb-1">لا توجد قاعات دراسية مخصصة لهذا القسم</h6>
+                            <p class="text-muted small mb-0">يمكن تخصيص القاعات للقسم عبر إدارة النظام أو عمادة الكلية.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('salleSearchInput');
+        const rows = document.querySelectorAll('.salle-row');
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                const q = this.value.toLowerCase().trim();
+                rows.forEach(r => {
+                    const text = (r.dataset.name || '').toLowerCase();
+                    r.style.display = (!q || text.includes(q)) ? '' : 'none';
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

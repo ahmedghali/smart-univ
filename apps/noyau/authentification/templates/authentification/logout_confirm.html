@@ -1,34 +1,144 @@
-{% extends "base_public.html" %}
+{% extends "authentification/base.html" %}
+{% load static %}
 
-{% block title %}تسجيل الخروج / Déconnexion - Smart-Univ{% endblock %}
+{% block title %}تسجيل الخروج - Smart-Univ{% endblock %}
+
+{% block container_class %}auth-container{% endblock %}
+
+{% block extra_css %}
+<style>
+    .logout-card {
+        max-width: 440px;
+        margin: 0 auto;
+        overflow: hidden;
+        background: #fff;
+        border-radius: 22px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        text-align: center;
+    }
+
+    .logout-card-header {
+        padding: 28px 24px 22px;
+        background: linear-gradient(135deg, #344d59 0%, #000000 100%);
+        color: #fff;
+    }
+
+    .logout-card-header img {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        margin-bottom: 10px;
+    }
+
+    .logout-card-header h1 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+
+    .logout-card-body {
+        padding: 22px 26px 24px;
+    }
+
+    .logout-user {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+        padding: 6px 14px 6px 6px;
+        border-radius: 999px;
+        background: #f6f8f4;
+    }
+
+    .logout-avatar {
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+        color: #0d1b2a;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .logout-user-name {
+        color: #11191e;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .logout-question {
+        margin: 0 0 20px;
+        color: #344d59;
+        font-size: 0.95rem;
+    }
+
+    .logout-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .logout-actions > * {
+        flex: 1;
+        padding: 11px 14px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.92rem;
+        text-decoration: none;
+        transition: filter 0.15s ease, background 0.15s ease;
+    }
+
+    .btn-logout-yes {
+        border: 0;
+        background: #b42318;
+        color: #fff;
+    }
+
+    .btn-logout-yes:hover {
+        filter: brightness(1.08);
+    }
+
+    .btn-logout-no {
+        border: 1px solid #dfe5dc;
+        background: #fff;
+        color: #344d59;
+    }
+
+    .btn-logout-no:hover {
+        background: #f6f8f4;
+        color: #11191e;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card shadow-sm border-0 rounded-3 text-center p-4">
-                <div class="mb-3 text-warning">
-                    <i class="bi bi-box-arrow-right display-4"></i>
-                </div>
-                <h3 class="card-title mb-2">تسجيل الخروج</h3>
-                <h5 class="text-muted mb-4">Confirmation de déconnexion</h5>
-                <p class="text-secondary mb-4">
-                    هل تريد حقاً تسجيل الخروج من حسابك؟<br>
-                    Voulez-vous vraiment vous déconnecter de votre compte ?
-                </p>
-                <form method="post" action="{% url 'auth:logout' %}">
-                    {% csrf_token %}
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-danger py-2">
-                            <i class="bi bi-box-arrow-right me-1"></i> نعم، تسجيل الخروج / Confirmer la déconnexion
-                        </button>
-                        <a href="javascript:history.back()" class="btn btn-outline-secondary py-2">
-                            إلغاء / Annuler
-                        </a>
-                    </div>
-                </form>
-            </div>
+<div class="logout-card">
+    <div class="logout-card-header">
+        <img src="{% static 'images/smart-univ-logo.svg' %}" alt="Smart-Univ">
+        <h1>تسجيل الخروج</h1>
+    </div>
+
+    <div class="logout-card-body">
+        {% if user.is_authenticated %}
+        <div class="logout-user">
+            <span class="logout-avatar">{{ user.avatar_initiales|default:"—" }}</span>
+            <span class="logout-user-name">{{ user.get_full_name|default:user.username }}</span>
         </div>
+        {% endif %}
+
+        <p class="logout-question">هل تريد فعلاً إنهاء الجلسة الحالية؟</p>
+
+        <form method="post" action="{% url 'auth:logout' %}" class="logout-actions">
+            {% csrf_token %}
+            <a href="{% if user.is_authenticated %}{% url 'auth:dashboard' %}{% else %}{% url 'comm:home' %}{% endif %}" class="btn-logout-no">
+                <i class="fas fa-arrow-right me-1"></i>إلغاء
+            </a>
+            <button type="submit" class="btn-logout-yes">
+                <i class="fas fa-sign-out-alt me-1"></i>تسجيل الخروج
+            </button>
+        </form>
     </div>
 </div>
 {% endblock %}

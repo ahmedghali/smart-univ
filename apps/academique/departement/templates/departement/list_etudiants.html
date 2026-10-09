@@ -1,58 +1,168 @@
 {% extends 'departement/base_Dep.html' %}
+{% load static %}
+
+{% block title %}قوائم الطلبة - قسم {{ my_Dep.nom_ar }}{% endblock %}
 
 {% block content_dep %}
-<div class="card shadow-sm">
-    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <h5 class="mb-0"><i class="fas fa-user-graduate me-2"></i>{{ title }} <span class="badge bg-primary">{{ etudiants|length }}</span></h5>
-        <form method="get" class="d-flex gap-2">
-            <input type="search" name="q" value="{{ request.GET.q }}" class="form-control form-control-sm" placeholder="بحث: الاسم، اللقب، الرقم التسلسلي">
-            <button class="btn btn-sm btn-outline-primary" type="submit"><i class="fas fa-search"></i></button>
-        </form>
+<div class="dep-page-container">
+
+    <!-- ─── HERO HEADER UNIFIÉ ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-user-graduate" style="color: #ffd700;"></i>
+                    <span>قوائم الطلبة والأفواج</span>
+                </h1>
+                <p class="dep-hero-subtitle">
+                    <span>قسم {{ my_Dep.nom_ar }}</span>
+                    <span>•</span>
+                    <span>سجل الطلبة المسجلين والموزعين على الأفواج</span>
+                    <span class="dep-hero-badge">
+                        <i class="fas fa-users"></i>
+                        {{ paginator.count|default:etudiants|length }} طالب
+                    </span>
+                </p>
+            </div>
+            <div class="dep-hero-actions">
+            </div>
+        </div>
     </div>
-    <div class="table-responsive">
-        <table class="table table-hover table-sm align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>#</th>
-                    <th>الرقم التسلسلي</th>
-                    <th>اللقب والاسم</th>
-                    <th>Nom et prénom</th>
-                    <th>المستوى</th>
-                    <th>التخصص</th>
-                    <th>الفوج</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for etu in etudiants %}
-                <tr>
-                    <td>{{ forloop.counter }}</td>
-                    <td>{{ etu.matricule }}</td>
-                    <td>{{ etu.nom_ar }} {{ etu.prenom_ar }}</td>
-                    <td>{{ etu.nom_fr }} {{ etu.prenom_fr }}</td>
-                    <td>{{ etu.niv_spe_dep_sg.niv_spe_dep.niveau }}</td>
-                    <td>{{ etu.niv_spe_dep_sg.niv_spe_dep.specialite }}</td>
-                    <td>{{ etu.niv_spe_dep_sg }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="7" class="text-center text-muted py-4">لا يوجد طلبة / Aucun étudiant</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% if page_obj.has_other_pages %}
-    <div class="card-footer d-flex justify-content-center py-2">
-        <nav aria-label="Pagination">
-            <ul class="pagination pagination-sm mb-0">
-                {% if page_obj.has_previous %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">«</a></li>
+
+    <!-- ─── CARTE TABLEAU ERP ─── -->
+    <div class="dep-table-card">
+        <!-- Barre d'outils et recherche -->
+        <div class="dep-table-header">
+            <div class="d-flex align-items-center gap-2">
+                <h5>
+                    <i class="fas fa-id-card-clip text-primary"></i>
+                    <span>سجل الطلبة</span>
+                </h5>
+                <span class="badge bg-light text-dark border ms-2">
+                    صفحة {{ page_obj.number|default:"1" }} من {{ page_obj.paginator.num_pages|default:"1" }}
+                </span>
+            </div>
+
+            <form method="get" class="dep-search-box d-flex gap-2">
+                <div class="position-relative flex-grow-1">
+                    <input type="search" name="q" value="{{ request.GET.q|default:'' }}" class="form-control form-control-sm pe-4" placeholder="بحث: الاسم، اللقب، الرقم التسلسلي...">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                {% if request.GET.q %}
+                <a href="{% url 'depa:list_etudiants' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center" title="إلغاء البحث">
+                    <i class="fas fa-times"></i>
+                </a>
                 {% endif %}
-                <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
-                {% if page_obj.has_next %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">»</a></li>
-                {% endif %}
-            </ul>
-        </nav>
+                <button class="btn btn-sm btn-primary px-3" type="submit">بحث</button>
+            </form>
+        </div>
+
+        <!-- Tableau des étudiants -->
+        <div class="table-responsive">
+            <table class="dep-table align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>الرقم التسلسلي</th>
+                        <th>اللقب والاسم (عربي)</th>
+                        <th>Nom & Prénom (FR)</th>
+                        <th>المستوى</th>
+                        <th>التخصص</th>
+                        <th>الفوج / القسم</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for etu in etudiants %}
+                    <tr>
+                        <td class="text-muted fw-bold">{{ forloop.counter }}</td>
+                        <td>
+                            <span class="badge-code">{{ etu.matricule|default:"-" }}</span>
+                        </td>
+                        <td class="fw-bold" style="color: #1b262c;">
+                            {{ etu.nom_ar }} {{ etu.prenom_ar }}
+                        </td>
+                        <td class="text-muted">
+                            {{ etu.nom_fr|default:"" }} {{ etu.prenom_fr|default:"" }}
+                        </td>
+                        <td>
+                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle">
+                                {{ etu.niv_spe_dep_sg.niv_spe_dep.niveau|default:"-" }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-dark small">
+                                {{ etu.niv_spe_dep_sg.niv_spe_dep.specialite|default:"-" }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">
+                                {{ etu.niv_spe_dep_sg|default:"-" }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="py-3">
+                                <i class="fas fa-user-slash text-muted mb-3" style="font-size: 3rem; opacity: 0.4;"></i>
+                                <h6 class="fw-bold text-dark mb-1">لا يوجد طلبة مسجلين حالياً</h6>
+                                <p class="text-muted small mb-3">
+                                    {% if request.GET.q %}
+                                    لم يتم العثور على أي طالب يطابق معايير البحث "{{ request.GET.q }}".
+                                    {% else %}
+                                    لم يتم تسجيل أو استيراد أي طلبة بعد لهذا القسم.
+                                    {% endif %}
+                                </p>
+                                {% if request.GET.q %}
+                                <a href="{% url 'depa:list_etudiants' %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-redo me-1"></i> إعادة تعيين البحث
+                                </a>
+                                {% else %}
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="p-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2 bg-light">
+            <span class="small text-muted">
+                عرض <strong>{{ page_obj.start_index }}</strong> إلى <strong>{{ page_obj.end_index }}</strong> من أصل <strong>{{ page_obj.paginator.count }}</strong> طالب
+            </span>
+            <nav aria-label="Pagination">
+                <ul class="pagination pagination-sm mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
+
 </div>
 {% endblock %}

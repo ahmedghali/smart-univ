@@ -1,7 +1,8 @@
 from datetime import timedelta
 
 from django.contrib import messages
-from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from apps.academique.affectation.models import Classe, Ens_Dep, Gestion_Etu_Classe, Seance
@@ -13,8 +14,16 @@ from apps.noyau.commun.models import Semestre
 from ..services import get_sidebar_context
 
 
+@login_required
+def switch_department_ens(request, dep_id):
+    """Bascule le département actif de l'enseignant et redirige vers le dashboard propre sans chiffre dans l'URL."""
+    request.session["selected_departement_id"] = dep_id
+    messages.success(request, "تم تبديل القسم بنجاح")
+    return redirect("ense:dashboard_Ens_clean")
+
+
 @enseignant_access_required
-def dashboard_Ens(request, dep_id, enseignant, departement):
+def dashboard_Ens(request, dep_id=None, enseignant=None, departement=None):
     """
     Tableau de bord de l'enseignant avec statistiques complètes.
     Affiche les classes, séances, statistiques d'assiduité et graphiques.
@@ -103,7 +112,7 @@ def dashboard_Ens(request, dep_id, enseignant, departement):
             "cours": mes_classes.filter(type="Cours").count(),
             "td": mes_classes.filter(type="TD").count(),
             "tp": mes_classes.filter(type="TP").count(),
-            "ss": mes_classes.filter(type="Sortie").count(),
+            "ss": mes_classes.filter(type__in=["Sortie Scientifique", "Sortie", "SS"]).count(),
         }
 
         # ========== EMPLOI DU TEMPS AUJOURD'HUI ==========
@@ -129,19 +138,22 @@ def dashboard_Ens(request, dep_id, enseignant, departement):
         # ========== STATISTIQUES D'ASSIDUITÉ ==========
 
         stats_assiduite = {
-            "taux_presence_general": 85.0,
+            "taux_presence_general": 0,
             "total_absences": 0,
             "absences_justifiees": 0,
             "etudiants_risque": 0,
+            "has_data": False,
         }
 
         try:
             absences_total = 0
             absences_justifiees_total = 0
+            has_abs_records = False
 
             for classe in mes_classes:
-                if classe.abs_liste_Etu:
-                    absences_classe = Gestion_Etu_Classe.objects.filter(classe=classe)
+                absences_classe = Gestion_Etu_Classe.objects.filter(classe=classe)
+                if absences_classe.exists():
+                    has_abs_records = True
                     absences_total += sum([abs_obj.nbr_absence or 0 for abs_obj in absences_classe])
                     absences_justifiees_total += sum(
                         [abs_obj.nbr_absence_justifiee or 0 for abs_obj in absences_classe]
@@ -152,13 +164,20 @@ def dashboard_Ens(request, dep_id, enseignant, departement):
                     "total_absences": absences_total,
                     "absences_justifiees": absences_justifiees_total,
                     "etudiants_risque": max(0, absences_total - absences_justifiees_total) // 3,
+                    "has_data": has_abs_records,
                 }
             )
 
-            if absences_total > 0:
-                total_seances_estimees = mes_classes.count() * 10
-                taux_presence = max(0, ((total_seances_estimees - absences_total) / total_seances_estimees) * 100)
-                stats_assiduite["taux_presence_general"] = round(taux_presence, 1)
+            if mes_classes.count() > 0:
+                if has_abs_records:
+                    total_seances_estimees = max(1, mes_classes.count() * 10)
+                    taux_presence = max(0, ((total_seances_estimees - absences_total) / total_seances_estimees) * 100)
+                    stats_assiduite["taux_presence_general"] = round(taux_presence, 1)
+                else:
+                    # Classes existantes et aucune absence enregistrée
+                    stats_assiduite["taux_presence_general"] = 100.0
+            else:
+                stats_assiduite["taux_presence_general"] = 0
 
         except Exception:
             pass
@@ -223,6 +242,7 @@ def dashboard_Ens(request, dep_id, enseignant, departement):
 
         context = {
             "title": "لوحة التحكم - الأستاذ",
+            "active_menu": "dashboard",
             "my_Ens": my_Ens,
             "my_Dep": my_Dep,
             "my_Fac": my_Fac,

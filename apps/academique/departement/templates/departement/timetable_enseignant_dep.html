@@ -1,0 +1,660 @@
+{% extends 'departement/base_Dep.html' %}
+{% load static %}
+
+{% block title %}استعمال الزمن - {{ ens_dep.enseignant.nom_ar }} {{ ens_dep.enseignant.prenom_ar }} - قسم {{ my_Dep.nom_ar }}{% endblock %}
+
+{% block dep_action_bar %}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+/* ─── STYLES DU TABLEAU D'EMPLOI DU TEMPS ERP ─── */
+.tt-container-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.tt-card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #edf2f7;
+    background: #f8fafc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.tt-grid-table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.tt-grid-table th {
+    background: #1b262c;
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+    border: 1px solid #2d3748;
+}
+
+.tt-time-col {
+    width: 120px;
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    vertical-align: middle;
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+    border: 1px solid #cbd5e1 !important;
+}
+
+.tt-time-slot-num {
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: #0f4c81;
+}
+
+.tt-time-slot-hours {
+    font-size: 0.75rem;
+    color: #64748b;
+    direction: ltr;
+    display: inline-block;
+}
+
+.tt-day-cell {
+    width: 15%;
+    min-height: 85px;
+    vertical-align: top;
+    padding: 0.35rem !important;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    transition: background 0.15s ease;
+}
+
+.tt-day-cell:hover {
+    background: #f8fafc;
+}
+
+/* ─── CARTES DES SÉANCES DANS LA GRILLE ─── */
+.tt-class-card {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 0.5rem 0.6rem;
+    margin-bottom: 0.35rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    border: 1px solid #e2e8f0;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    font-size: 0.8rem;
+    line-height: 1.35;
+}
+
+.tt-class-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.tt-class-card.cours {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-inline-start: 4px solid #16a34a;
+    border-color: #bbf7d0;
+}
+
+.tt-class-card.td {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-inline-start: 4px solid #d97706;
+    border-color: #fde68a;
+}
+
+.tt-class-card.tp {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-inline-start: 4px solid #0284c7;
+    border-color: #bae6fd;
+}
+
+.tt-class-card.ss {
+    background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+    border-inline-start: 4px solid #9333ea;
+    border-color: #e9d5ff;
+}
+
+.tt-badge-type {
+    display: inline-block;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.tt-badge-type.cours { background: #dcfce7; color: #15803d; }
+.tt-badge-type.td { background: #fef3c7; color: #b45309; }
+.tt-badge-type.tp { background: #e0f2fe; color: #0369a1; }
+.tt-badge-type.ss { background: #f3e8ff; color: #7e22ce; }
+
+.tt-matiere-title {
+    font-weight: 800;
+    color: #0f172a;
+    font-size: 0.82rem;
+    margin-bottom: 0.2rem;
+    display: block;
+}
+
+.tt-spe-info {
+    font-size: 0.74rem;
+    color: #475569;
+    margin-bottom: 0.2rem;
+}
+
+.tt-group-badge {
+    display: inline-block;
+    background: rgba(0,0,0,0.06);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-weight: 700;
+    font-size: 0.72rem;
+    color: #1e293b;
+}
+
+.tt-lieu-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    color: #dc2626;
+    font-weight: 600;
+    margin-top: 0.2rem;
+}
+
+/* ─── FICHE RÉSUMÉ DE L'ENSEIGNANT ─── */
+.tt-teacher-banner {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+
+.tt-teacher-info-box {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.tt-teacher-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0f4c81, #1b262c);
+    color: #ffd700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    box-shadow: 0 4px 10px rgba(15,76,129,0.25);
+    flex-shrink: 0;
+}
+
+.tt-teacher-meta h4 {
+    margin: 0;
+    font-weight: 800;
+    color: #0f172a;
+    font-size: 1.25rem;
+}
+
+.tt-teacher-meta .meta-sub {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.tt-quick-switch {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f8fafc;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.tt-quick-switch select {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+    background: #ffffff;
+    font-weight: 600;
+    color: #1e293b;
+    cursor: pointer;
+}
+
+/* ─── KPI STATS CARDS ─── */
+.kpi-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.kpi-card-modern {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid rgba(13, 27, 42, 0.08);
+    box-shadow: 0 4px 16px rgba(13, 27, 42, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.25s ease;
+}
+
+.kpi-card-modern:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(13, 27, 42, 0.08);
+}
+
+.kpi-number-modern {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.35rem;
+    color: #1e293b;
+}
+
+.kpi-label-modern {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.kpi-icon-modern {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+}
+
+/* Badges de statut */
+.badge-status-perm { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; font-weight: 600; font-size: 0.78rem; padding: 4px 10px; border-radius: 20px; }
+.badge-status-vac { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-weight: 600; font-size: 0.78rem; padding: 4px 10px; border-radius: 20px; }
+.badge-status-doc { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; font-weight: 600; font-size: 0.78rem; padding: 4px 10px; border-radius: 20px; }
+</style>
+{% endblock %}
+
+{% block content_dep %}
+<div class="dep-page-container">
+
+    <!-- ─── 1. HERO HEADER UNIFIÉ AVEC SÉLECTEUR DE SEMESTRE ET ACTIONS ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-calendar-alt" style="color: #ffd700;"></i>
+                    <span>استعمال الزمن وجدول الحصص الأسبوعي</span>
+                </h1>
+                <p class="dep-hero-subtitle">
+                    <span>{{ ens_dep.enseignant.nom_ar }} {{ ens_dep.enseignant.prenom_ar }}</span>
+                    <span>•</span>
+                    <span>قسم {{ my_Dep.nom_ar }}</span>
+                    <span class="dep-hero-badge">
+                        <i class="fas fa-calendar-week"></i>
+                        السداسي {{ semestre_num }} (S{{ semestre_num }})
+                    </span>
+                    <span class="opacity-75">الموسم الجامعي: {{ annee_courante|default:"الحالي" }}</span>
+                </p>
+            </div>
+            <div class="dep-hero-actions">
+                <!-- Sélecteur de Semestre style Pill Fiori -->
+                <div class="d-inline-flex p-1 rounded-pill bg-dark bg-opacity-25 border border-white border-opacity-25 gap-1">
+                    <a href="{% url 'depa:timetable_enseignant_dep' ens_dep.enseignant.id 1 %}"
+                       class="btn btn-sm rounded-pill px-3 py-1 fw-bold text-decoration-none {% if semestre_num == 1 %}btn-hero-gold text-dark{% else %}text-white-50{% endif %}">
+                        السداسي الأول (S1)
+                    </a>
+                    <a href="{% url 'depa:timetable_enseignant_dep' ens_dep.enseignant.id 2 %}"
+                       class="btn btn-sm rounded-pill px-3 py-1 fw-bold text-decoration-none {% if semestre_num == 2 %}btn-hero-gold text-dark{% else %}text-white-50{% endif %}">
+                        السداسي الثاني (S2)
+                    </a>
+                </div>
+
+                <a href="{% url 'depa:profile_enseignant_dep' ens_dep.enseignant.id %}" class="btn-hero-secondary" title="عرض الملف الكامل للأستاذ">
+                    <i class="fas fa-id-card"></i>
+                    <span>الملف الشخصي</span>
+                </a>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── 2. FICHE D'IDENTITÉ DE L'ENSEIGNANT ET CHANGEMENT RAPIDE ─── -->
+    <div class="tt-teacher-banner">
+        <div class="tt-teacher-info-box">
+            <div class="tt-teacher-avatar" style="{{ ens_dep.enseignant.avatar_style }}">
+                {{ ens_dep.enseignant.initiales }}
+            </div>
+            <div class="tt-teacher-meta">
+                <h4>
+                    {{ ens_dep.enseignant.nom_ar }} {{ ens_dep.enseignant.prenom_ar }}
+                    <small class="text-muted fs-6 fw-normal ms-2">({{ ens_dep.enseignant.nom_fr }} {{ ens_dep.enseignant.prenom_fr }})</small>
+                </h4>
+                <div class="meta-sub">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                        <i class="fas fa-award me-1"></i> {{ ens_dep.enseignant.grade.nom_ar|default:"أستاذ" }}
+                    </span>
+                    <span class="badge bg-light text-dark border px-2 py-1">
+                        <i class="fas fa-microscope me-1"></i> {{ ens_dep.enseignant.specialite_fr|default:ens_dep.enseignant.specialite_ar|default:"عام" }}
+                    </span>
+                    <span class="badge {% if ens_dep.statut == 'Permanent' %}badge-status-perm{% elif ens_dep.statut == 'Vacataire' %}badge-status-vac{% else %}badge-status-doc{% endif %}">
+                        {{ ens_dep.get_statut_display|default:ens_dep.statut }}
+                    </span>
+                    {% if ens_dep.enseignant.email_prof %}
+                    <span class="text-muted small">
+                        <i class="fas fa-envelope text-primary me-1"></i> {{ ens_dep.enseignant.email_prof }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Bascule rapide vers un autre enseignant -->
+        <div class="tt-quick-switch">
+            <label for="switchTeacherSelect" class="small fw-bold text-muted mb-0">
+                <i class="fas fa-exchange-alt me-1 text-primary"></i> تغيير الأستاذ:
+            </label>
+            <select id="switchTeacherSelect" onchange="if(this.value) window.location.href=this.value;">
+                {% for t in all_teachers_dep %}
+                <option value="{% url 'depa:timetable_enseignant_dep' t.enseignant.id semestre_num %}"
+                        {% if t.enseignant.id == ens_dep.enseignant.id %}selected{% endif %}>
+                    {{ t.enseignant.nom_ar }} {{ t.enseignant.prenom_ar }} ({{ t.statut }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- ─── 3. CARTES KPI DES INDICATEURS DU SEMESTRE ─── -->
+    <div class="kpi-stats-grid mb-4">
+        <div class="kpi-card-modern">
+            <div>
+                <div class="kpi-number-modern text-primary">{{ all_classes }}</div>
+                <div class="kpi-label-modern">إجمالي الحصص الأسبوعية</div>
+            </div>
+            <div class="kpi-icon-modern bg-primary-subtle text-primary">
+                <i class="fas fa-layer-group"></i>
+            </div>
+        </div>
+
+        <div class="kpi-card-modern">
+            <div>
+                <div class="kpi-number-modern text-success">{{ nbr_Cours }}</div>
+                <div class="kpi-label-modern">محاضرات (Cours)</div>
+            </div>
+            <div class="kpi-icon-modern bg-success-subtle text-success">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+        </div>
+
+        <div class="kpi-card-modern">
+            <div>
+                <div class="kpi-number-modern text-warning">{{ nbr_TD }}</div>
+                <div class="kpi-label-modern">أعمال موجهة (TD)</div>
+            </div>
+            <div class="kpi-icon-modern bg-warning-subtle text-warning">
+                <i class="fas fa-pen-fancy"></i>
+            </div>
+        </div>
+
+        <div class="kpi-card-modern">
+            <div>
+                <div class="kpi-number-modern text-info">{{ nbr_TP }}</div>
+                <div class="kpi-label-modern">أعمال تطبيقية (TP)</div>
+            </div>
+            <div class="kpi-icon-modern bg-info-subtle text-info">
+                <i class="fas fa-flask"></i>
+            </div>
+        </div>
+
+        <div class="kpi-card-modern">
+            <div>
+                <div class="kpi-number-modern" style="color: #7e22ce;">{{ nbr_SS }}</div>
+                <div class="kpi-label-modern">خرجة علمية (SS)</div>
+            </div>
+            <div class="kpi-icon-modern" style="background: rgba(147, 51, 234, 0.12); color: #7e22ce;">
+                <i class="fas fa-compass"></i>
+            </div>
+        </div>
+
+        <div class="kpi-card-modern">
+            <div>
+                <div class="kpi-number-modern text-danger">{{ stats_classes.vol_horaire|default:"0" }} سا</div>
+                <div class="kpi-label-modern">الحجم الساعي الأسبوعي</div>
+            </div>
+            <div class="kpi-icon-modern bg-danger-subtle text-danger">
+                <i class="fas fa-business-time"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── 4. GRILLE HEBDOMADAIRE D'EMPLOI DU TEMPS ─── -->
+    <div class="tt-container-card">
+        <div class="tt-card-header">
+            <div class="d-flex align-items-center gap-2">
+                <h5 class="mb-0 fw-bold text-dark">
+                    <i class="fas fa-th text-primary me-1"></i>
+                    الجدول الأسبوعي لتوزيع الحصص - السداسي {{ semestre_num }}
+                </h5>
+                <span class="badge bg-light text-dark border">
+                    {{ all_classes }} حصة مبرمجة
+                </span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 small">
+                    <i class="fas fa-square me-1"></i> محاضرة
+                </span>
+                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 small">
+                    <i class="fas fa-square me-1"></i> أعمال موجهة
+                </span>
+                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1 small">
+                    <i class="fas fa-square me-1"></i> أعمال تطبيقية
+                </span>
+                <span class="badge border px-2 py-1 small" style="background: #f3e8ff; color: #7e22ce; border-color: #e9d5ff !important;">
+                    <i class="fas fa-square me-1"></i> خرجة علمية
+                </span>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table tt-grid-table align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 130px;"><i class="fas fa-clock me-1"></i> التوقيت</th>
+                        {% for day_code, day_label in week_days %}
+                        <th>{{ day_label }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in grid_rows %}
+                    <tr>
+                        <td class="tt-time-col">
+                            <div class="tt-time-slot-num">الحصة {{ forloop.counter }}</div>
+                            <span class="tt-time-slot-hours">{{ row.slot }}</span>
+                        </td>
+                        {% for day in row.days %}
+                        <td class="tt-day-cell">
+                            {% for c in day.classes %}
+                            <div class="tt-class-card {% if c.type == 'Cours' %}cours{% elif c.type == 'TD' %}td{% elif c.type == 'TP' %}tp{% else %}ss{% endif %}">
+                                <span class="tt-badge-type {% if c.type == 'Cours' %}cours{% elif c.type == 'TD' %}td{% elif c.type == 'TP' %}tp{% else %}ss{% endif %}">
+                                    {{ c.get_type_display|default:c.type }}
+                                </span>
+                                <span class="tt-matiere-title">
+                                    {{ c.matiere.nom_ar|default:c.matiere.nom_fr }}
+                                </span>
+                                <div class="tt-spe-info">
+                                    {{ c.niv_spe_dep_sg.niv_spe_dep.niveau.nom_ar }} {{ c.niv_spe_dep_sg.niv_spe_dep.specialite.nom_ar }}
+                                </div>
+                                <div>
+                                    <span class="tt-group-badge">
+                                        {% if c.type == 'Cours' %}
+                                            دفعة: {{ c.niv_spe_dep_sg.section }}
+                                        {% else %}
+                                            فوج: {{ c.niv_spe_dep_sg.section }} - G{{ c.niv_spe_dep_sg.groupe }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                {% if c.lieu_nom %}
+                                <div class="tt-lieu-badge">
+                                    <i class="fas fa-map-marker-alt"></i> {{ c.lieu_nom }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% empty %}
+                            <!-- Créneau libre -->
+                            {% endfor %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ─── 5. TABLEAU DÉTAILLÉ DES SÉANCES DU SEMESTRE ─── -->
+    <div class="dep-table-card">
+        <div class="dep-table-header">
+            <div class="d-flex align-items-center gap-2">
+                <h5>
+                    <i class="fas fa-list-ol text-primary"></i>
+                    <span>قائمة الحصص التفصيلية ومتابعة الإنجاز البيداغوجي</span>
+                </h5>
+                <span class="badge bg-light text-dark border ms-2">
+                    {{ all_Classe_Ens|length }} حصة
+                </span>
+            </div>
+            <div class="text-muted small">
+                السداسي: <strong>{{ semestre_num }}</strong>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="dep-table align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>اليوم</th>
+                        <th>التوقيت</th>
+                        <th>النوع</th>
+                        <th>المادة</th>
+                        <th>المستوى والتخصص</th>
+                        <th>الدفعة / الفوج</th>
+                        <th>المكان</th>
+                        <th class="text-center" style="width: 140px;">نسبة الإنجاز</th>
+                        <th class="text-center">Moodle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in all_Classe_Ens %}
+                    <tr>
+                        <td class="text-muted fw-bold">{{ forloop.counter }}</td>
+                        <td class="fw-bold">{{ c.get_jour_display|default:c.jour }}</td>
+                        <td class="text-muted small" style="direction: ltr; text-align: right;">{{ c.temps }}</td>
+                        <td>
+                            <span class="tt-badge-type {% if c.type == 'Cours' %}cours{% elif c.type == 'TD' %}td{% elif c.type == 'TP' %}tp{% else %}ss{% endif %}">
+                                {{ c.get_type_display|default:c.type }}
+                            </span>
+                        </td>
+                        <td class="fw-bold" style="color: #0f172a;">
+                            {{ c.matiere.nom_ar|default:c.matiere.nom_fr }}
+                            <div class="text-muted small fw-normal">{{ c.matiere.code }}</div>
+                        </td>
+                        <td>
+                            <div>{{ c.niv_spe_dep_sg.niv_spe_dep.niveau.nom_ar }}</div>
+                            <small class="text-muted">{{ c.niv_spe_dep_sg.niv_spe_dep.specialite.nom_ar }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">
+                                {% if c.type == 'Cours' %}
+                                    {{ c.niv_spe_dep_sg.section }}
+                                {% else %}
+                                    {{ c.niv_spe_dep_sg.section }} - G{{ c.niv_spe_dep_sg.groupe }}
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            {% if c.lieu_nom %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                                    <i class="fas fa-map-marker-alt me-1"></i> {{ c.lieu_nom }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted small">غير محدد</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="progress" style="height: 18px; border-radius: 9px;" title="نسبة الإنجاز: {{ c.taux_avancement|default:0 }}%">
+                                <div class="progress-bar bg-success fw-bold" style="width: {{ c.taux_avancement|default:0 }}%; font-size: 0.72rem;">
+                                    {{ c.taux_avancement|default:0 }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            {% if c.lien_moodle %}
+                                <a href="{{ c.lien_moodle }}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2" title="رابط الدرس على موودل">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            {% else %}
+                                <span class="text-muted small">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center py-5">
+                            <div class="py-3">
+                                <i class="fas fa-calendar-times text-muted mb-3" style="font-size: 3.5rem; opacity: 0.35;"></i>
+                                <h5 class="fw-bold text-dark mb-1">لا توجد حصص مسجلة لهذا الأستاذ في السداسي {{ semestre_num }}</h5>
+                                <p class="text-muted small mb-3">
+                                    لم يتم تعيين أي حصص بيداغوجية للأستاذ {{ ens_dep.enseignant.nom_ar }} {{ ens_dep.enseignant.prenom_ar }} في السداسي {{ semestre_num }}.
+                                </p>
+                                <div class="d-inline-flex gap-2">
+                                    {% if semestre_num == 1 %}
+                                    <a href="{% url 'depa:timetable_enseignant_dep' ens_dep.enseignant.id 2 %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-calendar-alt me-1"></i> الانتقال إلى السداسي الثاني (S2)
+                                    </a>
+                                    {% else %}
+                                    <a href="{% url 'depa:timetable_enseignant_dep' ens_dep.enseignant.id 1 %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-calendar-alt me-1"></i> الانتقال إلى السداسي الأول (S1)
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -64,8 +64,8 @@ class Poste(BaseModel):
             models.Index(fields=["code"]),
             models.Index(fields=["type", "niveau"]),
         ]
-        verbose_name = "منصب"
-        verbose_name_plural = "المناصب"
+        verbose_name = "منصب / Poste"
+        verbose_name_plural = "المناصب / Postes"
         ordering = ["-niveau", "nom_ar"]
 
     def __str__(self):
@@ -164,7 +164,9 @@ class AnneeUniversitaire(BaseModel):
 class Pays(BaseModel):
     """Représente un pays."""
 
-    code = models.CharField(max_length=3, unique=True, verbose_name="الرمز / Code", help_text="Code ISO 3 lettres")
+    code = models.CharField(
+        blank=True, null=True, max_length=3, unique=True, verbose_name="الرمز / Code", help_text="Code ISO 3 lettres"
+    )
     nom_ar = models.CharField(max_length=200, verbose_name="البلد", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Pays", blank=True, default="")
 
@@ -197,7 +199,7 @@ class Wilaya(BaseModel):
     Support bilingue arabe/français.
     """
 
-    code = models.CharField(max_length=2, unique=True, verbose_name="الرمز", help_text="01-58")
+    code = models.CharField(blank=True, null=True, max_length=2, unique=True, verbose_name="الرمز", help_text="01-69")
     codePostal = models.CharField(max_length=5, verbose_name="الرمز البريدي / Code postal", blank=True, default="")
 
     nom_ar = models.CharField(max_length=100, verbose_name="الولاية", blank=True, default="")
@@ -208,8 +210,8 @@ class Wilaya(BaseModel):
     )
 
     class Meta:
-        verbose_name = "ولاية"
-        verbose_name_plural = "الولايات"
+        verbose_name = "ولاية / Wilaya"
+        verbose_name_plural = "الولايات / Wilayas"
         ordering = ["code"]
         indexes = [
             models.Index(fields=["code"]),
@@ -279,6 +281,7 @@ class Laboratoire(BaseModel):
         ("chimie", "كيمياء / Chimie"),
         ("biologie", "بيولوجيا / Biologie"),
         ("geologie", "جيولوجيا / Géologie"),
+        ("production", "إنتاج / Production"),
         ("autres", "أخرى / Autres"),
     ]
 
@@ -310,7 +313,9 @@ class Semestre(BaseModel):
     """Représente un semestre dans l'année universitaire."""
 
     numero = models.PositiveSmallIntegerField(verbose_name="الرقم / Numéro", help_text="1, 2, 3, etc.")
-    code = models.CharField(max_length=10, unique=True, verbose_name="الرمز / Code", help_text="S1, S2, etc.")
+    code = models.CharField(
+        blank=True, null=True, max_length=10, unique=True, verbose_name="الرمز / Code", help_text="S1, S2, etc."
+    )
     nom_ar = models.CharField(max_length=200, verbose_name="السداسي", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Semestre", blank=True, default="")
     date_debut = models.DateField(verbose_name="تاريخ البداية / Date de début", blank=True, null=True)
@@ -332,7 +337,7 @@ class Semestre(BaseModel):
 class Grade(BaseModel):
     """Représente un grade académique (Professeur, MCA, MCB, etc.)."""
 
-    code = models.CharField(max_length=10, unique=True, verbose_name="الرمز / Code")
+    code = models.CharField(blank=True, null=True, max_length=10, unique=True, verbose_name="الرمز / Code")
     nom_ar = models.CharField(max_length=200, verbose_name="الرتبة", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Grade", blank=True, default="")
 
@@ -351,7 +356,7 @@ class Grade(BaseModel):
 class Diplome(BaseModel):
     """Représente un diplôme (Licence, Master, Doctorat, etc.)."""
 
-    code = models.CharField(max_length=10, unique=True, verbose_name="الرمز / Code")
+    code = models.CharField(blank=True, null=True, max_length=10, unique=True, verbose_name="الرمز / Code")
     nom_ar = models.CharField(max_length=200, verbose_name="الشهادة", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Diplôme", blank=True, default="")
 
@@ -370,7 +375,7 @@ class Diplome(BaseModel):
 class Cycle(BaseModel):
     """Représente un cycle d'études (Licence, Master, Doctorat)."""
 
-    code = models.CharField(max_length=10, unique=True, verbose_name="الرمز / Code")
+    code = models.CharField(blank=True, null=True, max_length=10, unique=True, verbose_name="الرمز / Code")
     nom_ar = models.CharField(max_length=200, verbose_name="الطور", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Cycle", blank=True, default="")
 
@@ -389,7 +394,7 @@ class Cycle(BaseModel):
 class Niveau(BaseModel):
     """Représente un niveau d'études (L1, L2, L3, M1, M2, etc.)."""
 
-    code = models.CharField(max_length=10, unique=True, verbose_name="الرمز / Code")
+    code = models.CharField(blank=True, null=True, max_length=10, unique=True, verbose_name="الرمز / Code")
     nom_ar = models.CharField(max_length=200, verbose_name="المستوى", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Niveau", blank=True, default="")
 
@@ -408,7 +413,7 @@ class Niveau(BaseModel):
 class Parcours(BaseModel):
     """Représente un parcours d'études."""
 
-    code = models.CharField(max_length=10, unique=True, verbose_name="الرمز / Code")
+    code = models.CharField(blank=True, null=True, max_length=10, unique=True, verbose_name="الرمز / Code")
     nom_ar = models.CharField(max_length=200, verbose_name="المسار", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Parcours", blank=True, default="")
 
@@ -427,7 +432,7 @@ class Parcours(BaseModel):
 class Unite(BaseModel):
     """Représente une unité d'enseignement (UE)."""
 
-    code = models.CharField(max_length=10, unique=True, verbose_name="الرمز / Code")
+    code = models.CharField(blank=True, null=True, max_length=10, unique=True, verbose_name="الرمز / Code")
     nom_ar = models.CharField(max_length=200, verbose_name="الوحدة", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Unité", blank=True, default="")
 
@@ -447,7 +452,7 @@ class Groupe(BaseModel):
     """Représente un groupe d'étudiants."""
 
     numero = models.CharField(max_length=5, verbose_name="الرقم / Numéro")
-    code = models.CharField(max_length=10, unique=True, verbose_name="الرمز / Code")
+    code = models.CharField(blank=True, null=True, max_length=10, unique=True, verbose_name="الرمز / Code")
     nom_ar = models.CharField(max_length=200, verbose_name="الفوج", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Groupe", blank=True, default="")
 
@@ -468,7 +473,7 @@ class Section(BaseModel):
     """Représente une section d'étudiants."""
 
     numero = models.CharField(max_length=5, verbose_name="الرقم / Numéro")
-    code = models.CharField(max_length=10, unique=True, verbose_name="الرمز / Code")
+    code = models.CharField(blank=True, null=True, max_length=10, unique=True, verbose_name="الرمز / Code")
     nom_ar = models.CharField(max_length=200, verbose_name="القطاع", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Section", blank=True, default="")
 
@@ -488,7 +493,7 @@ class Section(BaseModel):
 class Session(BaseModel):
     """Représente une session d'examens (Normale, Rattrapage)."""
 
-    code = models.CharField(max_length=10, unique=True, verbose_name="الرمز / Code")
+    code = models.CharField(blank=True, null=True, max_length=10, unique=True, verbose_name="الرمز / Code")
     nom_ar = models.CharField(max_length=200, verbose_name="الدورة", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Session", blank=True, default="")
 
@@ -507,7 +512,7 @@ class Session(BaseModel):
 class Reforme(BaseModel):
     """Représente une réforme pédagogique."""
 
-    code = models.CharField(max_length=10, unique=True, verbose_name="الرمز / Code")
+    code = models.CharField(blank=True, null=True, max_length=10, unique=True, verbose_name="الرمز / Code")
     nom_ar = models.CharField(max_length=200, verbose_name="الإصلاح", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Réforme", blank=True, default="")
     cycle = models.ForeignKey(
@@ -529,7 +534,7 @@ class Reforme(BaseModel):
 class Identification(BaseModel):
     """Représente un type d'identification."""
 
-    code = models.CharField(max_length=10, unique=True, verbose_name="الرمز / Code")
+    code = models.CharField(blank=True, null=True, max_length=10, unique=True, verbose_name="الرمز / Code")
     nom_ar = models.CharField(max_length=200, verbose_name="التعريف / Identification", blank=True, default="")
     nom_fr = models.CharField(max_length=200, verbose_name="Type d'identification", blank=True, default="")
 
@@ -617,8 +622,8 @@ class AffectationPoste(BaseModel):
     est_actif = models.BooleanField(default=True, verbose_name="نشط / Actif")
 
     class Meta:
-        verbose_name = "تعيين منصب"
-        verbose_name_plural = "تعيينات المناصب"
+        verbose_name = "تعيين منصب / Affectation de poste"
+        verbose_name_plural = "تعيينات المناصب / Affectations de postes"
         ordering = ["-poste__niveau", "user__last_name"]
         indexes = [
             models.Index(fields=["user", "est_actif"]),
@@ -742,8 +747,8 @@ class PostePermission(BaseModel):
     )
 
     class Meta:
-        verbose_name = "صلاحيات منصب"
-        verbose_name_plural = "صلاحيات المناصب"
+        verbose_name = "صلاحيات منصب / Permissions de poste"
+        verbose_name_plural = "صلاحيات المناصب / Permissions des postes"
 
     def __str__(self):
         return f"صلاحيات {self.poste}"

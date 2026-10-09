@@ -1,0 +1,729 @@
+{% extends 'departement/base_Dep.html' %}
+{% load static %}
+
+{% block title %}إضافة واستقدام أستاذ - قسم {{ my_Dep.nom_ar }}{% endblock %}
+
+{% block extra_css_dep %}
+<style>
+    .teacher-select-row {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .teacher-select-row:hover {
+        background-color: rgba(59, 130, 246, 0.05) !important;
+    }
+
+    .teacher-select-row.selected {
+        background-color: rgba(59, 130, 246, 0.12) !important;
+        border-right: 4px solid #2563eb;
+    }
+
+    .teacher-select-radio {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .nav-tabs-custom {
+        border-bottom: 2px solid #e2e8f0;
+        gap: 8px;
+    }
+
+    .nav-tabs-custom .nav-link {
+        border: none;
+        padding: 12px 20px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #64748b;
+        border-radius: 10px 10px 0 0;
+        background: transparent;
+        transition: all 0.2s ease;
+    }
+
+    .nav-tabs-custom .nav-link:hover {
+        color: #1e293b;
+        background: rgba(241, 245, 249, 0.7);
+    }
+
+    .nav-tabs-custom .nav-link.active {
+        color: #2563eb;
+        background: #ffffff;
+        border-bottom: 3px solid #2563eb;
+    }
+
+    .sticky-confirm-card {
+        position: sticky;
+        top: 80px;
+        z-index: 10;
+    }
+
+    .avatar-pill {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: rgba(59, 130, 246, 0.12);
+        color: #2563eb;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content_dep %}
+<div class="dep-page-container">
+
+    {% if nouveau_compte %}
+    <!-- ─── IDENTIFIANTS DU NOUVEAU COMPTE (affichés une seule fois) ─── -->
+    <div class="alert alert-success border-success shadow-sm mb-4" role="alert">
+        <h5 class="fw-bold mb-2"><i class="fas fa-key me-2"></i>حساب الأستاذ {{ nouveau_compte.nom }} / Compte créé</h5>
+        <div class="row g-2 align-items-center" dir="ltr">
+            <div class="col-md-5">
+                <label class="small text-muted d-block">Login</label>
+                <div class="input-group">
+                    <input type="text" class="form-control fw-bold" id="nc-login" value="{{ nouveau_compte.login }}" readonly>
+                    <button type="button" class="btn btn-outline-success" data-copy="nc-login"><i class="fas fa-copy"></i></button>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <label class="small text-muted d-block">Mot de passe</label>
+                <div class="input-group">
+                    <input type="text" class="form-control fw-bold" id="nc-pass" value="{{ nouveau_compte.mot_de_passe }}" readonly>
+                    <button type="button" class="btn btn-outline-success" data-copy="nc-pass"><i class="fas fa-copy"></i></button>
+                </div>
+            </div>
+        </div>
+        <small class="d-block mt-2">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            احفظ هذه المعلومات الآن: كلمة المرور لن تظهر مرة أخرى، وسيُطلب من الأستاذ تغييرها عند أول دخول.
+        </small>
+    </div>
+    <script>
+        document.querySelectorAll('[data-copy]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const input = document.getElementById(btn.dataset.copy);
+                navigator.clipboard.writeText(input.value);
+                btn.innerHTML = '<i class="fas fa-check"></i>';
+            });
+        });
+    </script>
+    {% endif %}
+
+    <!-- ─── HERO HEADER UNIFIÉ ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-user-plus" style="color: #ffd700;"></i>
+                    <span>إضافة واستقدام أستاذ للقسم</span>
+                </h1>
+                <p class="dep-hero-subtitle">
+                    <span>قسم {{ my_Dep.nom_ar }}</span>
+                    <span>•</span>
+                    <span>الموسم الجامعي {{ annee_univ.nom|default:"2026-2027" }}</span>
+                    <span>•</span>
+                    <span>انتداب أساتذة من أقسام أخرى وتعيين أعضاء هيئة التدريس</span>
+                </p>
+            </div>
+            <div class="dep-hero-actions">
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── ONGLETS DE SÉLECTION D'ACTION ─── -->
+    <ul class="nav nav-tabs-custom mb-4" id="actionTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab-import-btn" data-bs-toggle="tab" data-bs-target="#tab-import"
+                type="button" role="tab">
+                <i class="fas fa-exchange-alt me-2 text-primary"></i>
+                استقدام أستاذ من الأقسام والكليات الأخرى (انتداب وتدريس مشترك)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-create-btn" data-bs-toggle="tab" data-bs-target="#tab-create" type="button"
+                role="tab">
+                <i class="fas fa-user-plus me-2 text-success"></i>
+                تسجيل أستاذ غير دائم بالقسم (مؤقت / مشارك / دكتوراه)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-archived-btn" data-bs-toggle="tab" data-bs-target="#tab-archived" type="button"
+                role="tab">
+                <i class="fas fa-archive me-2 text-warning"></i>
+                سجل الأساتذة المؤرشفين بالقسم
+                {% if archived_teachers %}<span class="badge bg-warning text-dark ms-1">{{ archived_teachers|length }}</span>{% endif %}
+            </button>
+        </li>
+    </ul>
+
+    <!-- ─── CONTENU DES ONGLETS ─── -->
+    <div class="tab-content" id="actionTabsContent">
+
+        <!-- ══════════════════════════════════════════════════════════
+             ONGLET 1 : IMPORTATION DEPUIS UN AUTRE DÉPARTEMENT / AUTRE FACULTÉ
+             ══════════════════════════════════════════════════════════ -->
+        <div class="tab-pane fade show active" id="tab-import" role="tabpanel">
+            <div class="row g-4">
+                <!-- Colonne de Gauche : Liste des enseignants disponibles -->
+                <div class="col-lg-8">
+                    <div class="dep-table-card p-4">
+                        <div
+                            class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom flex-wrap gap-2">
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1">
+                                    <i class="fas fa-building-columns text-primary me-2"></i>
+                                    الأساتذة المتاحون من الأقسام والكليات الأخرى
+                                </h5>
+                                <p class="text-muted small mb-0">اختر الأستاذ المراد استقدامه للتدريس بقسم {{ my_Dep.nom_ar }} سواء من نفس الكلية أو من كليات أخرى بالجامعة مهما كانت صفته (مرسم، مؤقت، إلخ)</p>
+                            </div>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+                                <i class="fas fa-users me-1"></i> {{ other_teachers|length }} أستاذ متاح
+                            </span>
+                        </div>
+
+                        <!-- Notice informative métier -->
+                        <div class="alert alert-info border-0 rounded-3 d-flex align-items-start gap-3 p-3 mb-3"
+                            style="background: rgba(59, 130, 246, 0.08);">
+                            <i class="fas fa-info-circle text-primary fs-5 mt-1"></i>
+                            <div class="small text-dark lh-lg">
+                                <strong>القاعدة البيداغوجية والإدارية للاستقدام:</strong>
+                                يمكن لقسم <strong>{{ my_Dep.nom_ar }}</strong> استقدام أي أستاذ من أقسام الكلية أو من كليات الجامعة الأخرى مهما كانت حالته:
+                                إذا كان الأستاذ مرسماً في قسمه الأصلي، تسجل صفته بالقسم آلياً:
+                                <span class="badge bg-primary text-white ms-1 fw-bold">مرسم و مؤقت (Permanent & Vacataire)</span> (مثل حالة الأستاذ <em>بلقصير محمد</em> والأستاذ <em>دبي عبد المجيد</em>)،
+                                أما إذا كان غير مرسم فيمكن استقدامه بصفة مؤقت أو مشارك.
+                            </div>
+                        </div>
+
+                        <!-- Filtres de recherche -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-7">
+                                <div class="search-input-wrapper w-100">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="filterTeacherSearch"
+                                        placeholder="بحث باسم الأستاذ، الرتبة أو الشهادة، القسم أو الكلية..." autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <select id="filterDepSelect" class="form-select form-select-sm py-2">
+                                    <option value="">جميع الأقسام والكليات</option>
+                                    {% if departements_meme_fac %}
+                                    <optgroup label="أقسام الكلية الحالية ({{ my_Dep.faculte.sigle|default:my_Dep.faculte.nom_ar }})">
+                                        {% for dep in departements_meme_fac %}
+                                        <option value="{{ dep.nom_ar }}">{{ dep.nom_ar }}</option>
+                                        {% endfor %}
+                                    </optgroup>
+                                    {% endif %}
+                                    {% if departements_autres_facs %}
+                                    <optgroup label="أقسام الكليات الأخرى بالجامعة">
+                                        {% for dep in departements_autres_facs %}
+                                        <option value="{{ dep.nom_ar }}">{{ dep.nom_ar }} ({{ dep.faculte.sigle|default:dep.faculte.nom_ar }})</option>
+                                        {% endfor %}
+                                    </optgroup>
+                                    {% endif %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Tableau de sélection des enseignants -->
+                        <form method="POST" id="importTeacherForm">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="import_teacher">
+                            <input type="hidden" name="enseignant_id" id="selectedEnseignantIdInput" value="">
+
+                            <div class="table-responsive rounded-3 border">
+                                <table class="table ens-table align-middle mb-0" id="availableTeachersTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 45px;" class="text-center">اختيار</th>
+                                            <th>الأستاذ</th>
+                                            <th style="width: 140px;">الرتبة / الشهادة</th>
+                                            <th>القسم الأصلي والكلية</th>
+                                            <th>الصفة الأصلية</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in other_teachers %}
+                                        <tr class="teacher-select-row" data-id="{{ item.enseignant.id }}"
+                                            data-name="{{ item.enseignant.nom_ar }} {{ item.enseignant.prenom_ar }}"
+                                            data-name-fr="{{ item.enseignant.nom_fr }} {{ item.enseignant.prenom_fr }}"
+                                            data-grade="{% if item.enseignant.grade %}{{ item.enseignant.grade.code|default:item.enseignant.grade.nom_ar }}{% elif item.enseignant.diplome %}{{ item.enseignant.diplome.nom_ar|default:item.enseignant.diplome.nom_fr }}{% else %}-{% endif %}"
+                                            data-dep="{{ item.home_dep.nom_ar|default:'غير محدد' }}"
+                                            data-fac="{{ item.home_faculte.nom_ar|default:'' }}"
+                                            data-origin-statut="{{ item.origin_statut }}"
+                                            data-origin-statut-display="{{ item.origin_statut_display }}"
+                                            data-suggested-statut="{{ item.suggested_statut }}">
+                                            <td class="text-center">
+                                                <input type="radio" name="teacher_radio"
+                                                    value="{{ item.enseignant.id }}"
+                                                    class="teacher-select-radio form-check-input">
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="avatar-pill" style="{{ item.enseignant.avatar_style }}">{{ item.initiales }}</div>
+                                                    <div>
+                                                        <strong class="d-block text-dark">
+                                                            {{ item.enseignant.nom_ar }} {{ item.enseignant.prenom_ar }}
+                                                            {% if item.is_previously_archived %}
+                                                            <span class="badge bg-warning-subtle text-dark border border-warning-subtle ms-1" style="font-size: 0.68rem;" title="أستاذ سبق له التدريس بالقسم"><i class="fas fa-history me-1"></i> مؤرشف سابقاً</span>
+                                                            {% endif %}
+                                                        </strong>
+                                                        <small class="text-muted">{{ item.enseignant.nom_fr }} {{ item.enseignant.prenom_fr }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {% if item.enseignant.grade %}
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold">
+                                                    {{ item.enseignant.grade.nom_ar|default:item.enseignant.grade.code }}
+                                                </span>
+                                                {% elif item.enseignant.diplome %}
+                                                <span class="badge bg-light text-dark border fw-medium">
+                                                    {{ item.enseignant.diplome.nom_ar|default:item.enseignant.diplome.nom_fr }}
+                                                </span>
+                                                {% else %}
+                                                <span class="badge bg-light text-muted border">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if item.home_dep %}
+                                                <span
+                                                    class="badge bg-light text-primary border border-primary-subtle px-2 py-1 d-inline-block">
+                                                    <i class="fas fa-university me-1"></i> {{ item.home_dep.nom_ar }}
+                                                </span>
+                                                {% if item.home_faculte and not item.is_same_faculty %}
+                                                <div class="text-muted small mt-1" style="font-size: 0.72rem;">
+                                                    <i class="fas fa-landmark me-1 text-secondary"></i> {{ item.home_faculte.nom_ar }}
+                                                </div>
+                                                {% elif item.is_same_faculty %}
+                                                <div class="text-success small mt-1" style="font-size: 0.72rem;">
+                                                    <i class="fas fa-check-circle me-1"></i> نفس الكلية
+                                                </div>
+                                                {% endif %}
+                                                {% else %}
+                                                <span class="badge bg-light text-muted border">غير محدد</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if item.origin_statut == 'Permanent' %}
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                                    <i class="fas fa-shield-alt me-1"></i> مرسم
+                                                </span>
+                                                {% else %}
+                                                <span class="badge bg-secondary-subtle text-dark border">
+                                                    {{ item.origin_statut_display }}
+                                                </span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="5" class="text-center py-4 text-muted">
+                                                <i class="fas fa-check-circle text-success fs-3 mb-2 d-block"></i>
+                                                جميع الأساتذة مسجلون بالفعل في قسم {{ my_Dep.nom_ar }}.
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                    </div>
+                </div>
+
+                <!-- Colonne de Droite : Panneau de confirmation et d'affectation -->
+                <div class="col-lg-4">
+                    <div class="dep-table-card p-4 sticky-confirm-card">
+                        <h5 class="fw-bold mb-3 pb-2 border-bottom" style="color: #1b262c;">
+                            <i class="fas fa-file-signature text-warning me-2"></i>
+                            تأكيد الاستقدام والتكليف
+                        </h5>
+
+                        <!-- Carte résumé de l'enseignant sélectionné -->
+                        <div class="p-3 rounded-3 mb-3 bg-light border" id="selectedTeacherPreviewCard">
+                            <small class="text-muted d-block mb-1">الأستاذ المختار:</small>
+                            <h6 class="fw-bold text-dark mb-1" id="previewTeacherName">
+                                <i class="fas fa-hand-pointer text-muted me-1"></i> يرجى اختيار أستاذ من القائمة
+                            </h6>
+                            <div class="small text-muted" id="previewTeacherMeta">
+                                انقر على أي صف في الجدول للاختيار
+                            </div>
+                        </div>
+
+                        <!-- Statut dans le département -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-dark d-block">الصفة المقررة في قسم {{ my_Dep.nom_ar }}:</label>
+                            <select class="form-select form-select-sm py-2" name="statut" id="importStatutSelect">
+                                <option value="Permanent & Vacataire" selected>مرسم و مؤقت (Permanent & Vacataire)</option>
+                                <option value="Vacataire">مؤقت (Vacataire)</option>
+                                <option value="Associe">مشارك (Associe)</option>
+                                <option value="Doctorant">طالب دكتوراه (Doctorant)</option>
+                            </select>
+                            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;" id="importStatutHelp">
+                                إذا كان الأستاذ مرسماً في قسمه الأصلي، تصبح صفته بالقسم: <strong>مرسم و مؤقت</strong>.
+                            </small>
+                        </div>
+
+                        <!-- Semestres -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-dark d-block">فترة التدريس والتكليف:</label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="semestre_1"
+                                        id="import_semestre_1" checked>
+                                    <label class="form-check-label small fw-bold" for="import_semestre_1">السداسي 1
+                                        (S1)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="semestre_2"
+                                        id="import_semestre_2" checked>
+                                    <label class="form-check-label small fw-bold" for="import_semestre_2">السداسي 2
+                                        (S2)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Observation -->
+                        <div class="mb-4">
+                            <label for="import_observation" class="form-label fw-bold small text-dark">ملاحظات إدارية
+                                (اختياري):</label>
+                            <input type="text" class="form-control form-control-sm" name="observation"
+                                id="import_observation" placeholder="مثال: انتداب للتدريس لموسم 2026-2027">
+                        </div>
+
+                        <!-- Bouton de validation -->
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="btnConfirmImport" disabled>
+                            <i class="fas fa-check-circle me-1"></i>
+                            تأكيد استقدام الأستاذ للقسم
+                        </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════
+             ONGLET 2 : ENREGISTREMENT D'UN ENSEIGNANT NON-PERMANENT
+             ══════════════════════════════════════════════════════════ -->
+        <div class="tab-pane fade" id="tab-create" role="tabpanel">
+            <div class="row justify-content-center">
+                <div class="col-lg-9">
+                    <div class="dep-table-card p-4">
+                        <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                            <div
+                                style="width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.25)); display: flex; align-items: center; justify-content: center; color: #059669; font-size: 1.5rem;">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div>
+                                <h4 class="fw-bold mb-1" style="color: #1b262c;">تسجيل أستاذ غير دائم بالقسم</h4>
+                                <p class="text-muted mb-0 small">خاص بالأساتذة المؤقتين، المشاركين، وطلبة الدكتوراه التابعين للقسم.</p>
+                            </div>
+                        </div>
+
+                        <!-- Notice de prérogatives administratives (Tâches du Doyen) -->
+                        <div class="alert alert-warning border-0 rounded-3 d-flex align-items-start gap-3 p-3 mb-4"
+                            style="background: rgba(245, 158, 11, 0.1); border-right: 4px solid #f59e0b !important;">
+                            <i class="fas fa-user-shield text-warning fs-5 mt-1"></i>
+                            <div class="small text-dark lh-lg">
+                                <strong>تنبيه إداري حول الصلاحيات:</strong>
+                                تسجيل وتعيين الأساتذة الدائمين (<strong>مرسم / Permanent</strong>) هو من <strong>مهام وصلاحيات السيد عميد الكلية</strong> حصرياً.
+                                يقتصر دور رئيس القسم هنا على تسجيل <strong>الأساتذة غير الدائمين</strong> (مؤقت / Vacataire، مشارك / Associe، طالب دكتوراه / Doctorant)
+                                أو استقدام الأساتذة من الأقسام والكليات الأخرى عبر التبويب الأول أعلاه.
+                            </div>
+                        </div>
+
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="create_teacher">
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">اللقب بالعربية *</label>
+                                    <input type="text" class="form-control" name="nom_ar" required
+                                        placeholder="مثال: دبي">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">الاسم بالعربية *</label>
+                                    <input type="text" class="form-control" name="prenom_ar" required
+                                        placeholder="مثال: عبد المجيد">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">Nom (en français) *</label>
+                                    <input type="text" class="form-control" name="nom_fr" required
+                                        placeholder="Ex: DOBBI" dir="ltr">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">Prénom (en français) *</label>
+                                    <input type="text" class="form-control" name="prenom_fr" required
+                                        placeholder="Ex: Abdelmadjid" dir="ltr">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">الشهادة / Diplôme du candidat</label>
+                                    <select class="form-select" name="diplome_id">
+                                        <option value="">-- اختر الشهادة --</option>
+                                        {% for d in diplomes %}
+                                        <option value="{{ d.id }}">{{ d.nom_ar }} ({{ d.nom_fr }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small">التخصص</label>
+                                    <input type="text" class="form-control" name="specialite_ar" placeholder="مثال: إنتاج المحروقات">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small">Spécialité</label>
+                                    <input type="text" class="form-control" name="specialite_fr" placeholder="Ex: Production" dir="ltr">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">البريد الإلكتروني المهني</label>
+                                    <input type="email" class="form-control" name="email_prof"
+                                        placeholder="prenom.nom@univ-ouargla.dz" dir="ltr">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">الصفة غير الدائمة في القسم *</label>
+                                    <select class="form-select" name="statut" required>
+                                        <option value="Vacataire" selected>مؤقت (Vacataire)</option>
+                                        <option value="Associe">مشارك (Associe)</option>
+                                        <option value="Doctorant">طالب دكتوراه (Doctorant)</option>
+                                    </select>
+                                    <small class="text-muted d-block mt-1" style="font-size: 0.73rem;">
+                                        (التعيين بصفة دائم / مرسم يتم حصرياً عبر عمادة الكلية)
+                                    </small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small d-block">السداسيات</label>
+                                    <div class="d-flex gap-3 mt-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="semestre_1"
+                                                id="new_semestre_1" checked>
+                                            <label class="form-check-label small" for="new_semestre_1">السداسي 1
+                                                (S1)</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="semestre_2"
+                                                id="new_semestre_2" checked>
+                                            <label class="form-check-label small" for="new_semestre_2">السداسي 2
+                                                (S2)</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label fw-bold small">ملاحظات إضافية</label>
+                                    <input type="text" class="form-control" name="observation"
+                                        placeholder="ملاحظات اختيارية...">
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                                <a href="{% url 'depa:list_enseignants_dep' 1 %}"
+                                    class="btn btn-outline-secondary px-4">إلغاء</a>
+                                <button type="submit" class="btn btn-success px-4 fw-bold">
+                                    <i class="fas fa-save me-1"></i>
+                                    تسجيل وتعيين الأستاذ غير الدائم
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        <!-- ══════════════════════════════════════════════════════════
+             ONGLET 3 : REGISTRE DES ENSEIGNANTS ARCHIVÉS DU DÉPARTEMENT
+             ══════════════════════════════════════════════════════════ -->
+        <div class="tab-pane fade" id="tab-archived" role="tabpanel">
+            <div class="dep-table-card p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: center; color: #d97706; font-size: 1.4rem;">
+                            <i class="fas fa-archive"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-1" style="color: #1b262c;">سجل الأساتذة المؤرشفين بقسم {{ my_Dep.nom_ar }}</h4>
+                            <p class="text-muted mb-0 small">الأساتذة غير الدائمين أو المستقدمين الذين تم إنهاء تكليفهم أو حذفهم من القسم، وهم محفوظون هنا لإعادة استخدامهم وتنشيطهم مستقبلاً.</p>
+                        </div>
+                    </div>
+                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-3 py-2 fw-bold">
+                        <i class="fas fa-folder-open me-1"></i> {{ archived_teachers|length }} أستاذ مؤرشف
+                    </span>
+                </div>
+
+                <div class="alert alert-light border rounded-3 d-flex align-items-start gap-3 p-3 mb-4">
+                    <i class="fas fa-info-circle text-warning fs-5 mt-1"></i>
+                    <div class="small text-muted lh-lg">
+                        <strong>ملاحظة تنظيمية:</strong>
+                        حذف الأستاذ من القسم لا يحذف ملفه الشخصي ولا يؤثر على أي قسم أو كلية أخرى. يتم تحويل حالة تعيينه بالقسم فقط إلى <em>مؤرشف</em>.
+                        يمكنك استعادة أي أستاذ بالضغط على زر <strong>«استعادة وتنشيط»</strong> ليعود فوراً إلى جدول أساتذة القسم وقوائم التدريس.
+                    </div>
+                </div>
+
+                <div class="table-responsive rounded-3 border">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>الأستاذ</th>
+                                <th>الرتبة / الشهادة</th>
+                                <th>الصفة السابقة بالقسم</th>
+                                <th>تاريخ وملاحظات الأرشفة</th>
+                                <th class="text-center" style="width: 160px;">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for arch in archived_teachers %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-pill" style="{{ arch.enseignant.avatar_style }}">{{ arch.enseignant.initiales }}</div>
+                                        <div>
+                                            <strong class="d-block text-dark">{{ arch.enseignant.nom_ar }} {{ arch.enseignant.prenom_ar }}</strong>
+                                            <small class="text-muted">{{ arch.enseignant.nom_fr }} {{ arch.enseignant.prenom_fr }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if arch.enseignant.grade %}
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                        {{ arch.enseignant.grade.nom_ar|default:arch.enseignant.grade.code }}
+                                    </span>
+                                    {% elif arch.enseignant.diplome %}
+                                    <span class="badge bg-light text-dark border">
+                                        {{ arch.enseignant.diplome.nom_ar|default:arch.enseignant.diplome.nom_fr }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted small">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary-subtle text-dark border">
+                                        {{ arch.get_statut_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small class="text-muted d-block">
+                                        <i class="far fa-clock me-1"></i> {{ arch.updated_at|date:"Y-m-d H:i" }}
+                                    </small>
+                                    {% if arch.observation %}
+                                    <span class="small text-dark">{{ arch.observation }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <form action="{% url 'depa:restore_Enseignant' arch.id %}" method="post" class="d-inline"
+                                          onsubmit="return confirm('هل أنت متأكد من استعادة وتنشيط تعيين هذا الأستاذ بالقسم؟')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success fw-bold px-3 py-1">
+                                            <i class="fas fa-undo me-1"></i> استعادة وتنشيط
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="fas fa-box-open fs-2 mb-2 d-block opacity-50"></i>
+                                    لا يوجد أساتذة مؤرشفون في قسم {{ my_Dep.nom_ar }} حالياً.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ─── JAVASCRIPT DE SÉLECTION DYNAMIQUE ET FILTRAGE ─── -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const table = document.getElementById('availableTeachersTable');
+        if (!table) return;
+
+        const rows = table.querySelectorAll('.teacher-select-row');
+        const selectedInput = document.getElementById('selectedEnseignantIdInput');
+        const previewName = document.getElementById('previewTeacherName');
+        const previewMeta = document.getElementById('previewTeacherMeta');
+        const btnConfirm = document.getElementById('btnConfirmImport');
+        const searchInput = document.getElementById('filterTeacherSearch');
+        const depSelect = document.getElementById('filterDepSelect');
+        const importStatutSelect = document.getElementById('importStatutSelect');
+
+        // Clic sur une ligne pour sélectionner l'enseignant
+        rows.forEach(row => {
+            row.addEventListener('click', function (e) {
+                // Uncheck previous
+                rows.forEach(r => {
+                    r.classList.remove('selected');
+                    const radio = r.querySelector('.teacher-select-radio');
+                    if (radio) radio.checked = false;
+                });
+
+                // Select this
+                this.classList.add('selected');
+                const radio = this.querySelector('.teacher-select-radio');
+                if (radio) radio.checked = true;
+
+                const teacherId = this.dataset.id;
+                const teacherName = this.dataset.name;
+                const teacherNameFr = this.dataset.nameFr;
+                const teacherGrade = this.dataset.grade;
+                const teacherDep = this.dataset.dep;
+                const teacherFac = this.dataset.fac;
+                const suggestedStatut = this.dataset.suggestedStatut;
+                const originStatutDisplay = this.dataset.originStatutDisplay;
+
+                selectedInput.value = teacherId;
+                previewName.innerHTML = `<span class="text-primary">${teacherName}</span> <small class="text-muted">(${teacherNameFr})</small>`;
+                
+                let metaHtml = `<span class="badge bg-light text-dark border me-1">${teacherGrade}</span> `;
+                metaHtml += `<span class="badge bg-light text-primary border me-1"><i class="fas fa-university me-1"></i> ${teacherDep}</span> `;
+                if (teacherFac) {
+                    metaHtml += `<span class="badge bg-light text-secondary border me-1"><i class="fas fa-landmark me-1"></i> ${teacherFac}</span> `;
+                }
+                metaHtml += `<span class="badge bg-light text-dark border">الأصل: ${originStatutDisplay}</span>`;
+                previewMeta.innerHTML = metaHtml;
+
+                // Sélectionner automatiquement le statut approprié
+                if (importStatutSelect && suggestedStatut) {
+                    importStatutSelect.value = suggestedStatut;
+                }
+
+                btnConfirm.disabled = false;
+            });
+        });
+
+        // Filtre combiné (recherche textuelle + département/faculté)
+        function applyFilter() {
+            const query = searchInput.value.toLowerCase().trim();
+            const selectedDep = depSelect.value.trim();
+
+            rows.forEach(row => {
+                const name = (row.dataset.name || '').toLowerCase();
+                const nameFr = (row.dataset.nameFr || '').toLowerCase();
+                const dep = row.dataset.dep || '';
+                const fac = (row.dataset.fac || '').toLowerCase();
+                const grade = (row.dataset.grade || '').toLowerCase();
+
+                const matchQuery = !query || name.includes(query) || nameFr.includes(query) || grade.includes(query) || dep.toLowerCase().includes(query) || fac.includes(query);
+                const matchDep = !selectedDep || dep === selectedDep;
+
+                if (matchQuery && matchDep) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        if (searchInput) searchInput.addEventListener('input', applyFilter);
+        if (depSelect) depSelect.addEventListener('change', applyFilter);
+    });
+</script>
+{% endblock %}

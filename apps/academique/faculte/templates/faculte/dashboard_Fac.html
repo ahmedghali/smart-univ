@@ -1,0 +1,137 @@
+{% extends 'faculte/base_Fac.html' %}
+
+{# Tableau de bord du doyen : même structure que celui du chef de département #}
+
+{% block content_fac %}
+<div class="dep-page-container">
+
+    <!-- ─── Bandeau de titre ─── -->
+    <div class="dep-page-hero">
+        <div class="dep-hero-content">
+            <div class="dep-hero-titles">
+                <h1>
+                    <i class="fas fa-university" style="color: #ffd700;"></i>
+                    <span>{{ my_Fac.nom_complet_ar }}</span>
+                </h1>
+                <p class="dep-hero-subtitle">
+                    {% if my_Fac.nom_fr %}<span dir="ltr">{{ my_Fac.nom_fr }}</span>{% endif %}
+                    {% if annee_courante %}<span>•</span><span>السنة الجامعية {{ annee_courante.nom }}</span>{% endif %}
+                </p>
+            </div>
+            <div class="dep-hero-actions">
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Indicateurs ─── -->
+    <div class="dsh-kpis">
+        <a class="dsh-kpi" href="{% url 'facu:list_departements_fac' %}">
+            <div class="dsh-kpi-head"><span>الأقسام</span><i class="fas fa-building"></i></div>
+            <div class="dsh-kpi-value">{{ departements|length }}</div>
+            <div class="dsh-kpi-sub">أقسام الكلية المعتمدة</div>
+        </a>
+        <a class="dsh-kpi" href="{% url 'facu:list_enseignants_fac' 1 %}">
+            <div class="dsh-kpi-head"><span>الأساتذة</span><i class="fas fa-chalkboard-teacher"></i></div>
+            <div class="dsh-kpi-value">{{ totaux.enseignants }}</div>
+            <div class="dsh-kpi-sub">معيّنون في السنة الجارية</div>
+        </a>
+        <a class="dsh-kpi" href="{% url 'facu:list_etudiants_fac' %}">
+            <div class="dsh-kpi-head"><span>الطلبة</span><i class="fas fa-user-graduate"></i></div>
+            <div class="dsh-kpi-value">{{ totaux.etudiants }}</div>
+            <div class="dsh-kpi-sub">مسجلون في مختلف الأطوار</div>
+        </a>
+        <a class="dsh-kpi" href="{% url 'facu:list_Specialite_Fac' %}">
+            <div class="dsh-kpi-head"><span>التخصصات والمقررات</span><i class="fas fa-sitemap"></i></div>
+            <div class="dsh-kpi-value">{{ totaux.specialites }}</div>
+            <div class="dsh-kpi-sub"><strong>{{ totaux.matieres }}</strong> مادة ومقرر دراسي</div>
+        </a>
+        <a class="dsh-kpi" href="{% url 'facu:infrastructures_Fac' %}">
+            <div class="dsh-kpi-head"><span>الهياكل والقاعات</span><i class="fas fa-building-columns"></i></div>
+            <div class="dsh-kpi-value">{{ totaux.rooms|default:0 }}</div>
+            <div class="dsh-kpi-sub">{{ totaux.amphis }} مدرج · {{ totaux.salles }} قاعة · {{ totaux.labos }} مخبر</div>
+        </a>
+    </div>
+
+    <div class="dsh-grid">
+
+        <!-- ─── Départements ─── -->
+        <div class="dsh-panel" id="departements">
+            <h2 class="dsh-panel-title"><i class="fas fa-building"></i>أقسام الكلية</h2>
+            {% if departements %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>القسم</th>
+                            <th class="text-center">الأساتذة</th>
+                            <th class="text-center">الطلبة</th>
+                            <th class="text-center">التخصصات</th>
+                            <th class="text-center">المواد</th>
+                            <th class="text-center">الهياكل والقاعات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in departements %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'facu:list_departements_fac' %}" class="text-decoration-none text-dark fw-bold hover-primary">
+                                    {{ d.dep.nom_ar }}
+                                </a>
+                                {% if d.dep.nom_fr %}<small class="d-block text-muted" dir="ltr">{{ d.dep.nom_fr }}</small>{% endif %}
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'facu:list_enseignants_fac' 1 %}?dep={{ d.dep.id }}" class="badge bg-light text-dark border text-decoration-none px-2 py-1">
+                                    {{ d.enseignants }}
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'facu:list_etudiants_fac' %}?dep={{ d.dep.id }}" class="badge bg-light text-dark border text-decoration-none px-2 py-1">
+                                    {{ d.etudiants }}
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'facu:list_Specialite_Fac' %}?dep={{ d.dep.id }}" class="badge bg-light text-dark border text-decoration-none px-2 py-1">
+                                    {{ d.specialites }}
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'facu:list_Mat_Fac' %}?dep={{ d.dep.id }}" class="badge bg-light text-dark border text-decoration-none px-2 py-1">
+                                    {{ d.matieres }}
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'facu:infrastructures_Fac' %}?dep={{ d.dep.id }}" class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fw-bold text-decoration-none">
+                                    {{ d.rooms }} مكان
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="dsh-empty mb-0">لا توجد أقسام مسجلة في هذه الكلية.</p>
+            {% endif %}
+        </div>
+
+        <!-- ─── Direction de la faculté ─── -->
+        <div class="dsh-panel">
+            <h2 class="dsh-panel-title"><i class="fas fa-user-shield"></i>إدارة الكلية</h2>
+            {% for aff in direction %}
+                {% with ens=aff.user.enseignant_profile %}
+                <div class="dsh-person">
+                    <span class="dsh-avatar">{% if ens %}{{ ens.initiales }}{% else %}{{ aff.user.avatar_initiales|default:"—" }}{% endif %}</span>
+                    <span>
+                        <span class="dsh-person-role">{{ aff.poste.nom_ar|default:aff.poste.nom_fr }}</span>
+                        <span class="dsh-person-name">{% if ens %}{{ ens.nom_ar }} {{ ens.prenom_ar }}{% else %}{{ aff.user.get_full_name|default:aff.user.username }}{% endif %}</span>
+                    </span>
+                </div>
+                {% endwith %}
+            {% empty %}
+                <p class="dsh-empty mb-0">لم يتم تعيين مسؤولي الكلية بعد.</p>
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

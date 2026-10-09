@@ -43,7 +43,7 @@ class DepartementForm(forms.ModelForm):
             "telfix2": forms.TextInput(attrs={"class": "form-control"}),
             "tel3chiffre": forms.TextInput(attrs={"class": "form-control", "placeholder": "xxx"}),
             "fax": forms.TextInput(attrs={"class": "form-control"}),
-            "email": forms.EmailInput(attrs={"class": "form-control", "placeholder": "email@univ.dz"}),
+            "email": forms.EmailInput(attrs={"class": "form-control", "placeholder": "email@univ-ouargla.dz"}),
             "siteweb": forms.URLInput(attrs={"class": "form-control", "placeholder": "https://"}),
             "facebook": forms.URLInput(attrs={"class": "form-control", "placeholder": "https://facebook.com/..."}),
             "x_twitter": forms.URLInput(attrs={"class": "form-control", "placeholder": "https://x.com/..."}),

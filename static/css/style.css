@@ -47,7 +47,7 @@ body {
 
 /* Footer */
 .footer {
-    background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);
+    background: linear-gradient(135deg, #344d59 0%, #000000 100%);
 }
 
 /* Responsive adjustments */
@@ -99,5 +99,5 @@ p, li, span {
 
 /* Hero section gradient */
 .bg-primary {
-    background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%) !important;
+    background: linear-gradient(135deg, #344d59 0%, #000000 100%) !important;
 }

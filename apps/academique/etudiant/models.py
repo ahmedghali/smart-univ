@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from apps.academique.departement.models import NivSpeDep_SG
-from apps.noyau.authentification.models import CustomUser
+from apps.noyau.authentification.models import CustomUser, get_avatar_palette_for
 from apps.noyau.commun.models import BaseModel, Wilaya
 
 # ══════════════════════════════════════════════════════════════
@@ -225,6 +225,20 @@ class Etudiant(BaseModel):
         prenom = self.prenom_ar or self.prenom_fr or ""
         return f"{nom} {prenom}".strip() or self.matricule
 
+    @property
+    def is_feminin(self):
+        """Vérifie si l'étudiant est de sexe féminin."""
+        if self.sexe in [self.Sexe.F, "أنثى", "F", "Femme", "femme", "female"]:
+            return True
+        if self.civilite in [self.Civilite.MME, self.Civilite.MLLE, "Mme", "Mlle", "السيدة", "الآنسة"]:
+            return True
+        return False
+
+    @property
+    def titre_etudiant_ar(self):
+        """Retourne 'الطالبة' si féminin, sinon 'الطالب'."""
+        return "الطالبة" if self.is_feminin else "الطالب"
+
     def get_nom_complet(self, langue="ar"):
         """Retourne le nom complet selon la langue."""
         if langue == "ar":
@@ -235,6 +249,54 @@ class Etudiant(BaseModel):
             nom = self.nom_fr or self.nom_ar or ""
             prenom = self.prenom_fr or self.prenom_ar or ""
             return f"{prenom} {nom}".strip() or self.matricule
+
+    @property
+    def initiales(self):
+        """Retourne les deux premières lettres (en Français) du Nom et Prénom séparées par un point."""
+        if self.nom_fr and self.prenom_fr:
+            n = self.nom_fr.strip().upper()
+            p = self.prenom_fr.strip().upper()
+            if n and p:
+                return f"{n[0]}.{p[0]}"
+        if self.user and self.user.last_name and self.user.first_name:
+            n = self.user.last_name.strip().upper()
+            p = self.user.first_name.strip().upper()
+            if n and p:
+                return f"{n[0]}.{p[0]}"
+        if self.nom_ar and self.prenom_ar:
+            n = self.nom_ar.strip()
+            p = self.prenom_ar.strip()
+            if n and p:
+                return f"{n[0]}.{p[0]}"
+        return "E.T"
+
+    @property
+    def avatar_palette(self):
+        """Palette de couleur harmonieuse et déterministe pour l'étudiant."""
+        if self.user:
+            return self.user.avatar_palette
+        return get_avatar_palette_for(self.id or self.matricule or f"{self.nom_fr} {self.prenom_fr}")
+
+    @property
+    def avatar_bg(self):
+        return self.avatar_palette["bg"]
+
+    @property
+    def avatar_color(self):
+        return self.avatar_palette["color"]
+
+    @property
+    def avatar_border(self):
+        return self.avatar_palette["border"]
+
+    @property
+    def avatar_gradient(self):
+        return self.avatar_palette["gradient"]
+
+    @property
+    def avatar_style(self):
+        p = self.avatar_palette
+        return f"background: {p['gradient']}; color: {p['color']};"
 
     def get_niveau_info(self):
         """Retourne les informations du niveau, spécialité, département."""

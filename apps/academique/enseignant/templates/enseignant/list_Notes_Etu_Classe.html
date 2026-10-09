@@ -286,7 +286,7 @@ small {
 {% endblock %}
 
 {% block content_ens %}
-<div class="grey_zone m-1 p-2">
+<div class="dep-page-container">
   <!-- En-tête de la page -->
   <div class="d-flex justify-content-between align-items-center mb-2">
     <div>
@@ -300,9 +300,6 @@ small {
       </h6>
     </div>
     <div>
-      <a href="{% url 'ense:timeTable_Ens' my_Dep.id %}" class="btn btn-outline-secondary btn-sm me-1">
-        <i class="fas fa-arrow-left"></i> العودة
-      </a>
       <!-- Boutons d'export -->
       <button type="button" class="btn btn-success btn-sm me-1" id="export-excel">
         <i class="fas fa-file-excel"></i> تصدير Excel
